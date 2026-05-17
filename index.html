@@ -83,6 +83,9 @@ body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,s
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surf);border:1px solid var(--brd);color:var(--txt);font-size:13px;padding:10px 20px;border-radius:30px;z-index:200;transition:transform .3s,opacity .3s;opacity:0;white-space:nowrap;}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
 .hint{font-size:11px;color:var(--mut);text-align:center;line-height:1.7;margin-top:4px;}
+.bh-archive{border-color:#34a853;color:#34a853;}
+.bh-archive:hover{border-color:#34a853;background:rgba(52,168,83,.08);}
+.bh-archive:disabled{opacity:.5;cursor:not-allowed;}
 /* Toggle switch */
 .toggle-switch{position:relative;display:inline-block;width:48px;height:26px;flex-shrink:0;}
 .toggle-switch input{opacity:0;width:0;height:0;}
@@ -93,9 +96,6 @@ body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,s
 .stamp-zone-disabled{opacity:.35;pointer-events:none;}
 .bh-drive{border-color:#4285f4;color:#4285f4;}
 .bh-drive:hover{border-color:#4285f4;background:rgba(66,133,244,.08);}
-.bh-archive{border-color:#34a853;color:#34a853;}
-.bh-archive:hover{border-color:#34a853;background:rgba(52,168,83,.08);}
-.bh-archive:disabled{opacity:.5;cursor:not-allowed;}
 .drive-msg{font-size:11px;text-align:center;min-height:16px;margin-bottom:6px;transition:color .2s;}
 .drive-msg.ok{color:#4ae8a0;} .drive-msg.err{color:var(--dan);} .drive-msg.info{color:var(--mut);}
 .parse-box{background:var(--surf2);border:1px solid var(--brd);border-radius:10px;padding:14px;margin-bottom:14px;display:none;}
@@ -834,20 +834,20 @@ window.addEventListener('load', () => {
 
 
 // ── Archive to Drive ─────────────────────────────────────────────
-const ARCHIVE_FOLDER = '1ywctaRSj0XWrY6MHjkWsvDCULxrNLSVd';
+const ARCHIVE_FOLDER='1ywctaRSj0XWrY6MHjkWsvDCULxrNLSVd';
 
 async function archiveToDrive(){
   const btn=document.getElementById('archiveBtn');
-  btn.disabled=true; btn.textContent='⏳ Подготовка...';
+  btn.disabled=true;
+  btn.textContent='⏳ Подготовка...';
   try{
-    // Auth if needed (reuse existing token)
     if(!gAccessToken){
       dMsg('Авторизация...','info');
       await new Promise((res,rej)=>{
         gTokenClient=google.accounts.oauth2.initTokenClient({
           client_id:GCLIENT_ID,
           scope:'https://www.googleapis.com/auth/drive',
-          callback:(r)=>{ if(r.error){rej(new Error(r.error));return;} gAccessToken=r.access_token; res(); }
+          callback:(r)=>{if(r.error){rej(new Error(r.error));return;}gAccessToken=r.access_token;res();}
         });
         gTokenClient.requestAccessToken({prompt:'consent'});
       });
@@ -856,50 +856,37 @@ async function archiveToDrive(){
     const year=d.docDate?d.docDate.split('.')[2]:String(new Date().getFullYear());
     btn.textContent='⏳ Папка '+year+'...';
     const folderId=await findOrCreateFolder(year,ARCHIVE_FOLDER);
-
     btn.textContent='⏳ Генерирую PDF...';
     const {jsPDF}=window.jspdf;
-
-    // Invoice PDF
-    const doc1=new jsPDF({unit:"mm",format:"a4"});
-    setupFonts(doc1);
-    genInvoiceToDoc(doc1,d);
-    const blob1=doc1.output('blob');
-
-    // Act PDF
-    const doc2=new jsPDF({unit:"mm",format:"a4"});
-    setupFonts(doc2);
-    genActToDoc(doc2,d);
-    const blob2=doc2.output('blob');
-
-    btn.textContent='⏳ Загрузка на Drive...';
+    const doc1=new jsPDF({unit:"mm",format:"a4"});setupFonts(doc1);genInvoiceToDoc(doc1,d);
+    const doc2=new jsPDF({unit:"mm",format:"a4"});setupFonts(doc2);genActToDoc(doc2,d);
     const n1='schet_'+d.num+'_'+d.docDate.replace(/\./g,'-')+'.pdf';
     const n2='akt_'+d.num+'_'+d.actDate.replace(/\./g,'-')+'.pdf';
-    await driveUpload(blob1,n1,folderId);
-    await driveUpload(blob2,n2,folderId);
-
-    dMsg('✅ Сохранено в папку '+year+': '+n1+' и '+n2,'ok');
+    btn.textContent='⏳ Загрузка...';
+    await driveUpload(doc1.output('blob'),n1,folderId);
+    await driveUpload(doc2.output('blob'),n2,folderId);
+    dMsg('✅ Сохранено в '+year+': '+n1+' и '+n2,'ok');
     showToast('✅ Архив обновлён!');
   }catch(e){
     dMsg('Ошибка: '+e.message,'err');
     console.error(e);
   }finally{
-    btn.disabled=false; btn.textContent='📤 Отправить в архив поездок';
+    btn.disabled=false;
+    btn.textContent='📤 Отправить в архив поездок';
   }
 }
 
 async function findOrCreateFolder(name,parentId){
   const q=encodeURIComponent(`mimeType='application/vnd.google-apps.folder' and name='${name}' and '${parentId}' in parents and trashed=false`);
-  const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`,
-    {headers:{Authorization:'Bearer '+gAccessToken}});
+  const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`,{headers:{Authorization:'Bearer '+gAccessToken}});
   const data=await r.json();
-  if(data.files&&data.files.length>0) return data.files[0].id;
+  if(data.files&&data.files.length>0)return data.files[0].id;
   const cr=await fetch('https://www.googleapis.com/drive/v3/files',{
     method:'POST',
     headers:{Authorization:'Bearer '+gAccessToken,'Content-Type':'application/json'},
     body:JSON.stringify({name,mimeType:'application/vnd.google-apps.folder',parents:[parentId]})
   });
-  const f=await cr.json(); return f.id;
+  const f=await cr.json();return f.id;
 }
 
 async function driveUpload(blob,name,folderId){
@@ -911,57 +898,205 @@ async function driveUpload(blob,name,folderId){
   const p3=new Uint8Array(await blob.arrayBuffer());
   const p4=enc.encode(`\r\n--${boundary}--`);
   const body=new Uint8Array(p1.length+p2.length+p3.length+p4.length);
-  let o=0; body.set(p1,o);o+=p1.length; body.set(p2,o);o+=p2.length;
-  body.set(p3,o);o+=p3.length; body.set(p4,o);
+  let o=0;body.set(p1,o);o+=p1.length;body.set(p2,o);o+=p2.length;body.set(p3,o);o+=p3.length;body.set(p4,o);
   const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
     method:'POST',
-    headers:{Authorization:'Bearer '+gAccessToken,`Content-Type`:`multipart/related; boundary=${boundary}`},
+    headers:{Authorization:'Bearer '+gAccessToken,'Content-Type':`multipart/related; boundary=${boundary}`},
     body
   });
   if(!r.ok){const e=await r.json();throw new Error(e.error?.message||'Upload failed');}
 }
 
-// Aliases for archive: same as genInvoice/genAct but no doc.save()
+// PDF draw functions (no doc.save — for archive use)
 function genInvoiceToDoc(doc,d){
-  const ml=10,cw=190; let y=8;
+    const doc=nDoc(); const ml=10,cw=190; let y=8;
   const c1=30,c2=60,c3=22,c4=cw-c1-c2-c3,rh=6.5;
-  function hr(cells,ry,bg){const ws=[c1,c2,c3,c4];doc.setDrawColor(0);doc.setLineWidth(0.25);if(bg){doc.setFillColor(...bg);doc.rect(ml,ry,cw,rh,"F");}doc.rect(ml,ry,cw,rh);let cx=ml;cells.forEach((cell,i)=>{if(i>0)doc.line(cx,ry,cx,ry+rh);sf(doc,cell.sz||8,cell.b||false);doc.setTextColor(...(cell.col||[0,0,0]));const ll=doc.splitTextToSize(cell.t||"",ws[i]-4);const lh=(cell.sz||8)*0.42;const ty=ry+rh/2-ll.length*lh/2+lh*0.85;ll.forEach((l,j)=>doc.text(l,cx+2,ty+j*lh));cx+=ws[i];});doc.setTextColor(0,0,0);}
-  hr([{t:"Получатель",b:true,col:[70,70,70],sz:7.5},{t:"ИП Карпов Сергей Викторович",b:true,sz:8.5},{t:"Банк",b:true,col:[70,70,70],sz:7.5},{t:"ПАО СБЕРБАНК г. Москва",sz:8}],y,[242,242,242]);y+=rh;
-  hr([{t:"ИНН",col:[100,100,100],sz:7.5},{t:"771313296859",sz:8},{t:"БИК",col:[100,100,100],sz:7.5},{t:"044525225",sz:8}],y);y+=rh;
-  hr([{t:"Сч. №",col:[100,100,100],sz:7.5},{t:"40802810438000085714",sz:7.8},{t:"Сч. №",col:[100,100,100],sz:7.5},{t:"30101810400000000225",sz:7.8}],y);y+=rh;
-  const rh4=7.5;doc.setDrawColor(0);doc.setLineWidth(0.25);doc.rect(ml,y,cw,rh4);doc.line(ml+c1,y,ml+c1,y+rh4);sf(doc,7.5,false);doc.setTextColor(100,100,100);doc.text("Адрес / Тел.",ml+2,y+4.8);doc.setTextColor(0,0,0);sf(doc,8,false);const aW=cw-c1-4;const aL=doc.splitTextToSize("127591 г. Москва, Керамический пр. д.65, к.2, кв.186    тел. 8-964-785-13-86",aW);jl(doc,aL,ml+c1+2,y+rh4/2-aL.length*3.8/2+3.8*0.9,aW,3.8);y+=rh4+6;
-  sf(doc,11,true);doc.text("Счёт на оплату №"+d.num+" от "+d.docDate,ml,y);y+=2;doc.setLineWidth(1.2);doc.line(ml,y+1,ml+cw,y+1);y+=8;
-  ["Заказчик:","Плательщик:"].forEach(lbl=>{const cf=d.customerName+", ИНН "+d.customerInn+", КПП "+d.customerKpp+", "+d.customerAddr;sf(doc,8,false);const vW=cw-28;const cl=doc.splitTextToSize(cf,vW-4);const rH=cl.length*4+5;doc.setDrawColor(0);doc.setLineWidth(0.25);doc.rect(ml,y,cw,rH);doc.line(ml+28,y,ml+28,y+rH);sf(doc,8,true);doc.setTextColor(50,50,50);doc.text(lbl,ml+2,y+rH/2+1.5);doc.setTextColor(0,0,0);sf(doc,8,false);jl(doc,cl,ml+30,y+3.5,vW-4,4);y+=rH;});y+=4;
-  y=drawServiceBlock(doc,d,y,ml,cw,"Товары (работы, услуги)");y+=2;
-  const sw=tw(doc," ");
-  const a1="Всего оказано услуг 1, на сумму:";sf(doc,8,false);doc.text(a1,ml,y);sf(doc,8.5,true);doc.text(d.amountInt+" руб 00 копеек",ml+tw(doc,a1)+sw,y);y+=5;
-  const a2="Всего оказано услуг на сумму:";sf(doc,8,false);doc.text(a2,ml,y);sf(doc,8.5,true);doc.text(d.amountWords,ml+tw(doc,a2)+sw,y);doc.setTextColor(0,0,0);y+=9;
-  doc.setLineWidth(1.2);doc.line(ml,y,ml+cw,y);y+=13;
-  const ss=ml+27,se=ml+80;sf(doc,8,false);doc.text("Исполнитель",ml,y);doc.setLineWidth(0.3);doc.line(ss,y+1,se,y+1);sf(doc,7,false);doc.setTextColor(130,130,130);tC(doc,"(подпись)",(ss+se)/2,y+5);doc.setTextColor(0,0,0);sf(doc,8,true);doc.text("Карпов С.В.",se+3,y);
-  if(stampUrl&&isStampEnabled()){const stW=32,stH=22,stX=(ss+se)/2-stW/2;try{doc.addImage(stampUrl,"PNG",stX,y-stH+9,stW,stH,undefined,"FAST");}catch(e){}}
-}
 
+  function hr(cells,ry,bg){
+    const ws=[c1,c2,c3,c4];
+    doc.setDrawColor(0); doc.setLineWidth(0.25);
+    if(bg){doc.setFillColor(...bg); doc.rect(ml,ry,cw,rh,"F");}
+    doc.rect(ml,ry,cw,rh);
+    let cx=ml;
+    cells.forEach((cell,i)=>{
+      if(i>0) doc.line(cx,ry,cx,ry+rh);
+      sf(doc,cell.sz||8,cell.b||false);
+      doc.setTextColor(...(cell.col||[0,0,0]));
+      const ll=doc.splitTextToSize(cell.t||"",ws[i]-4);
+      const lh=(cell.sz||8)*0.42;
+      const ty=ry+rh/2-ll.length*lh/2+lh*0.85;
+      ll.forEach((l,j)=>doc.text(l,cx+2,ty+j*lh));
+      cx+=ws[i];
+    });
+    doc.setTextColor(0,0,0);
+  }
+
+  hr([{t:"Получатель",b:true,col:[70,70,70],sz:7.5},{t:"ИП Карпов Сергей Викторович",b:true,sz:8.5},
+      {t:"Банк",b:true,col:[70,70,70],sz:7.5},{t:"ПАО СБЕРБАНК г. Москва",sz:8}],y,[242,242,242]); y+=rh;
+  hr([{t:"ИНН",col:[100,100,100],sz:7.5},{t:"771313296859",sz:8},
+      {t:"БИК",col:[100,100,100],sz:7.5},{t:"044525225",sz:8}],y); y+=rh;
+  hr([{t:"Сч. №",col:[100,100,100],sz:7.5},{t:"40802810438000085714",sz:7.8},
+      {t:"Сч. №",col:[100,100,100],sz:7.5},{t:"30101810400000000225",sz:7.8}],y); y+=rh;
+
+  const rh4=7.5;
+  doc.setDrawColor(0); doc.setLineWidth(0.25);
+  doc.rect(ml,y,cw,rh4); doc.line(ml+c1,y,ml+c1,y+rh4);
+  sf(doc,7.5,false); doc.setTextColor(100,100,100); doc.text("Адрес / Тел.",ml+2,y+4.8);
+  doc.setTextColor(0,0,0); sf(doc,8,false);
+  const aW=cw-c1-4;
+  const aL=doc.splitTextToSize("127591 г. Москва, Керамический пр. д.65, к.2, кв.186    тел. 8-964-785-13-86",aW);
+  jl(doc,aL, ml+c1+2, y+rh4/2-aL.length*3.8/2+3.8*0.9, aW, 3.8);
+  y+=rh4+6;
+
+  sf(doc,11,true); doc.text("Счёт на оплату №"+d.num+" от "+d.docDate,ml,y);
+  y+=2; doc.setLineWidth(1.0); doc.line(ml,y+1,ml+cw,y+1); y+=8;
+
+  ["Заказчик:","Плательщик:"].forEach(lbl=>{
+    const cf=d.customerName+", ИНН "+d.customerInn+", КПП "+d.customerKpp+", "+d.customerAddr;
+    sf(doc,8,false); const vW=cw-28;
+    const cl=doc.splitTextToSize(cf,vW-4);
+    const rH=cl.length*4+5;
+    doc.setDrawColor(0); doc.setLineWidth(0.25);
+    doc.rect(ml,y,cw,rH); doc.line(ml+28,y,ml+28,y+rH);
+    sf(doc,8,true); doc.setTextColor(50,50,50); doc.text(lbl,ml+2,y+rH/2+1.5);
+    doc.setTextColor(0,0,0); sf(doc,8,false);
+    jl(doc,cl,ml+30,y+3.5,vW-4,4); y+=rH;
+  });
+  y+=4;
+
+  y=drawServiceBlock(doc,d,y,ml,cw,"Товары (работы, услуги)");
+  y+=2;
+
+  // Amount lines — colon added, bold value
+  const a1="Всего оказано услуг 1, на сумму:";
+  sf(doc,8,false); doc.text(a1,ml,y);
+  const lw1=tw(doc,a1)+" "; // add a space gap
+  sf(doc,8,false); const spaceW=tw(doc," ");
+  sf(doc,8.5,true); doc.text(d.amountInt+" руб 00 копеек", ml+tw(doc,a1)+spaceW, y);
+  y+=5;
+  const a2="Всего оказано услуг на сумму:";
+  sf(doc,8,false); doc.text(a2,ml,y);
+  sf(doc,8.5,true); doc.text(d.amountWords, ml+tw(doc,a2)+spaceW, y);
+  doc.setTextColor(0,0,0); y+=9;
+
+  // Divider
+  doc.setLineWidth(1.2); doc.line(ml,y,ml+cw,y);
+  y+=13;
+
+  // Signature line
+  const ss=ml+27, se=ml+80;
+  sf(doc,8,false); doc.text("Исполнитель",ml,y);
+  doc.setLineWidth(0.3); doc.line(ss,y+1,se,y+1);
+  sf(doc,7,false); doc.setTextColor(130,130,130);
+  tC(doc,"(подпись)",(ss+se)/2,y+5);
+  doc.setTextColor(0,0,0); sf(doc,8,true);
+  doc.text("Карпов С.В.",se+3,y);
+
+  // Stamp: centred over sig line, top = y+2 (below baseline, no overlap with divider)
+  if(stampUrl && isStampEnabled()){
+    const stW=32, stH=22;
+    const stX=(ss+se)/2-stW/2;
+    try{doc.addImage(stampUrl,"PNG",stX,y-stH+9,stW,stH,undefined,"FAST");}catch(e){}
+  }
+
+  doc.save("schet_"+d.num+"_"+d.docDate.replace(/\\./g,"-")+".pdf");
+}
 function genActToDoc(doc,d){
-  const ml=10,cw=190; let y=8;
-  const half=cw/2,lW=22;
-  function mb(rows,bW){let h=5;rows.forEach(r=>{sf(doc,r.big?8.5:7.5,r.big||false);const ll=doc.splitTextToSize(r.value,bW-lW-4);h+=ll.length*3.7+1;});return h+3;}
-  const eR=[{label:"Исполнитель",value:"ИП Карпов Сергей Викторович",big:true},{label:"ИНН",value:"771313296859"},{label:"ОГРН",value:"318774600201147"},{label:"Адрес",value:"127591 г. Москва, Керамический пр. д.65, к.2, кв.186"},{label:"Тел.",value:"8-964-785-13-86"}];
-  const cR=[{label:"Заказчик",value:d.customerName,big:true},{label:"ИНН",value:d.customerInn},{label:"КПП",value:d.customerKpp},{label:"Адрес",value:d.customerAddr}];
-  const eH=mb(eR,half),cH=mb(cR,half),shH=Math.max(eH,cH);
-  doc.setDrawColor(0);doc.setLineWidth(0.3);doc.rect(ml,y,cw,shH);doc.line(ml+half,y,ml+half,y+shH);
-  function db(rows,sX,bW,sY){let ry=sY+5;rows.forEach(r=>{sf(doc,7,false);doc.setTextColor(110,110,110);doc.text(r.label+":",sX+2,ry);sf(doc,r.big?8.5:7.5,r.big||false);doc.setTextColor(0,0,0);const ll=doc.splitTextToSize(r.value,bW-lW-4);ll.forEach((l,i)=>doc.text(l,sX+lW,ry+i*3.7));ry+=ll.length*3.7+1;});}
-  db(eR,ml,half,y);db(cR,ml+half,half,y);y+=shH+4;
-  sf(doc,10,true);const at="АКТ СДАЧИ-ПРИЁМКИ ВЫПОЛНЕННЫХ РАБОТ (ОКАЗАННЫХ УСЛУГ) №"+d.num+" от "+d.actDate;const al=doc.splitTextToSize(at,cw);al.forEach((l,i)=>tC(doc,l,ml+cw/2,y+3+i*5.2));y+=3+al.length*5.2+3;
-  doc.setLineWidth(1.1);doc.line(ml,y,ml+cw,y);y+=7;
-  y=drawServiceBlock(doc,d,y,ml,cw,"Наименование работ, услуг");y+=2;
-  const sw=tw(doc," ");
-  const a1="Всего оказано услуг 1, на сумму:";sf(doc,8,false);doc.text(a1,ml,y);sf(doc,8.5,true);doc.text(d.amountInt+" руб 00 копеек",ml+tw(doc,a1)+sw,y);y+=5;
-  const a2="Всего оказано услуг на сумму:";sf(doc,8,false);doc.text(a2,ml,y);sf(doc,8.5,true);doc.text(d.amountWords,ml+tw(doc,a2)+sw,y);y+=5;
-  sf(doc,7.5,false);doc.setTextColor(60,60,60);const nl=doc.splitTextToSize("Вышеперечисленные услуги выполнены полностью и в срок. Заказчик претензий по объёму, качеству и срокам оказания услуг не имеет.",cw);doc.text(nl,ml,y);y+=nl.length*4+5;
-  doc.setTextColor(0,0,0);doc.setLineWidth(1.1);doc.line(ml,y,ml+cw,y);y+=13;
-  const ss=ml+27,se=ml+82;sf(doc,8,false);doc.text("Исполнитель",ml,y);doc.setLineWidth(0.3);doc.line(ss,y+1,se,y+1);sf(doc,7,false);doc.setTextColor(130,130,130);tC(doc,"(подпись)",(ss+se)/2,y+5);doc.setTextColor(0,0,0);sf(doc,8,true);doc.text("Карпов С.В.",se+3,y);
-  if(stampUrl&&isStampEnabled()){const stW=32,stH=22,stX=(ss+se)/2-stW/2;try{doc.addImage(stampUrl,"PNG",stX,y-stH+9,stW,stH,undefined,"FAST");}catch(e){}}
-  const rx=ml+cw/2+20;sf(doc,8,false);doc.setTextColor(0,0,0);doc.text("Заказчик",rx,y);doc.setLineWidth(0.3);doc.line(rx+22,y+1,ml+cw,y+1);sf(doc,7,false);doc.setTextColor(130,130,130);tC(doc,"(подпись)",(rx+22+ml+cw)/2,y+5);doc.setTextColor(0,0,0);
+    const doc=nDoc(); const ml=10,cw=190; let y=8;
+  const half=cw/2, lW=22;
+
+  function mb(rows,bW){
+    let h=5;
+    rows.forEach(r=>{
+      sf(doc,r.big?8.5:7.5,r.big||false);
+      const ll=doc.splitTextToSize(r.value,bW-lW-4);
+      h+=ll.length*3.7+1;
+    });
+    return h+3;
+  }
+  const eR=[
+    {label:"Исполнитель",value:"ИП Карпов Сергей Викторович",big:true},
+    {label:"ИНН",value:"771313296859"},
+    {label:"ОГРН",value:"318774600201147"},
+    {label:"Адрес",value:"127591 г. Москва, Керамический пр. д.65, к.2, кв.186"},
+    {label:"Тел.",value:"8-964-785-13-86"}
+  ];
+  const cR=[
+    {label:"Заказчик",value:d.customerName,big:true},
+    {label:"ИНН",value:d.customerInn},
+    {label:"КПП",value:d.customerKpp},
+    {label:"Адрес",value:d.customerAddr}
+  ];
+  const eH=mb(eR,half), cH=mb(cR,half), shH=Math.max(eH,cH);
+
+  doc.setDrawColor(0); doc.setLineWidth(0.3);
+  doc.rect(ml,y,cw,shH); doc.line(ml+half,y,ml+half,y+shH);
+
+  function db(rows,sX,bW,sY){
+    let ry=sY+5;
+    rows.forEach(r=>{
+      sf(doc,7,false); doc.setTextColor(110,110,110);
+      doc.text(r.label+":",sX+2,ry);
+      sf(doc,r.big?8.5:7.5,r.big||false); doc.setTextColor(0,0,0);
+      const ll=doc.splitTextToSize(r.value,bW-lW-4);
+      ll.forEach((l,i)=>doc.text(l,sX+lW,ry+i*3.7));
+      ry+=ll.length*3.7+1;
+    });
+  }
+  db(eR,ml,half,y); db(cR,ml+half,half,y);
+  y+=shH+4;
+
+  sf(doc,10,true);
+  const at="АКТ СДАЧИ-ПРИЁМКИ ВЫПОЛНЕННЫХ РАБОТ (ОКАЗАННЫХ УСЛУГ) №"+d.num+" от "+d.actDate;
+  const al=doc.splitTextToSize(at,cw);
+  al.forEach((l,i)=>tC(doc,l,ml+cw/2,y+3+i*5.2));
+  y+=3+al.length*5.2+3;
+  doc.setLineWidth(1.1); doc.line(ml,y,ml+cw,y); y+=7;
+
+  y=drawServiceBlock(doc,d,y,ml,cw,"Наименование работ, услуг");
+  y+=2;
+
+  const a1="Всего оказано услуг 1, на сумму:";
+  sf(doc,8,false); doc.text(a1,ml,y);
+  const spaceW=tw(doc," ");
+  sf(doc,8.5,true); doc.text(d.amountInt+" руб 00 копеек", ml+tw(doc,a1)+spaceW, y);
+  y+=5;
+  const a2="Всего оказано услуг на сумму:";
+  sf(doc,8,false); doc.text(a2,ml,y);
+  sf(doc,8.5,true); doc.text(d.amountWords, ml+tw(doc,a2)+spaceW, y);
+  y+=5;
+
+  sf(doc,7.5,false); doc.setTextColor(60,60,60);
+  const nl=doc.splitTextToSize(
+    "Вышеперечисленные услуги выполнены полностью и в срок. Заказчик претензий по объёму, качеству и срокам оказания услуг не имеет.",cw);
+  doc.text(nl,ml,y); y+=nl.length*4+5;
+
+  doc.setTextColor(0,0,0);
+  doc.setLineWidth(1.1); doc.line(ml,y,ml+cw,y);
+  y+=13;
+
+  const ss=ml+27, se=ml+82;
+  sf(doc,8,false); doc.text("Исполнитель",ml,y);
+  doc.setLineWidth(0.3); doc.line(ss,y+1,se,y+1);
+  sf(doc,7,false); doc.setTextColor(130,130,130);
+  tC(doc,"(подпись)",(ss+se)/2,y+5);
+  doc.setTextColor(0,0,0); sf(doc,8,true);
+  doc.text("Карпов С.В.",se+3,y);
+
+  if(stampUrl && isStampEnabled()){
+    const stW=32, stH=22;
+    const stX=(ss+se)/2-stW/2;
+    try{doc.addImage(stampUrl,"PNG",stX,y-stH+9,stW,stH,undefined,"FAST");}catch(e){}
+  }
+
+  const rx=ml+cw/2+20;
+  sf(doc,8,false); doc.setTextColor(0,0,0); doc.text("Заказчик",rx,y);
+  doc.setLineWidth(0.3); doc.line(rx+22,y+1,ml+cw,y+1);
+  sf(doc,7,false); doc.setTextColor(130,130,130);
+  tC(doc,"(подпись)",(rx+22+ml+cw)/2,y+5);
+  doc.setTextColor(0,0,0);
+
+  doc.save("akt_"+d.num+"_"+d.actDate.replace(/\\./g,"-")+".pdf");
 }
 
 </script>
