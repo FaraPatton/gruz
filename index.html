@@ -2,13 +2,28 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://apis.google.com https://accounts.google.com https://www.googleapis.com https://*.googleusercontent.com;">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>ИП Карпов — Документы</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://apis.google.com/js/api.js"></script>
-<script src="https://accounts.google.com/gsi/client"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+// Dynamically load external scripts with callbacks
+function loadScript(src, cb) {
+  const s = document.createElement('script');
+  s.src = src; s.async = true;
+  s.onload = cb || function(){};
+  s.onerror = function(){ console.error('Failed to load:', src); };
+  document.head.appendChild(s);
+}
+let gapiLoaded = false, gsiLoaded = false, pdfjsLoaded = false;
+loadScript('https://apis.google.com/js/api.js', function(){
+  gapiLoaded = true;
+  gapi.load('picker', function(){ gPickerReady = true; });
+});
+loadScript('https://accounts.google.com/gsi/client', function(){ gsiLoaded = true; });
+loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js', function(){ pdfjsLoaded = true; });
+</script>
 <style>
 :root{--bg:#0f0f11;--surf:#17171c;--surf2:#1e1e26;--brd:#2a2a36;--acc:#e8c84a;--acc2:#c4a832;--txt:#e8e8ee;--txt2:#9090a8;--mut:#5a5a72;--dan:#e85a4a;}
 *{box-sizing:border-box;}
@@ -178,7 +193,7 @@ body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,s
     <div class="col-6"><button class="bd" onclick="genAct()">📋 Акт</button></div>
   </div>
   <div class="mb-2">
-    <button class="bh bh-drive" onclick="openDrivePicker()" id="driveBtn" style="width:100%">📂 Хронология поездок</button>
+    <button class="bh bh-drive" onclick="openDrivePicker()" id="driveBtn" style="width:100%">📂 Архив поездок</button>
   </div>
   <div class="mb-2">
     <button class="bh bh-archive" onclick="archiveToDrive()" id="archiveBtn" style="width:100%">📤 Отправить в архив поездок</button>
@@ -605,13 +620,18 @@ function initPicker() {
 }
 
 async function openDrivePicker() {
-  // Check Google APIs loaded
-  if(typeof google === 'undefined' || !google.accounts) {
-    dMsg('Google API загружается, подождите секунду...', 'info');
-    setTimeout(openDrivePicker, 1500);
+  // Wait for Google APIs
+  if(!gapiLoaded || !gsiLoaded) {
+    dMsg('Загружаю Google API...', 'info');
+    setTimeout(openDrivePicker, 800);
     return;
   }
-  await initPicker();
+  if(!gPickerReady) {
+    gapi.load('picker', function(){ gPickerReady=true; });
+    dMsg('Инициализирую Picker...', 'info');
+    setTimeout(openDrivePicker, 800);
+    return;
+  }
   if(!gAccessToken) {
     dMsg('Авторизация Google...', 'info');
     try {
@@ -837,11 +857,7 @@ function applyParsed() {
   showToast('✅ Данные из Drive заполнены!');
 }
 
-window.addEventListener('load', () => {
-  if(typeof gapi !== 'undefined') {
-    gapi.load('picker', () => { gPickerReady=true; });
-  }
-});
+// gapi loaded dynamically above
 
 
 // ── Archive to Drive ─────────────────────────────────────────────
@@ -851,10 +867,7 @@ async function archiveToDrive(){
   const btn=document.getElementById('archiveBtn');
   btn.disabled=true; btn.textContent='⏳ Подготовка...';
   try{
-    if(typeof google === 'undefined' || !google.accounts) {
-      dMsg('Google API ещё загружается, попробуйте через секунду', 'err');
-      return;
-    }
+    if(!gapiLoaded || !gsiLoaded) { dMsg('Google API ещё загружается, подождите...','err'); return; }
     if(!gAccessToken){
       dMsg('Авторизация...','info');
       await new Promise((res,rej)=>{
