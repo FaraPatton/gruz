@@ -83,6 +83,9 @@ body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,s
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surf);border:1px solid var(--brd);color:var(--txt);font-size:13px;padding:10px 20px;border-radius:30px;z-index:200;transition:transform .3s,opacity .3s;opacity:0;white-space:nowrap;}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
 .hint{font-size:11px;color:var(--mut);text-align:center;line-height:1.7;margin-top:4px;}
+.bh-archive{border-color:#34a853;color:#34a853;}
+.bh-archive:hover{border-color:#34a853;background:rgba(52,168,83,.08);}
+.bh-archive:disabled{opacity:.5;cursor:not-allowed;}
 /* Toggle switch */
 .toggle-switch{position:relative;display:inline-block;width:48px;height:26px;flex-shrink:0;}
 .toggle-switch input{opacity:0;width:0;height:0;}
@@ -176,6 +179,9 @@ body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,s
   </div>
   <div class="mb-2">
     <button class="bh bh-drive" onclick="openDrivePicker()" id="driveBtn" style="width:100%">📂 Архив поездок</button>
+  </div>
+  <div class="mb-2">
+    <button class="bh bh-archive" onclick="archiveToDrive()" id="archiveBtn" style="width:100%">📤 Отправить в архив поездок</button>
   </div>
   <p id="driveMsg" class="drive-msg"></p>
   <p class="hint">Нажми «Архив поездок» чтобы открыть Drive и заполнить данные автоматически.</p>
@@ -373,9 +379,9 @@ function drawServiceBlock(doc, d, y, ml, cw, colHeader){
 }
 
 // ── INVOICE ────────────────────────────────────────────────────────
-function genInvoice(){
+function genInvoice(existingDoc){
   const d=getData();
-  const doc=nDoc(); const ml=10,cw=190; let y=8;
+  const doc=existingDoc||nDoc(); const ml=10,cw=190; let y=8;
   const c1=30,c2=60,c3=22,c4=cw-c1-c2-c3,rh=6.5;
 
   function hr(cells,ry,bg){
@@ -469,9 +475,9 @@ function genInvoice(){
 }
 
 // ── ACT ────────────────────────────────────────────────────────────
-function genAct(){
+function genAct(existingDoc){
   const d=getData();
-  const doc=nDoc(); const ml=10,cw=190; let y=8;
+  const doc=existingDoc||nDoc(); const ml=10,cw=190; let y=8;
   const half=cw/2, lW=22;
 
   function mb(rows,bW){
@@ -600,7 +606,7 @@ async function openDrivePicker() {
     dMsg('Авторизация Google...', 'info');
     gTokenClient = google.accounts.oauth2.initTokenClient({
       client_id: GCLIENT_ID,
-      scope: 'https://www.googleapis.com/auth/drive.readonly',
+      scope: 'https://www.googleapis.com/auth/drive',
       callback: async (resp) => {
         if(resp.error) { dMsg('Ошибка авторизации: '+resp.error, 'err'); return; }
         gAccessToken = resp.access_token;
@@ -821,6 +827,81 @@ window.addEventListener('load', () => {
     gapi.load('picker', () => { gPickerReady=true; });
   }
 });
+
+
+// ── Archive to Drive ─────────────────────────────────────────────
+const ARCHIVE_FOLDER='1ywctaRSj0XWrY6MHjkWsvDCULxrNLSVd';
+
+async function archiveToDrive(){
+  const btn=document.getElementById('archiveBtn');
+  btn.disabled=true; btn.textContent='⏳ Подготовка...';
+  try{
+    if(!gAccessToken){
+      dMsg('Авторизация...','info');
+      await new Promise((res,rej)=>{
+        gTokenClient=google.accounts.oauth2.initTokenClient({
+          client_id:GCLIENT_ID,
+          scope:'https://www.googleapis.com/auth/drive',
+          callback:(r)=>{if(r.error){rej(new Error(r.error));return;}gAccessToken=r.access_token;res();}
+        });
+        gTokenClient.requestAccessToken({prompt:'consent'});
+      });
+    }
+    const d=getData();
+    const year=d.docDate?d.docDate.split('.')[2]:String(new Date().getFullYear());
+    btn.textContent='⏳ Папка '+year+'...';
+    const folderId=await findOrCreateFolder(year,ARCHIVE_FOLDER);
+    btn.textContent='⏳ Генерирую PDF...';
+    const {jsPDF}=window.jspdf;
+    const doc1=new jsPDF({unit:"mm",format:"a4"}); setupFonts(doc1); genInvoice(doc1);
+    const doc2=new jsPDF({unit:"mm",format:"a4"}); setupFonts(doc2); genAct(doc2);
+    const n1='schet_'+d.num+'_'+d.docDate.replace(/\./g,'-')+'.pdf';
+    const n2='akt_'+d.num+'_'+d.actDate.replace(/\./g,'-')+'.pdf';
+    btn.textContent='⏳ Загрузка...';
+    await driveUpload(doc1.output('blob'),n1,folderId);
+    await driveUpload(doc2.output('blob'),n2,folderId);
+    dMsg('✅ Сохранено в '+year+': '+n1+' и '+n2,'ok');
+    showToast('✅ Архив обновлён!');
+  }catch(e){
+    dMsg('Ошибка: '+e.message,'err');
+    console.error(e);
+  }finally{
+    btn.disabled=false;
+    btn.textContent='📤 Отправить в архив поездок';
+  }
+}
+
+async function findOrCreateFolder(name,parentId){
+  const q=encodeURIComponent(`mimeType='application/vnd.google-apps.folder' and name='${name}' and '${parentId}' in parents and trashed=false`);
+  const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`,
+    {headers:{Authorization:'Bearer '+gAccessToken}});
+  const data=await r.json();
+  if(data.files&&data.files.length>0)return data.files[0].id;
+  const cr=await fetch('https://www.googleapis.com/drive/v3/files',{
+    method:'POST',
+    headers:{Authorization:'Bearer '+gAccessToken,'Content-Type':'application/json'},
+    body:JSON.stringify({name,mimeType:'application/vnd.google-apps.folder',parents:[parentId]})
+  });
+  return(await cr.json()).id;
+}
+
+async function driveUpload(blob,name,folderId){
+  const meta=JSON.stringify({name,parents:[folderId]});
+  const boundary='gruz_'+Date.now();
+  const enc=new TextEncoder();
+  const p1=enc.encode(`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${meta}\r\n`);
+  const p2=enc.encode(`--${boundary}\r\nContent-Type: application/pdf\r\n\r\n`);
+  const p3=new Uint8Array(await blob.arrayBuffer());
+  const p4=enc.encode(`\r\n--${boundary}--`);
+  const body=new Uint8Array(p1.length+p2.length+p3.length+p4.length);
+  let o=0;[p1,p2,p3,p4].forEach(p=>{body.set(p,o);o+=p.length;});
+  const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
+    method:'POST',
+    headers:{Authorization:'Bearer '+gAccessToken,'Content-Type':`multipart/related; boundary=${boundary}`},
+    body
+  });
+  if(!r.ok){const e=await r.json();throw new Error(e.error?.message||'Upload failed');}
+}
 
 </script>
 </body>
