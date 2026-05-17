@@ -677,40 +677,71 @@ async function readAndParse(fileId, fileName) {
 }
 
 function parsePDF(t) {
-  t = t.replace(/\s+/g,' ');
+  t = t.replace(/\s+/g, ' ');
   const d = {};
-  // Number + date
-  const m1 = t.match(/№(\d+)\s+от\s+(\d{2}\.\d{2}\.\d{4})/);
+
+  // Number + date (handles "№218" and "№ 218")
+  const m1 = t.match(/№\s*(\d+)\s+от\s+(\d{2}\.\d{2}\.\d{4})/);
   if(m1){ d.num=m1[1]; d.docDate=m1[2]; d.actDate=m1[2]; }
-  // Customer
-  const m2 = t.match(/(?:Заказчик:|Плательщик:)\s*([\w\s"«»\.\-]+?),\s*ИНН/);
-  if(m2) d.customerName=m2[1].trim();
-  // INN/KPP
-  const minn=t.match(/ИНН\s+(\d{10,12}),?\s*КПП/); if(minn) d.customerInn=minn[1];
-  const mkpp=t.match(/КПП\s+(\d{9})/); if(mkpp) d.customerKpp=mkpp[1];
-  // Address — after KPP, up to next known keyword
-  const maddr=t.match(/КПП\s+\d+,?\s*(\d{6},\s*[^,]+,\s*[^,]+,\s*[^,]+,\s*[^,]+(?:,\s*[^,]+)?,\s*(?:ул|улица|проезд|шоссе|переулок)[^,]+,\s*д\.?\s*\d+)/i);
-  if(maddr) d.customerAddr=maddr[1].trim();
-  // Route
-  const mrt=t.match(/маршруту:\s*(.+?)(?:,\s*(?:MAN|КАМАЗ|ГАЗ|Volvo|Scania|DAF|Mercedes|Iveco|Ford))/i);
-  if(mrt){
-    const legs=mrt[1].split(/ - /);
-    if(legs.length>=2){
-      const from=legs[0].split(', ');
-      d.from_a=from.length>2?from.slice(0,2).join(', '):legs[0];
-      d.from_b=from.length>2?from.slice(2).join(', '):'';
-      d.to_a=legs[1]||'';
-      d.to_b=legs[2]||'';
+
+  // Customer name — after "Заказчик:" up to ", ИНН"
+  const m2 = t.match(/Заказчик:\s*((?:ООО|ИП|АО|ЗАО|ПАО|НКО).+?),\s*ИНН/);
+  if(m2) {
+    let nm = m2[1].trim().replace(/^"+|"+$/g,'').trim();
+    // Restore quotes for ООО
+    if(nm.startsWith('ООО ') && !nm.includes('"')) {
+      nm = 'ООО "' + nm.slice(4).trim() + '"';
+    }
+    d.customerName = nm;
+  }
+
+  // Customer INN — specifically from Заказчик context
+  const minn = t.match(/Заказчик:.+?ИНН\s+(\d{10,12})/);
+  if(minn) d.customerInn = minn[1];
+
+  // KPP — from Заказчик context
+  const mkpp = t.match(/Заказчик:.+?КПП\s+(\d{9})/);
+  if(mkpp) d.customerKpp = mkpp[1];
+
+  // Address — after КПП in customer block
+  const maddr = t.match(/Заказчик:.+?КПП\s+\d+,\s*(\d{6},.+?(?:дом|д\.)\s*\d+)/i);
+  if(maddr) d.customerAddr = maddr[1].replace(/\s+/g,' ').trim();
+
+  // Route — between "маршруту:" and car brand
+  const mrt = t.match(/маршруту:\s*(.+?),\s*(?:MAN|КАМАЗ|ГАЗ|Volvo|Scania|DAF|Mercedes|Iveco|Ford)/i);
+  if(mrt) {
+    const raw = mrt[1].trim();
+    // Split by " - " (legs separated by dash with spaces)
+    const legs = raw.split(/\s+-\s+/).map(l=>l.trim().replace(/,\s*$/,'').trim()).filter(l=>l);
+    if(legs.length >= 2) {
+      const fromParts = legs[0].split(', ');
+      if(fromParts.length >= 3) {
+        d.from_a = fromParts.slice(0,2).join(', ');
+        d.from_b = fromParts.slice(2).join(', ');
+      } else {
+        d.from_a = legs[0]; d.from_b = '';
+      }
+      d.to_a = legs[1] || '';
+      d.to_b = legs[2] || '';
+    } else {
+      d.from_a = legs[0] || ''; d.from_b = ''; d.to_a = ''; d.to_b = '';
     }
   }
+
   // Car
-  const mcar=t.match(/((?:MAN|КАМАЗ|ГАЗ|Volvo|Scania|DAF|Mercedes|Iveco|Ford),\s*[А-Я\d]+(?:\(\d+\))?)/);
-  if(mcar) d.car=mcar[1];
-  // Dates
-  const mld=t.match(/дата загрузки\s*-\s*(\d{2}\.\d{2}\.\d{4})/i); if(mld) d.loadDate=mld[1];
-  const mud=t.match(/дата выгрузки\s*-\s*(\d{2}\.\d{2}\.\d{4})/i); if(mud) d.unloadDate=mud[1];
-  // Amount
-  const mamt=t.match(/на сумму:\s*(\d+)\s*руб/i); if(mamt) d.amount=mamt[1];
+  const mcar = t.match(/((?:MAN|КАМАЗ|ГАЗ|Volvo|Scania|DAF|Mercedes|Iveco|Ford),\s*[А-Я\d]+(?:\(\d+\))?)/);
+  if(mcar) d.car = mcar[1];
+
+  // Load / unload dates
+  const mld = t.match(/дата загрузки\s*-\s*(\d{2}\.\d{2}\.\d{4})/i);
+  if(mld) d.loadDate = mld[1];
+  const mud = t.match(/дата выгрузки\s*-\s*(\d{2}\.\d{2}\.\d{4})/i);
+  if(mud) d.unloadDate = mud[1];
+
+  // Amount — "на сумму 32000 руб"
+  const mamt = t.match(/на сумму\s+(\d+)\s+руб/i);
+  if(mamt) d.amount = mamt[1];
+
   return d;
 }
 
