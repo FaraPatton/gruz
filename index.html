@@ -177,6 +177,7 @@ body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,s
   <div class="mb-2">
     <button class="bh bh-drive" onclick="openDrivePicker()" id="driveBtn" style="width:100%">📂 Архив поездок</button>
   </div>
+  <p id="driveMsg" class="drive-msg"></p>
   <p class="hint">Нажми «Архив поездок» чтобы открыть Drive и заполнить данные автоматически.</p>
 </div>
 <div class="toast" id="toast"></div>
@@ -579,13 +580,8 @@ let gPickerReady = false;
 let gParsed      = null;
 
 function dMsg(text, type) {
-  let el = document.getElementById('driveMsg');
-  if(!el) {
-    el = document.createElement('p');
-    el.id = 'driveMsg';
-    el.className = 'drive-msg';
-    document.getElementById('driveBtn').closest('.row').insertAdjacentElement('afterend', el);
-  }
+  const el = document.getElementById('driveMsg');
+  if(!el) return;
   el.textContent = text;
   el.className = 'drive-msg' + (type ? ' '+type : '');
 }
