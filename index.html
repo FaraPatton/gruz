@@ -2,28 +2,13 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://apis.google.com https://accounts.google.com https://www.googleapis.com https://*.googleusercontent.com;">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>ИП Карпов — Документы</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script>
-// Dynamically load external scripts with callbacks
-function loadScript(src, cb) {
-  const s = document.createElement('script');
-  s.src = src; s.async = true;
-  s.onload = cb || function(){};
-  s.onerror = function(){ console.error('Failed to load:', src); };
-  document.head.appendChild(s);
-}
-let gapiLoaded = false, gsiLoaded = false, pdfjsLoaded = false;
-loadScript('https://apis.google.com/js/api.js', function(){
-  gapiLoaded = true;
-  gapi.load('picker', function(){ gPickerReady = true; });
-});
-loadScript('https://accounts.google.com/gsi/client', function(){ gsiLoaded = true; });
-loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js', function(){ pdfjsLoaded = true; });
-</script>
+<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
 <style>
 :root{--bg:#0f0f11;--surf:#17171c;--surf2:#1e1e26;--brd:#2a2a36;--acc:#e8c84a;--acc2:#c4a832;--txt:#e8e8ee;--txt2:#9090a8;--mut:#5a5a72;--dan:#e85a4a;}
 *{box-sizing:border-box;}
@@ -98,9 +83,6 @@ body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,s
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surf);border:1px solid var(--brd);color:var(--txt);font-size:13px;padding:10px 20px;border-radius:30px;z-index:200;transition:transform .3s,opacity .3s;opacity:0;white-space:nowrap;}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
 .hint{font-size:11px;color:var(--mut);text-align:center;line-height:1.7;margin-top:4px;}
-.bh-archive{border-color:#34a853;color:#34a853;}
-.bh-archive:hover{border-color:#34a853;background:rgba(52,168,83,.08);}
-.bh-archive:disabled{opacity:.5;cursor:not-allowed;}
 /* Toggle switch */
 .toggle-switch{position:relative;display:inline-block;width:48px;height:26px;flex-shrink:0;}
 .toggle-switch input{opacity:0;width:0;height:0;}
@@ -195,10 +177,7 @@ body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,s
   <div class="mb-2">
     <button class="bh bh-drive" onclick="openDrivePicker()" id="driveBtn" style="width:100%">📂 Архив поездок</button>
   </div>
-  <div class="mb-2">
-    <button class="bh bh-archive" onclick="archiveToDrive()" id="archiveBtn" style="width:100%">📤 Отправить в архив поездок</button>
-  </div>
-  <p class="hint">«Хронология» — загрузить данные из архива.<br>«Отправить в архив» — сохранить счёт и акт на Drive.</p>
+  <p class="hint">Нажми «Архив поездок» чтобы открыть Drive и заполнить данные автоматически.</p>
 </div>
 <div class="toast" id="toast"></div>
 <script>
@@ -393,9 +372,9 @@ function drawServiceBlock(doc, d, y, ml, cw, colHeader){
 }
 
 // ── INVOICE ────────────────────────────────────────────────────────
-function genInvoice(existingDoc){
+function genInvoice(){
   const d=getData();
-  const doc=existingDoc||nDoc(); const ml=10,cw=190; let y=8;
+  const doc=nDoc(); const ml=10,cw=190; let y=8;
   const c1=30,c2=60,c3=22,c4=cw-c1-c2-c3,rh=6.5;
 
   function hr(cells,ry,bg){
@@ -485,13 +464,13 @@ function genInvoice(existingDoc){
     try{doc.addImage(stampUrl,"PNG",stX,y-stH+9,stW,stH,undefined,"FAST");}catch(e){}
   }
 
-  if(!existingDoc) doc.save("schet_"+d.num+"_"+d.docDate.replace(/\\./g,"-")+".pdf");
+  doc.save("schet_"+d.num+"_"+d.docDate.replace(/\\./g,"-")+".pdf");
 }
 
 // ── ACT ────────────────────────────────────────────────────────────
-function genAct(existingDoc){
+function genAct(){
   const d=getData();
-  const doc=existingDoc||nDoc(); const ml=10,cw=190; let y=8;
+  const doc=nDoc(); const ml=10,cw=190; let y=8;
   const half=cw/2, lW=22;
 
   function mb(rows,bW){
@@ -585,7 +564,7 @@ function genAct(existingDoc){
   tC(doc,"(подпись)",(rx+22+ml+cw)/2,y+5);
   doc.setTextColor(0,0,0);
 
-  if(!existingDoc) doc.save("akt_"+d.num+"_"+d.actDate.replace(/\\./g,"-")+".pdf");
+  doc.save("akt_"+d.num+"_"+d.actDate.replace(/\\./g,"-")+".pdf");
 }
 
 
@@ -620,36 +599,20 @@ function initPicker() {
 }
 
 async function openDrivePicker() {
-  // Wait for Google APIs
-  if(!gapiLoaded || !gsiLoaded) {
-    dMsg('Загружаю Google API...', 'info');
-    setTimeout(openDrivePicker, 800);
-    return;
-  }
-  if(!gPickerReady) {
-    gapi.load('picker', function(){ gPickerReady=true; });
-    dMsg('Инициализирую Picker...', 'info');
-    setTimeout(openDrivePicker, 800);
-    return;
-  }
+  await initPicker();
   if(!gAccessToken) {
     dMsg('Авторизация Google...', 'info');
-    try {
-      gTokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: GCLIENT_ID,
-        scope: 'https://www.googleapis.com/auth/drive',
-        callback: async (resp) => {
-          if(resp.error) { dMsg('Ошибка авторизации: '+resp.error, 'err'); return; }
-          gAccessToken = resp.access_token;
-          dMsg('✓ Авторизован', 'ok');
-          showPicker();
-        }
-      });
-      gTokenClient.requestAccessToken({prompt: 'consent'});
-    } catch(e) {
-      dMsg('Ошибка: '+e.message, 'err');
-      console.error('openDrivePicker error:', e);
-    }
+    gTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GCLIENT_ID,
+      scope: 'https://www.googleapis.com/auth/drive.readonly',
+      callback: async (resp) => {
+        if(resp.error) { dMsg('Ошибка авторизации: '+resp.error, 'err'); return; }
+        gAccessToken = resp.access_token;
+        dMsg('✓ Авторизован', 'ok');
+        showPicker();
+      }
+    });
+    gTokenClient.requestAccessToken({prompt: 'consent'});
   } else {
     showPicker();
   }
@@ -857,82 +820,11 @@ function applyParsed() {
   showToast('✅ Данные из Drive заполнены!');
 }
 
-// gapi loaded dynamically above
-
-
-// ── Archive to Drive ─────────────────────────────────────────────
-const ARCHIVE_FOLDER='1ywctaRSj0XWrY6MHjkWsvDCULxrNLSVd';
-
-async function archiveToDrive(){
-  const btn=document.getElementById('archiveBtn');
-  btn.disabled=true; btn.textContent='⏳ Подготовка...';
-  try{
-    if(!gapiLoaded || !gsiLoaded) { dMsg('Google API ещё загружается, подождите...','err'); return; }
-    if(!gAccessToken){
-      dMsg('Авторизация...','info');
-      await new Promise((res,rej)=>{
-        gTokenClient=google.accounts.oauth2.initTokenClient({
-          client_id:GCLIENT_ID,
-          scope:'https://www.googleapis.com/auth/drive',
-          callback:(r)=>{if(r.error){rej(new Error(r.error));return;}gAccessToken=r.access_token;res();}
-        });
-        gTokenClient.requestAccessToken({prompt:'consent'});
-      });
-    }
-    const d=getData();
-    const year=d.docDate?d.docDate.split('.')[2]:String(new Date().getFullYear());
-    btn.textContent='⏳ Папка '+year+'...';
-    const folderId=await findOrCreateFolder(year,ARCHIVE_FOLDER);
-    btn.textContent='⏳ Генерирую PDF...';
-    const {jsPDF}=window.jspdf;
-    const doc1=new jsPDF({unit:"mm",format:"a4"}); setupFonts(doc1); genInvoice(doc1);
-    const doc2=new jsPDF({unit:"mm",format:"a4"}); setupFonts(doc2); genAct(doc2);
-    const n1='schet_'+d.num+'_'+d.docDate.replace(/\./g,'-')+'.pdf';
-    const n2='akt_'+d.num+'_'+d.actDate.replace(/\./g,'-')+'.pdf';
-    btn.textContent='⏳ Загрузка...';
-    await driveUpload(doc1.output('blob'),n1,folderId);
-    await driveUpload(doc2.output('blob'),n2,folderId);
-    dMsg('✅ Сохранено в '+year+': '+n1+' и '+n2,'ok');
-    showToast('✅ Архив обновлён!');
-  }catch(e){
-    dMsg('Ошибка: '+e.message,'err');
-    console.error(e);
-  }finally{
-    btn.disabled=false;
-    btn.textContent='📤 Отправить в архив поездок';
+window.addEventListener('load', () => {
+  if(typeof gapi !== 'undefined') {
+    gapi.load('picker', () => { gPickerReady=true; });
   }
-}
-
-async function findOrCreateFolder(name,parentId){
-  const q=encodeURIComponent(`mimeType='application/vnd.google-apps.folder' and name='${name}' and '${parentId}' in parents and trashed=false`);
-  const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`,{headers:{Authorization:'Bearer '+gAccessToken}});
-  const data=await r.json();
-  if(data.files&&data.files.length>0)return data.files[0].id;
-  const cr=await fetch('https://www.googleapis.com/drive/v3/files',{
-    method:'POST',
-    headers:{Authorization:'Bearer '+gAccessToken,'Content-Type':'application/json'},
-    body:JSON.stringify({name,mimeType:'application/vnd.google-apps.folder',parents:[parentId]})
-  });
-  return (await cr.json()).id;
-}
-
-async function driveUpload(blob,name,folderId){
-  const meta=JSON.stringify({name,parents:[folderId]});
-  const boundary='gruz_'+Date.now();
-  const enc=new TextEncoder();
-  const p1=enc.encode(`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${meta}\r\n`);
-  const p2=enc.encode(`--${boundary}\r\nContent-Type: application/pdf\r\n\r\n`);
-  const p3=new Uint8Array(await blob.arrayBuffer());
-  const p4=enc.encode(`\r\n--${boundary}--`);
-  const body=new Uint8Array(p1.length+p2.length+p3.length+p4.length);
-  let o=0;[p1,p2,p3,p4].forEach(p=>{body.set(p,o);o+=p.length;});
-  const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
-    method:'POST',
-    headers:{Authorization:'Bearer '+gAccessToken,'Content-Type':`multipart/related; boundary=${boundary}`},
-    body
-  });
-  if(!r.ok){const e=await r.json();throw new Error(e.error?.message||'Upload failed');}
-}
+});
 
 </script>
 </body>
