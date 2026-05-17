@@ -626,12 +626,15 @@ function showPicker() {
   dMsg('Открываю Drive...', 'info');
   const view = new google.picker.DocsView()
     .setMimeTypes('application/pdf')
-    .setMode(google.picker.DocsViewMode.LIST);
+    .setMode(google.picker.DocsViewMode.LIST)
+    .setParent('1ywctaRSj0XWrY6MHjkWsvDCULxrNLSVd')
+    .setIncludeFolders(true)
+    .setSelectFolderEnabled(false);
   const picker = new google.picker.PickerBuilder()
     .addView(view)
     .setOAuthToken(gAccessToken)
     .setDeveloperKey(GAPI_KEY)
-    .setTitle('Выберите счёт или акт (PDF)')
+    .setTitle('Счета и акты — выберите файл')
     .setCallback(pickerCb)
     .build();
   picker.setVisible(true);
