@@ -13,10 +13,33 @@
 :root{--bg:#0f0f11;--surf:#17171c;--surf2:#1e1e26;--brd:#2a2a36;--acc:#e8c84a;--acc2:#c4a832;--txt:#e8e8ee;--txt2:#9090a8;--mut:#5a5a72;--dan:#e85a4a;}
 *{box-sizing:border-box;}
 body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,sans-serif;font-size:15px;min-height:100vh;padding-bottom:60px;}
-.app-hdr{background:#111116;border-bottom:1px solid var(--brd);padding:14px 20px;}
+.app-hdr{
+  background:linear-gradient(180deg,#161616 0%,#111116 100%);
+  border-bottom:1px solid var(--brd);
+  padding:28px 20px 24px;
+  text-align:center;
+  position:relative;
+}
+.app-hdr::after{
+  content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:60px;height:2px;background:var(--acc);border-radius:2px;
+}
 .hdr-in{max-width:640px;margin:0 auto;}
-.hdr-in h1{font-size:18px;font-weight:700;color:var(--acc);margin:0;}
-.hdr-in p{font-size:10px;color:var(--mut);letter-spacing:2px;text-transform:uppercase;margin:3px 0 0;font-family:monospace;}
+.hdr-badge{
+  display:inline-block;
+  font-family:monospace;font-size:9px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--mut);
+  border:1px solid var(--brd);border-radius:20px;
+  padding:3px 12px;margin-bottom:10px;
+}
+.hdr-in h1{
+  font-size:22px;font-weight:700;color:var(--acc);margin:0;
+  letter-spacing:0.5px;line-height:1.2;
+}
+.hdr-in p{
+  font-size:10px;color:var(--mut);letter-spacing:3px;
+  text-transform:uppercase;margin:6px 0 0;font-family:monospace;
+}
 .main{max-width:640px;margin:0 auto;padding:18px 16px 0;}
 .dc{background:var(--surf);border:1px solid var(--brd);border-radius:12px;padding:20px;margin-bottom:14px;}
 .cl{font-family:monospace;font-size:10px;letter-spacing:2px;color:var(--acc);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
@@ -37,29 +60,37 @@ body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,s
 .bh{background:transparent;color:var(--txt2);border:1px solid var(--brd);border-radius:10px;font-size:13px;font-weight:500;padding:11px;width:100%;cursor:pointer;transition:border-color .15s,color .15s;}
 .bh:hover{border-color:#5a9aff;color:#5a9aff;}
 .idiv{height:1px;background:var(--brd);margin:16px 0;}
-.mo{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);z-index:100;display:none;align-items:flex-end;justify-content:center;}
-.mo.open{display:flex;}
-@media(min-width:600px){.mo{align-items:center;}}
-.ms{background:var(--surf);border:1px solid var(--brd);border-radius:18px 18px 0 0;width:100%;max-width:640px;max-height:80vh;display:flex;flex-direction:column;animation:su .22s ease;}
-@media(min-width:600px){.ms{border-radius:18px;max-height:70vh;}}
-@keyframes su{from{transform:translateY(60px);opacity:0;}to{transform:none;opacity:1;}}
-.mh{padding:16px 20px 13px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--brd);flex-shrink:0;}
-.mh h2{font-size:15px;font-weight:600;margin:0;}
-.mc{background:var(--surf2);border:none;color:var(--mut);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;}
-.mb{flex:1;overflow-y:auto;padding:12px 16px 20px;}
-.he{text-align:center;color:var(--mut);padding:40px 0;font-size:13px;}
-.hi{background:var(--surf2);border:1px solid var(--brd);border-radius:10px;padding:12px 14px;margin-bottom:10px;cursor:pointer;transition:border-color .15s;}
+
+
+
+
+
+
+
+
+
+
+
+
 .hi:hover{border-color:var(--acc);}
-.hi-m{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;}
-.hi-n{font-weight:600;font-size:14px;} .hi-d{font-family:monospace;font-size:11px;color:var(--mut);}
-.hi-s{font-size:12px;color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px;}
-.hi-me{display:flex;align-items:center;justify-content:space-between;}
-.hi-a{font-family:monospace;font-size:12px;color:var(--acc);}
-.hi-x{background:none;border:none;color:var(--mut);cursor:pointer;font-size:13px;padding:2px 6px;border-radius:4px;}
+
+ 
+
+
+
+
 .hi-x:hover{color:var(--dan);background:rgba(232,90,74,.1);}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surf);border:1px solid var(--brd);color:var(--txt);font-size:13px;padding:10px 20px;border-radius:30px;z-index:200;transition:transform .3s,opacity .3s;opacity:0;white-space:nowrap;}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
 .hint{font-size:11px;color:var(--mut);text-align:center;line-height:1.7;margin-top:4px;}
+/* Toggle switch */
+.toggle-switch{position:relative;display:inline-block;width:48px;height:26px;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:#2a2a36;border-radius:26px;transition:background .25s;}
+.toggle-slider::before{content:"";position:absolute;width:20px;height:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:transform .25s,background .25s;box-shadow:0 1px 4px rgba(0,0,0,.3);}
+.toggle-switch input:checked + .toggle-slider{background:var(--acc);}
+.toggle-switch input:checked + .toggle-slider::before{transform:translateX(22px);background:#0f0f11;}
+.stamp-zone-disabled{opacity:.35;pointer-events:none;}
 .bh-drive{border-color:#4285f4;color:#4285f4;}
 .bh-drive:hover{border-color:#4285f4;background:rgba(66,133,244,.08);}
 .drive-msg{font-size:11px;text-align:center;min-height:16px;margin-bottom:6px;transition:color .2s;}
@@ -76,8 +107,9 @@ body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,s
 <body>
 <header class="app-hdr">
   <div class="hdr-in">
+    <div class="hdr-badge">грузоперевозки</div>
     <h1>ИП Карпов С.В.</h1>
-    <p>Грузоперевозки</p>
+    <p style="color:var(--acc)">ATI: 2936939</p>
   </div>
 </header>
 <div class="main">
@@ -120,11 +152,20 @@ body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,s
     </div>
   </div>
   <div class="dc">
-    <div class="cl">Печать / подпись</div>
-    <div class="uz">
-      <input type="file" id="stampFile" accept="image/*">
-      <div id="spPh"><div style="font-size:20px;margin-bottom:3px">🔏</div><div class="uh">Печать загружена по умолчанию<br><small>Нажмите чтобы заменить</small></div></div>
-      <img id="spPrev" class="up" style="display:none">
+    <div class="cl" style="margin-bottom:14px">Печать / подпись</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <span style="font-size:13px;color:var(--txt2);">Добавлять печать в документ</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="stampToggle" checked>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div id="stampZone">
+      <div class="uz">
+        <input type="file" id="stampFile" accept="image/*">
+        <div id="spPh"><div style="font-size:20px;margin-bottom:3px">🔏</div><div class="uh">Печать загружена по умолчанию<br><small>Нажмите чтобы заменить</small></div></div>
+        <img id="spPrev" class="up" style="display:none">
+      </div>
     </div>
   </div>
   <div class="parse-box" id="parseBox"><h3>📄 Данные из файла</h3><div id="parseRows"></div><div class="pbtns"><button class="pbtn-ok" onclick="applyParsed()">✅ Заполнить форму</button><button class="pbtn-no" onclick="closeParsed()">Отмена</button></div></div>
@@ -133,20 +174,10 @@ body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,s
     <div class="col-6"><button class="bd" onclick="genInvoice()">📄 Счёт</button></div>
     <div class="col-6"><button class="bd" onclick="genAct()">📋 Акт</button></div>
   </div>
-  <div class="row g-2 mb-2">
-    <div class="col-6"><button class="bh" onclick="openHist()">🕓 История рейсов</button></div>
-    <div class="col-6"><button class="bh bh-drive" onclick="openDrivePicker()" id="driveBtn">📂 Открыть с Drive</button></div>
+  <div class="mb-2">
+    <button class="bh bh-drive" onclick="openDrivePicker()" id="driveBtn" style="width:100%">📂 Хронология поездок</button>
   </div>
-  <p class="hint">Каждая генерация сохраняется в историю.<br>Нажми «История» чтобы заполнить данные старого рейса.</p>
-</div>
-<div class="mo" id="histMo" onclick="if(event.target===this)closeHist()">
-  <div class="ms">
-    <div class="mh"><h2>🕓 История рейсов</h2><button class="mc" onclick="closeHist()">✕</button></div>
-    <div class="mb">
-      <p class="he" id="histEmpty">Рейсов пока нет — появятся после генерации.</p>
-      <div id="histList"></div>
-    </div>
-  </div>
+  <p class="hint">Нажми «Хронология поездок» чтобы открыть архив с Drive и заполнить данные автоматически.</p>
 </div>
 <div class="toast" id="toast"></div>
 <script>
@@ -189,6 +220,17 @@ document.getElementById('stampFile').addEventListener('change',function(e){
   r.readAsDataURL(f);
 });
 
+// Toggle stamp on/off
+document.getElementById('stampToggle').addEventListener('change', function(){
+  const zone = document.getElementById('stampZone');
+  if(this.checked){
+    zone.classList.remove('stamp-zone-disabled');
+  } else {
+    zone.classList.add('stamp-zone-disabled');
+  }
+});
+function isStampEnabled(){ return document.getElementById('stampToggle').checked; }
+
 const today=()=>new Date().toISOString().split('T')[0];
 const fmt=s=>{if(!s)return""; const[y,m,d]=s.split('-'); return d+'.'+m+'.'+y;};
 const toInput=s=>{if(!s)return""; const p=s.split('.'); return p.length===3?p[2]+'-'+p[1]+'-'+p[0]:s;};
@@ -198,53 +240,6 @@ function loadTpl(){
     const d=JSON.parse(raw); Object.entries(d).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v;});}
   catch(e){}
 }
-function getH(){try{return JSON.parse(localStorage.getItem('gruz_h')||'[]');}catch(e){return[];}}
-function saveH(d){
-  const h=getH(); const key=d.customerInn+'_'+d.docDate;
-  const idx=h.findIndex(x=>x.customerInn+'_'+x.docDate===key);
-  const e={num:d.num,docDate:d.docDate,actDate:d.actDate,loadDate:d.loadDate,unloadDate:d.unloadDate,
-    customerName:d.customerName,customerInn:d.customerInn,customerKpp:d.customerKpp,
-    customerAddr:d.customerAddr,car:d.car,route:d.route,amount:d.amount};
-  if(idx>=0)h[idx]=e; else h.unshift(e);
-  if(h.length>50)h.pop();
-  localStorage.setItem('gruz_h',JSON.stringify(h)); renderH();
-}
-function loadH(idx){
-  const h=getH(); const e=h[idx]; if(!e)return;
-  const m={doc_num:e.num,doc_date:toInput(e.docDate),act_date:toInput(e.actDate),
-    load_date:toInput(e.loadDate),unload_date:toInput(e.unloadDate),
-    customer_name:e.customerName,customer_inn:e.customerInn,customer_kpp:e.customerKpp,
-    customer_addr:e.customerAddr,car:e.car,amount:e.amount};
-  if(e.route){
-    const pts=e.route.split(' - ');
-    if(pts[0]){const sub=pts[0].split(', ');
-      document.getElementById('from_a').value=sub.length>1?sub.slice(0,-1).join(', '):pts[0];
-      document.getElementById('from_b').value=sub.length>1?sub[sub.length-1]:'';}
-    if(pts[1])document.getElementById('to_a').value=pts[1];
-    if(pts[2])document.getElementById('to_b').value=pts[2];
-  }
-  Object.entries(m).forEach(([id,v])=>{const el=document.getElementById(id);if(el&&v!==undefined)el.value=v;});
-  document.getElementById('amount_words').value=amountToWords(e.amount);
-  closeHist(); showToast('Загружено: '+e.customerName);
-}
-function delH(idx,ev){
-  ev.stopPropagation(); const h=getH(); h.splice(idx,1);
-  localStorage.setItem('gruz_h',JSON.stringify(h)); renderH();
-}
-function renderH(){
-  const h=getH(); const list=document.getElementById('histList'); const emp=document.getElementById('histEmpty');
-  if(!h.length){list.innerHTML=''; emp.style.display='block'; return;}
-  emp.style.display='none';
-  list.innerHTML=h.map((e,i)=>`
-    <div class="hi" onclick="loadH(${i})">
-      <div class="hi-m"><span class="hi-n">${e.customerName||'—'}</span><span class="hi-d">${e.docDate||''}</span></div>
-      <div class="hi-s">${e.route||''}</div>
-      <div class="hi-me"><span class="hi-a">${Number(e.amount||0).toLocaleString('ru-RU')} ₽</span>
-      <button class="hi-x" onclick="delH(${i},event)">✕</button></div>
-    </div>`).join('');
-}
-function openHist(){renderH(); document.getElementById('histMo').classList.add('open');}
-function closeHist(){document.getElementById('histMo').classList.remove('open');}
 function showToast(msg){
   const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2500);
@@ -378,7 +373,7 @@ function drawServiceBlock(doc, d, y, ml, cw, colHeader){
 
 // ── INVOICE ────────────────────────────────────────────────────────
 function genInvoice(){
-  const d=getData(); saveH(d);
+  const d=getData();
   const doc=nDoc(); const ml=10,cw=190; let y=8;
   const c1=30,c2=60,c3=22,c4=cw-c1-c2-c3,rh=6.5;
 
@@ -463,10 +458,10 @@ function genInvoice(){
   doc.text("Карпов С.В.",se+3,y);
 
   // Stamp: centred over sig line, top = y+2 (below baseline, no overlap with divider)
-  if(stampUrl){
+  if(stampUrl && isStampEnabled()){
     const stW=32, stH=22;
     const stX=(ss+se)/2-stW/2;
-    try{doc.addImage(stampUrl,"PNG",stX,y-stH+8,stW,stH,undefined,"FAST");}catch(e){}
+    try{doc.addImage(stampUrl,"PNG",stX,y-stH+9,stW,stH,undefined,"FAST");}catch(e){}
   }
 
   doc.save("schet_"+d.num+"_"+d.docDate.replace(/\\./g,"-")+".pdf");
@@ -474,7 +469,7 @@ function genInvoice(){
 
 // ── ACT ────────────────────────────────────────────────────────────
 function genAct(){
-  const d=getData(); saveH(d);
+  const d=getData();
   const doc=nDoc(); const ml=10,cw=190; let y=8;
   const half=cw/2, lW=22;
 
@@ -556,10 +551,10 @@ function genAct(){
   doc.setTextColor(0,0,0); sf(doc,8,true);
   doc.text("Карпов С.В.",se+3,y);
 
-  if(stampUrl){
+  if(stampUrl && isStampEnabled()){
     const stW=32, stH=22;
     const stX=(ss+se)/2-stW/2;
-    try{doc.addImage(stampUrl,"PNG",stX,y-stH+8,stW,stH,undefined,"FAST");}catch(e){}
+    try{doc.addImage(stampUrl,"PNG",stX,y-stH+9,stW,stH,undefined,"FAST");}catch(e){}
   }
 
   const rx=ml+cw/2+20;
