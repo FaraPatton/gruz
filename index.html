@@ -186,26 +186,18 @@ body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,s
     <button class="bh bh-archive" onclick="archiveToDrive()" id="archiveBtn" style="width:100%">📤 Отправить в архив поездок</button>
   </div>
   <div class="mb-2">
-    <button class="bh bh-email" onclick="openEmail()" style="width:100%">✉️ Отправить документы на почту</button>
+    <button class="bh bh-email" onclick="toggleEmail()" style="width:100%" id="emailToggleBtn">✉️ Отправить документы на почту</button>
+  </div>
+  <div id="emailPanel" style="display:none;margin-bottom:8px;">
+    <div class="dc" style="padding:16px;margin-bottom:0">
+      <label class="fl">Email заказчика</label>
+      <input type="email" id="emailTo" class="fi" placeholder="example@mail.ru" style="margin-bottom:12px">
+      <button class="bd" onclick="sendEmail()" id="sendEmailBtn">✉️ Отправить письмо</button>
+      <p id="emailMsg" style="font-size:12px;text-align:center;margin-top:8px;min-height:14px;"></p>
+    </div>
   </div>
   <p id="driveMsg" class="drive-msg"></p>
   <p class="hint">Нажми «Архив поездок» чтобы открыть Drive и заполнить данные автоматически.</p>
-</div>
-
-<!-- Email Modal -->
-<div class="mo" id="emailMo" onclick="if(event.target===this)closeEmail()">
-  <div class="ms" style="max-height:auto">
-    <div class="mh">
-      <h2>✉️ Отправить документы</h2>
-      <button class="mc" onclick="closeEmail()">✕</button>
-    </div>
-    <div style="padding:20px">
-      <label class="fl">Email заказчика</label>
-      <input type="email" id="emailTo" class="fi" placeholder="example@mail.ru" style="margin-bottom:14px">
-      <button class="bd" onclick="sendEmail()" id="sendEmailBtn">✉️ Отправить письмо</button>
-      <p id="emailMsg" style="font-size:12px;text-align:center;margin-top:10px;min-height:16px;"></p>
-    </div>
-  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -946,14 +938,19 @@ https://drive.google.com/drive/folders/1pJMPxTEhMu3JRHe0_K4F8ECHye1_LSj8?usp=sha
 С уважением,
 Карпов Сергей | 89647851386 | Код участника АТИ: 2936939`;
 
-function openEmail() {
-  document.getElementById('emailTo').value = '';
-  document.getElementById('emailMsg').textContent = '';
-  document.getElementById('emailMo').classList.add('open');
-  setTimeout(()=>document.getElementById('emailTo').focus(), 100);
+function toggleEmail() {
+  const panel = document.getElementById('emailPanel');
+  const btn = document.getElementById('emailToggleBtn');
+  const open = panel.style.display === 'none';
+  panel.style.display = open ? 'block' : 'none';
+  if(open) {
+    document.getElementById('emailTo').value = '';
+    document.getElementById('emailMsg').textContent = '';
+    setTimeout(()=>document.getElementById('emailTo').focus(), 50);
+  }
 }
 function closeEmail() {
-  document.getElementById('emailMo').classList.remove('open');
+  document.getElementById('emailPanel').style.display = 'none';
 }
 
 async function sendEmail() {
