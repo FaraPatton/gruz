@@ -323,71 +323,69 @@ function jl(doc,lines,x,y,mW,lH){
 // Columns: №(8) Desc(110) Qty(16) Unit(14) Price(22) Sum(20) = 190mm total
 // tx: [10, 18, 128, 144, 158, 180]  right edge = 200
 
-function drawServiceBlock(doc, d, y, ml, cw, colHeader){
+function drawServiceBlock(doc, d, y, ml, cw, colHeader) {
   const tc=[8,110,16,14,22,20];
   const tx=[ml]; for(let i=0;i<tc.length-1;i++) tx.push(tx[i]+tc[i]);
-  const tW=tc.reduce((a,b)=>a+b,0); // 190
+  const tW=tc.reduce((a,b)=>a+b,0);
 
   // ── Header row ──
+  const hdrH = 9;
   doc.setFillColor(228,228,228);
-  doc.rect(tx[0],y,tW,7,"F");
-  doc.setDrawColor(0); doc.setLineWidth(0.25);
-  doc.rect(tx[0],y,tW,7);
-  tx.forEach((x,i)=>{ if(i>0) doc.line(x,y,x,y+7); });
+  doc.rect(tx[0],y,tW,hdrH,"F");
+  doc.setDrawColor(0); doc.setLineWidth(0.3);
+  doc.rect(tx[0],y,tW,hdrH);
+  tx.forEach((x,i)=>{ if(i>0) doc.line(x,y,x,y+hdrH); });
   ["№", colHeader, "Кол-во", "Ед.", "Цена", "Сумма"].forEach((h,i)=>{
-    sf(doc,7.5,true); doc.setTextColor(30,30,30);
-    tC(doc,h, tx[i]+tc[i]/2, y+4.8);
+    sf(doc,9.5,true); doc.setTextColor(30,30,30);
+    tC(doc,h, tx[i]+tc[i]/2, y+hdrH/2+1.8);
   });
   doc.setTextColor(0,0,0);
-  y+=7;
+  y += hdrH;
 
-  // ── Service row ──
+  // ── Service description row ──
   const descText="Транспортные услуги по перевозке груза по маршруту: "+d.route+
     ", "+d.car+", Карпов Сергей Викторович, дата загрузки - "+
     d.loadDate+", дата выгрузки - "+d.unloadDate+".";
-  sf(doc,7.5,false);
+  sf(doc,9.5,false);
   const descLines=doc.splitTextToSize(descText, tc[1]-4);
-  const svcH=Math.max(descLines.length*4+5, 12);
+  const svcH=Math.max(descLines.length*5.0+6, 14);
 
-  doc.setDrawColor(0); doc.setLineWidth(0.25);
+  doc.setDrawColor(0); doc.setLineWidth(0.3);
   doc.rect(tx[0],y,tW,svcH);
   tx.forEach((x,i)=>{ if(i>0) doc.line(x,y,x,y+svcH); });
 
-  // "1" centred in № column
-  sf(doc,8,false);
-  tC(doc,"1", tx[0]+tc[0]/2, y+svcH/2+1.5);
+  // № "1" — centred vertically and horizontally
+  sf(doc,10.0,false);
+  tC(doc,"1", tx[0]+tc[0]/2, y+svcH/2+1.8);
 
-  // Description justified in Desc column
-  jl(doc, descLines, tx[1]+2, y+4.5, tc[1]-4, 4.0);
+  // Description text
+  jl(doc, descLines, tx[1]+2, y+5.5, tc[1]-4, 5.0);
 
-  // Qty "1" centred
-  tC(doc,"1", tx[2]+tc[2]/2, y+svcH/2+1.5);
+  // Qty, Price, Sum
+  sf(doc,10.0,false);
+  tC(doc,"1", tx[2]+tc[2]/2, y+svcH/2+1.8);
+  tR(doc,d.amountFmt, tx[4]+tc[4]-2, y+svcH/2+1.8);
+  tR(doc,d.amountFmt, tx[5]+tc[5]-2, y+svcH/2+1.8);
+  y += svcH;
 
-  // Price and Sum right-aligned
-  sf(doc,8,false);
-  tR(doc, d.amountFmt, tx[4]+tc[4]-2, y+svcH/2+1.5);
-  tR(doc, d.amountFmt, tx[5]+tc[5]-2, y+svcH/2+1.5);
-  y+=svcH;
-
-  // ── Totals: value col aligned with Сумма column ──
-  // Block spans from tx[2] to end (right edge 200)
-  // Inside: label right-aligns to tx[5]-2=178, value right-aligns to 198
-  const totX  = tx[2];              // 128 — left edge of block
-  const totW  = tW - tc[0] - tc[1]; // 190-8-110 = 72
-  const splitX = tx[5];             // 180 — divider between label and value
+  // ── Totals rows — attached directly to service table (no gap) ──
+  const totX  = tx[2];
+  const totW  = tc[2]+tc[3]+tc[4]+tc[5];
+  const splitX = tx[5];
+  const totH = 8;
 
   [["Итого:",d.amountFmt],["Без налога (НДС):","-"],["Всего к оплате:",d.amountFmt]]
     .forEach(([l,v],idx)=>{
-      const th=6;
-      doc.setDrawColor(0); doc.setLineWidth(0.2);
-      doc.rect(totX,y,totW,th);
-      doc.line(splitX,y,splitX,y+th);
-      sf(doc,8,idx===2); doc.setTextColor(70,70,70);
-      tR(doc,l, splitX-2, y+4.2);
-      doc.setTextColor(0,0,0); sf(doc,8,idx===2);
-      tR(doc,v, totX+totW-2, y+4.2);
-      y+=th;
+      doc.setDrawColor(0); doc.setLineWidth(0.3);
+      doc.rect(totX,y,totW,totH);
+      doc.line(splitX,y,splitX,y+totH);
+      sf(doc,10.0,idx===2); doc.setTextColor(70,70,70);
+      tR(doc,l, splitX-2, y+totH/2+1.8);
+      doc.setTextColor(0,0,0); sf(doc,10.0,idx===2);
+      tR(doc,v, totX+totW-2, y+totH/2+1.8);
+      y+=totH;
     });
+
   doc.setTextColor(0,0,0);
   return y;
 }
@@ -396,7 +394,7 @@ function drawServiceBlock(doc, d, y, ml, cw, colHeader){
 function genInvoice(existingDoc){
   const d=getData();
   const doc=existingDoc||nDoc(); const ml=10,cw=190; let y=8;
-  const c1=30,c2=60,c3=22,c4=cw-c1-c2-c3,rh=6.5;
+  const c1=30,c2=60,c3=22,c4=cw-c1-c2-c3,rh=11;
 
   function hr(cells,ry,bg){
     const ws=[c1,c2,c3,c4];
@@ -410,43 +408,43 @@ function genInvoice(existingDoc){
       doc.setTextColor(...(cell.col||[0,0,0]));
       const ll=doc.splitTextToSize(cell.t||"",ws[i]-4);
       const lh=(cell.sz||8)*0.42;
-      const ty=ry+rh/2-ll.length*lh/2+lh*0.85;
+      const ty=ry+rh/2-ll.length*lh/2+lh*0.72;
       ll.forEach((l,j)=>doc.text(l,cx+2,ty+j*lh));
       cx+=ws[i];
     });
     doc.setTextColor(0,0,0);
   }
 
-  hr([{t:"Получатель",b:true,col:[70,70,70],sz:7.5},{t:"ИП Карпов Сергей Викторович",b:true,sz:8.5},
-      {t:"Банк",b:true,col:[70,70,70],sz:7.5},{t:"ПАО СБЕРБАНК г. Москва",sz:8}],y,[242,242,242]); y+=rh;
-  hr([{t:"ИНН",col:[100,100,100],sz:7.5},{t:"771313296859",sz:8},
-      {t:"БИК",col:[100,100,100],sz:7.5},{t:"044525225",sz:8}],y); y+=rh;
-  hr([{t:"Сч. №",col:[100,100,100],sz:7.5},{t:"40802810438000085714",sz:7.8},
-      {t:"Сч. №",col:[100,100,100],sz:7.5},{t:"30101810400000000225",sz:7.8}],y); y+=rh;
+  hr([{t:"Получатель",b:true,col:[70,70,70],sz:10.5},{t:"ИП Карпов Сергей Викторович",b:true,sz:12.0},
+      {t:"Банк",b:true,col:[70,70,70],sz:10.5},{t:"ПАО СБЕРБАНК г. Москва",sz:11.0}],y,[242,242,242]); y+=rh;
+  hr([{t:"ИНН",col:[100,100,100],sz:9.5},{t:"771313296859",sz:10.0},
+      {t:"БИК",col:[100,100,100],sz:9.5},{t:"044525225",sz:10.0}],y); y+=rh;
+  hr([{t:"Сч. №",col:[100,100,100],sz:10.5},{t:"30101810400000000225",sz:11.0},
+      {t:"Сч. №",col:[100,100,100],sz:10.5},{t:"40802810438000085714",sz:11.0}],y); y+=rh;
 
-  const rh4=7.5;
+  const rh4=11;
   doc.setDrawColor(0); doc.setLineWidth(0.25);
   doc.rect(ml,y,cw,rh4); doc.line(ml+c1,y,ml+c1,y+rh4);
-  sf(doc,7.5,false); doc.setTextColor(100,100,100); doc.text("Адрес / Тел.",ml+2,y+4.8);
-  doc.setTextColor(0,0,0); sf(doc,8,false);
+  sf(doc,9.5,false); doc.setTextColor(100,100,100); doc.text("Адрес / Тел.",ml+2,y+rh4/2+1.8);
+  doc.setTextColor(0,0,0); sf(doc,10.0,false);
   const aW=cw-c1-4;
   const aL=doc.splitTextToSize("127591 г. Москва, Керамический пр. д.65, к.2, кв.186    тел. 8-964-785-13-86",aW);
-  jl(doc,aL, ml+c1+2, y+rh4/2-aL.length*3.8/2+3.8*0.9, aW, 3.8);
+  jl(doc,aL, ml+c1+2, y+rh4/2-aL.length*5.0/2+5.0*0.72, aW, 5.0);
   y+=rh4+6;
 
-  sf(doc,11,true); doc.text("Счёт на оплату №"+d.num+" от "+d.docDate,ml,y);
+  sf(doc,13.0,true); doc.text("Счёт на оплату №"+d.num+" от "+d.docDate,ml,y);
   y+=2; doc.setLineWidth(1.0); doc.line(ml,y+1,ml+cw,y+1); y+=8;
 
   ["Заказчик:","Плательщик:"].forEach(lbl=>{
     const cf=d.customerName+", ИНН "+d.customerInn+", КПП "+d.customerKpp+", "+d.customerAddr;
-    sf(doc,8,false); const vW=cw-28;
+    sf(doc,10.0,false); const vW=cw-28;
     const cl=doc.splitTextToSize(cf,vW-4);
     const rH=cl.length*4+5;
     doc.setDrawColor(0); doc.setLineWidth(0.25);
     doc.rect(ml,y,cw,rH); doc.line(ml+28,y,ml+28,y+rH);
-    sf(doc,8,true); doc.setTextColor(50,50,50); doc.text(lbl,ml+2,y+rH/2+1.5);
-    doc.setTextColor(0,0,0); sf(doc,8,false);
-    jl(doc,cl,ml+30,y+3.5,vW-4,4); y+=rH;
+    sf(doc,10.0,true); doc.setTextColor(50,50,50); doc.text(lbl,ml+2,y+rH/2+1.8);
+    doc.setTextColor(0,0,0); sf(doc,10.0,false);
+    jl(doc,cl,ml+30,y+4.5,vW-4,5.0); y+=rH;
   });
   y+=4;
 
@@ -455,14 +453,14 @@ function genInvoice(existingDoc){
 
   // Amount lines — colon added, bold value
   const a1="Всего оказано услуг 1, на сумму:";
-  sf(doc,8,false); doc.text(a1,ml,y);
+  sf(doc,10.0,false); doc.text(a1,ml,y);
   const lw1=tw(doc,a1)+" "; // add a space gap
-  sf(doc,8,false); const spaceW=tw(doc," ");
-  sf(doc,8.5,true); doc.text(d.amountInt+" руб 00 копеек", ml+tw(doc,a1)+spaceW, y);
+  sf(doc,10.0,false); const spaceW=tw(doc," ");
+  sf(doc,10.5,true); doc.text(d.amountInt+" руб 00 копеек", ml+tw(doc,a1)+spaceW, y);
   y+=5;
   const a2="Всего оказано услуг на сумму:";
-  sf(doc,8,false); doc.text(a2,ml,y);
-  sf(doc,8.5,true); doc.text(d.amountWords, ml+tw(doc,a2)+spaceW, y);
+  sf(doc,10.0,false); doc.text(a2,ml,y);
+  sf(doc,10.5,true); doc.text(d.amountWords, ml+tw(doc,a2)+spaceW, y);
   doc.setTextColor(0,0,0); y+=9;
 
   // Divider
@@ -471,11 +469,11 @@ function genInvoice(existingDoc){
 
   // Signature line
   const ss=ml+27, se=ml+80;
-  sf(doc,8,false); doc.text("Исполнитель",ml,y);
+  sf(doc,10.0,false); doc.text("Исполнитель",ml,y);
   doc.setLineWidth(0.3); doc.line(ss,y+1,se,y+1);
-  sf(doc,7,false); doc.setTextColor(130,130,130);
+  sf(doc,9.0,false); doc.setTextColor(130,130,130);
   tC(doc,"(подпись)",(ss+se)/2,y+5);
-  doc.setTextColor(0,0,0); sf(doc,8,true);
+  doc.setTextColor(0,0,0); sf(doc,10.0,true);
   doc.text("Карпов С.В.",se+3,y);
 
   // Stamp: centred over sig line, top = y+2 (below baseline, no overlap with divider)
@@ -492,16 +490,16 @@ function genInvoice(existingDoc){
 function genAct(existingDoc){
   const d=getData();
   const doc=existingDoc||nDoc(); const ml=10,cw=190; let y=8;
-  const half=cw/2, lW=22;
+  const half=cw/2, lW=28;
 
   function mb(rows,bW){
-    let h=5;
+    let h=8;
     rows.forEach(r=>{
-      sf(doc,r.big?8.5:7.5,r.big||false);
+      sf(doc,r.big?10.5:9.5,r.big||false);
       const ll=doc.splitTextToSize(r.value,bW-lW-4);
-      h+=ll.length*3.7+1;
+      h+=ll.length*5.2+2;
     });
-    return h+3;
+    return h+4;
   }
   const eR=[
     {label:"Исполнитель",value:"ИП Карпов Сергей Викторович",big:true},
@@ -522,20 +520,20 @@ function genAct(existingDoc){
   doc.rect(ml,y,cw,shH); doc.line(ml+half,y,ml+half,y+shH);
 
   function db(rows,sX,bW,sY){
-    let ry=sY+5;
+    let ry=sY+8;
     rows.forEach(r=>{
-      sf(doc,7,false); doc.setTextColor(110,110,110);
+      sf(doc,9.5,false); doc.setTextColor(110,110,110);
       doc.text(r.label+":",sX+2,ry);
-      sf(doc,r.big?8.5:7.5,r.big||false); doc.setTextColor(0,0,0);
+      sf(doc,r.big?10.5:9.5,r.big||false); doc.setTextColor(0,0,0);
       const ll=doc.splitTextToSize(r.value,bW-lW-4);
-      ll.forEach((l,i)=>doc.text(l,sX+lW,ry+i*3.7));
-      ry+=ll.length*3.7+1;
+      ll.forEach((l,i)=>doc.text(l,sX+lW,ry+i*5.2));
+      ry+=ll.length*5.2+2;
     });
   }
   db(eR,ml,half,y); db(cR,ml+half,half,y);
   y+=shH+4;
 
-  sf(doc,10,true);
+  sf(doc,12.0,true);
   const at="АКТ СДАЧИ-ПРИЁМКИ ВЫПОЛНЕННЫХ РАБОТ (ОКАЗАННЫХ УСЛУГ) №"+d.num+" от "+d.actDate;
   const al=doc.splitTextToSize(at,cw);
   al.forEach((l,i)=>tC(doc,l,ml+cw/2,y+3+i*5.2));
@@ -546,16 +544,16 @@ function genAct(existingDoc){
   y+=2;
 
   const a1="Всего оказано услуг 1, на сумму:";
-  sf(doc,8,false); doc.text(a1,ml,y);
+  sf(doc,10.0,false); doc.text(a1,ml,y);
   const spaceW=tw(doc," ");
-  sf(doc,8.5,true); doc.text(d.amountInt+" руб 00 копеек", ml+tw(doc,a1)+spaceW, y);
+  sf(doc,10.5,true); doc.text(d.amountInt+" руб 00 копеек", ml+tw(doc,a1)+spaceW, y);
   y+=5;
   const a2="Всего оказано услуг на сумму:";
-  sf(doc,8,false); doc.text(a2,ml,y);
-  sf(doc,8.5,true); doc.text(d.amountWords, ml+tw(doc,a2)+spaceW, y);
+  sf(doc,10.0,false); doc.text(a2,ml,y);
+  sf(doc,10.5,true); doc.text(d.amountWords, ml+tw(doc,a2)+spaceW, y);
   y+=5;
 
-  sf(doc,7.5,false); doc.setTextColor(60,60,60);
+  sf(doc,9.5,false); doc.setTextColor(60,60,60);
   const nl=doc.splitTextToSize(
     "Вышеперечисленные услуги выполнены полностью и в срок. Заказчик претензий по объёму, качеству и срокам оказания услуг не имеет.",cw);
   doc.text(nl,ml,y); y+=nl.length*4+5;
@@ -565,11 +563,11 @@ function genAct(existingDoc){
   y+=13;
 
   const ss=ml+27, se=ml+82;
-  sf(doc,8,false); doc.text("Исполнитель",ml,y);
+  sf(doc,10.0,false); doc.text("Исполнитель",ml,y);
   doc.setLineWidth(0.3); doc.line(ss,y+1,se,y+1);
-  sf(doc,7,false); doc.setTextColor(130,130,130);
+  sf(doc,9.0,false); doc.setTextColor(130,130,130);
   tC(doc,"(подпись)",(ss+se)/2,y+5);
-  doc.setTextColor(0,0,0); sf(doc,8,true);
+  doc.setTextColor(0,0,0); sf(doc,10.0,true);
   doc.text("Карпов С.В.",se+3,y);
 
   if(stampUrl && isStampEnabled()){
@@ -579,9 +577,9 @@ function genAct(existingDoc){
   }
 
   const rx=ml+cw/2+20;
-  sf(doc,8,false); doc.setTextColor(0,0,0); doc.text("Заказчик",rx,y);
+  sf(doc,10.0,false); doc.setTextColor(0,0,0); doc.text("Заказчик",rx,y);
   doc.setLineWidth(0.3); doc.line(rx+22,y+1,ml+cw,y+1);
-  sf(doc,7,false); doc.setTextColor(130,130,130);
+  sf(doc,9.0,false); doc.setTextColor(130,130,130);
   tC(doc,"(подпись)",(rx+22+ml+cw)/2,y+5);
   doc.setTextColor(0,0,0);
 
