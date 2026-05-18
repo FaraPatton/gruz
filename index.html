@@ -88,6 +88,8 @@ body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,s
 .bh-archive:disabled{opacity:.5;cursor:not-allowed;}
 .bh-email{border-color:#ea4335;color:#ea4335;}
 .bh-email:hover{border-color:#ea4335;background:rgba(234,67,53,.08);}
+.bh-sign{border-color:#9c27b0;color:#9c27b0;}
+.bh-sign:hover{border-color:#9c27b0;background:rgba(156,39,176,.08);}
 /* Toggle switch */
 .toggle-switch{position:relative;display:inline-block;width:48px;height:26px;flex-shrink:0;}
 .toggle-switch input{opacity:0;width:0;height:0;}
@@ -183,10 +185,13 @@ body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,s
     <button class="bh bh-drive" onclick="openDrivePicker()" id="driveBtn" style="width:100%">📂 Архив поездок</button>
   </div>
   <div class="mb-2">
-    <button class="bh bh-archive" onclick="archiveToDrive()" id="archiveBtn" style="width:100%">📤 Отправить в архив поездок</button>
+    <button class="bh bh-archive" onclick="archiveToDrive()" id="archiveBtn" style="width:100%">📤 Загрузить документы в архив</button>
   </div>
   <div class="mb-2">
-    <button class="bh bh-email" onclick="toggleEmail()" style="width:100%" id="emailToggleBtn">✉️ Отправить документы на почту</button>
+    <button class="bh bh-email" onclick="toggleEmail()" style="width:100%" id="emailToggleBtn">✉️ Отправить комплект документов</button>
+  </div>
+  <div class="mb-2">
+    <button class="bh bh-sign" onclick="toggleSign()" style="width:100%" id="signToggleBtn">🖊 Подписать договор</button>
   </div>
   <div id="emailPanel" style="display:none;margin-bottom:8px;">
     <div class="dc" style="padding:16px;margin-bottom:0">
@@ -196,6 +201,34 @@ body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,s
       <p id="emailMsg" style="font-size:12px;text-align:center;margin-top:8px;min-height:14px;"></p>
     </div>
   </div>
+  
+  <!-- Sign contract panel -->
+  <div id="signPanel" style="display:none;margin-bottom:8px;">
+    <div class="dc" style="padding:16px;margin-bottom:0">
+      <label class="fl">Загрузить договор (PDF)</label>
+      <div class="uz" style="margin-bottom:12px;min-height:52px;">
+        <input type="file" id="contractFile" accept="application/pdf">
+        <div id="contractPh"><div style="font-size:16px;margin-bottom:2px">📄</div><div class="uh">Выберите PDF договор</div></div>
+        <span id="contractName" style="font-size:12px;color:var(--acc);display:none"></span>
+      </div>
+      <div id="signCanvas" style="display:none;margin-bottom:12px;">
+        <p style="font-size:11px;color:var(--mut);margin-bottom:6px;">Нажмите на документ чтобы поставить печать. Нажмите снова чтобы переместить.</p>
+        <div style="position:relative;overflow:auto;max-height:500px;border:1px solid var(--brd);border-radius:8px;background:#fff;" id="signViewport">
+          <canvas id="pdfCanvas" style="display:block;"></canvas>
+          <img id="stampOverlay" src="" style="position:absolute;width:80px;height:56px;cursor:move;display:none;opacity:0.85;" draggable="false">
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
+          <label class="fl" style="margin:0;white-space:nowrap;">Страница:</label>
+          <button onclick="signPagePrev()" class="bh" style="width:36px;padding:6px;font-size:14px">‹</button>
+          <span id="signPageInfo" style="font-size:12px;color:var(--mut);white-space:nowrap;">1 / 1</span>
+          <button onclick="signPageNext()" class="bh" style="width:36px;padding:6px;font-size:14px">›</button>
+        </div>
+      </div>
+      <button class="bd" onclick="downloadSigned()" id="downloadSignBtn" style="display:none">⬇️ Скачать с печатью</button>
+      <p id="signMsg" style="font-size:12px;text-align:center;margin-top:8px;min-height:14px;"></p>
+    </div>
+  </div>
+
   <p id="driveMsg" class="drive-msg"></p>
   <p class="hint">Нажми «Архив поездок» чтобы открыть Drive и заполнить данные автоматически.</p>
 </div>
@@ -879,7 +912,7 @@ async function archiveToDrive(){
     console.error(e);
   }finally{
     btn.disabled=false;
-    btn.textContent='📤 Отправить в архив поездок';
+    btn.textContent='📤 Загрузить документы в архив';
   }
 }
 
@@ -1015,6 +1048,180 @@ async function sendEmail() {
   } finally {
     btn.disabled = false;
     btn.textContent = '✉️ Отправить письмо';
+  }
+}
+
+
+// ── Sign Contract ──────────────────────────────────────────────
+let signPdfBytes = null;
+let signCurrentPage = 1;
+let signTotalPages = 1;
+let signPdfDoc = null;
+let stampPos = null; // {x, y} in PDF points
+let stampPlaced = false;
+
+function toggleSign() {
+  const panel = document.getElementById('signPanel');
+  const open = panel.style.display === 'none';
+  panel.style.display = open ? 'block' : 'none';
+  if(open) {
+    document.getElementById('signMsg').textContent = '';
+    document.getElementById('signCanvas').style.display = 'none';
+    document.getElementById('downloadSignBtn').style.display = 'none';
+    document.getElementById('contractPh').style.display = 'block';
+    document.getElementById('contractName').style.display = 'none';
+    stampPlaced = false;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('contractFile').addEventListener('change', async function(e) {
+    const file = e.target.files[0];
+    if(!file) return;
+    document.getElementById('contractPh').style.display = 'none';
+    const nameEl = document.getElementById('contractName');
+    nameEl.textContent = '📄 ' + file.name;
+    nameEl.style.display = 'block';
+    document.getElementById('signMsg').textContent = 'Загружаю документ...';
+    document.getElementById('signMsg').style.color = 'var(--mut)';
+
+    const buf = await file.arrayBuffer();
+    signPdfBytes = new Uint8Array(buf);
+    signCurrentPage = 1;
+
+    // Load with PDF.js for preview
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    signPdfDoc = await pdfjsLib.getDocument({data: signPdfBytes.buffer.slice(0)}).promise;
+    signTotalPages = signPdfDoc.numPages;
+    await renderSignPage(signCurrentPage);
+    document.getElementById('signCanvas').style.display = 'block';
+    document.getElementById('downloadSignBtn').style.display = 'block';
+    document.getElementById('signMsg').textContent = 'Нажмите на документ чтобы поставить печать';
+    document.getElementById('signMsg').style.color = 'var(--mut)';
+  });
+});
+
+async function renderSignPage(pageNum) {
+  const page = await signPdfDoc.getPage(pageNum);
+  const viewport = page.getViewport({scale: 1.5});
+  const canvas = document.getElementById('pdfCanvas');
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  const ctx = canvas.getContext('2d');
+  await page.render({canvasContext: ctx, viewport}).promise;
+  document.getElementById('signPageInfo').textContent = pageNum + ' / ' + signTotalPages;
+
+  // Reset stamp position on page change
+  const overlay = document.getElementById('stampOverlay');
+  overlay.style.display = 'none';
+  stampPlaced = false;
+}
+
+async function signPagePrev() {
+  if(signCurrentPage > 1) { signCurrentPage--; await renderSignPage(signCurrentPage); }
+}
+async function signPageNext() {
+  if(signCurrentPage < signTotalPages) { signCurrentPage++; await renderSignPage(signCurrentPage); }
+}
+
+// Click on canvas → place stamp
+document.addEventListener('DOMContentLoaded', function() {
+  const viewport = document.getElementById('signViewport');
+  if(!viewport) return;
+
+  viewport.addEventListener('click', function(e) {
+    if(!signPdfDoc) return;
+    const canvas = document.getElementById('pdfCanvas');
+    const rect = canvas.getBoundingClientRect();
+    const viewRect = viewport.getBoundingClientRect();
+
+    // Click position relative to canvas
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+
+    // Scale factor (canvas CSS vs actual pixels)
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const px = cx * scaleX;
+    const py = cy * scaleY;
+
+    // Store position (in canvas pixels at scale 1.5)
+    stampPos = {px, py, page: signCurrentPage, canvasW: canvas.width, canvasH: canvas.height};
+
+    // Show stamp overlay
+    const overlay = document.getElementById('stampOverlay');
+    overlay.src = STAMP_DEFAULT;
+    overlay.style.display = 'block';
+    // Position relative to viewport, centred on click
+    const overlayW = 80, overlayH = 56;
+    overlay.style.left = (e.clientX - viewRect.left + viewport.scrollLeft - overlayW/2) + 'px';
+    overlay.style.top  = (e.clientY - viewRect.top  + viewport.scrollTop  - overlayH/2) + 'px';
+    stampPlaced = true;
+    document.getElementById('signMsg').textContent = 'Печать размещена. Нажмите ещё раз чтобы переместить, или скачайте.';
+    document.getElementById('signMsg').style.color = 'var(--acc)';
+  });
+});
+
+async function downloadSigned() {
+  if(!signPdfBytes) { alert('Сначала загрузите PDF'); return; }
+  const btn = document.getElementById('downloadSignBtn');
+  btn.disabled = true; btn.textContent = '⏳ Обрабатываю...';
+
+  try {
+    // Load pdf-lib dynamically if not loaded
+    if(typeof PDFLib === 'undefined') {
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js';
+        s.onload=res; s.onerror=rej;
+        document.head.appendChild(s);
+      });
+    }
+
+    const {PDFDocument} = PDFLib;
+    const pdfDoc = await PDFDocument.load(signPdfBytes);
+    const pages = pdfDoc.getPages();
+
+    if(stampPlaced && stampPos) {
+      const targetPage = pages[stampPos.page - 1];
+      const {width: pdfW, height: pdfH} = targetPage.getSize();
+
+      // Convert canvas coords to PDF coords
+      const scaleX = pdfW / stampPos.canvasW;
+      const scaleY = pdfH / stampPos.canvasH;
+      const pdfX = stampPos.px * scaleX;
+      const pdfY = pdfH - stampPos.py * scaleY; // PDF Y is bottom-up
+
+      // Embed stamp image
+      const stampBytes = await fetch(STAMP_DEFAULT).then(r=>r.arrayBuffer());
+      const stampImg = await pdfDoc.embedPng(stampBytes);
+      const stampW = 70, stampH = 50;
+      targetPage.drawImage(stampImg, {
+        x: pdfX - stampW/2,
+        y: pdfY - stampH/2,
+        width: stampW,
+        height: stampH,
+        opacity: 0.85
+      });
+    }
+
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], {type:'application/pdf'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'dogovor_podpisany.pdf';
+    a.click();
+    URL.revokeObjectURL(url);
+    document.getElementById('signMsg').textContent = '✅ Файл скачан!';
+    document.getElementById('signMsg').style.color = 'var(--acc)';
+  } catch(e) {
+    document.getElementById('signMsg').textContent = 'Ошибка: ' + e.message;
+    document.getElementById('signMsg').style.color = 'var(--dan)';
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⬇️ Скачать с печатью';
   }
 }
 
