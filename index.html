@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>ИП Карпов — Документы</title>
+<title>ИП Карпов</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://apis.google.com/js/api.js"></script>
@@ -140,12 +140,12 @@ body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,s
   <div class="dc">
     <div class="cl">Маршрут и услуга</div>
     <div class="row g-3 mb-3">
-      <div class="col-6"><label class="fl">Откуда (пункт А)</label><input type="text" id="from_a" class="fi" value="Москва, Сигнальный проезд д. 16"></div>
-      <div class="col-6"><label class="fl">Промежуточный</label><input type="text" id="from_b" class="fi" value="МО, Грибки"></div>
+      <div class="col-12"><label class="fl">Откуда (пункт А)</label><input type="text" id="from_a" class="fi" value="Москва, Сигнальный проезд д. 16"></div>
+      <input type="hidden" id="from_b" value="">
     </div>
     <div class="row g-3 mb-3">
-      <div class="col-6"><label class="fl">Куда (пункт Б)</label><input type="text" id="to_a" class="fi" value="Тверская область, Оковцы, ул. Речная д. 1"></div>
-      <div class="col-6"><label class="fl">Обратный</label><input type="text" id="to_b" class="fi" value="Москва, Сколковское шоссе д. 31/9"></div>
+      <div class="col-12"><label class="fl">Куда (пункт Б)</label><input type="text" id="to_a" class="fi" value="Тверская область, Оковцы, ул. Речная д. 1"></div>
+      <input type="hidden" id="to_b" value="">
     </div>
     <div class="row g-3 mb-3">
       <div class="col-12 col-sm-4"><label class="fl">Автомобиль</label><input type="text" id="car" class="fi" value="MAN, М563УС(799)"></div>
@@ -225,6 +225,12 @@ body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,s
         </div>
       </div>
       <button class="bd" onclick="downloadSigned()" id="downloadSignBtn" style="display:none">⬇️ Скачать с печатью</button>
+      <div id="signEmailBlock" style="display:none;margin-top:12px;">
+        <div style="height:1px;background:var(--brd);margin-bottom:12px;"></div>
+        <label class="fl">Отправить подписанный договор на email</label>
+        <input type="email" id="signEmailTo" class="fi" placeholder="example@mail.ru" style="margin-bottom:10px;">
+        <button class="bd" onclick="sendSignedByEmail()" id="sendSignedBtn" style="background:var(--surf2);color:var(--acc);border:1px solid var(--acc);">✉️ Отправить договор на почту</button>
+      </div>
       <p id="signMsg" style="font-size:12px;text-align:center;margin-top:8px;min-height:14px;"></p>
     </div>
   </div>
@@ -811,9 +817,7 @@ function showParsed(d, fileName) {
     ['КПП', d.customerKpp||'—'],
     ['Адрес', d.customerAddr||'—'],
     ['Откуда', d.from_a||'—'],
-    ['Промежуточный', d.from_b||'—'],
     ['Куда', d.to_a||'—'],
-    ['Обратный', d.to_b||'—'],
     ['Автомобиль', d.car||'—'],
     ['Загрузка', d.loadDate||'—'],
     ['Выгрузка', d.unloadDate||'—'],
@@ -1099,6 +1103,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('downloadSignBtn').style.display = 'block';
     document.getElementById('signMsg').textContent = 'Нажмите на документ чтобы поставить печать';
     document.getElementById('signMsg').style.color = 'var(--mut)';
+    document.getElementById('signEmailBlock').style.display = 'block';
   });
 });
 
@@ -1160,6 +1165,7 @@ document.addEventListener('DOMContentLoaded', function() {
     stampPlaced = true;
     document.getElementById('signMsg').textContent = 'Печать размещена. Нажмите ещё раз чтобы переместить, или скачайте.';
     document.getElementById('signMsg').style.color = 'var(--acc)';
+    document.getElementById('signEmailBlock').style.display = 'block';
   });
 });
 
@@ -1222,6 +1228,128 @@ async function downloadSigned() {
   } finally {
     btn.disabled = false;
     btn.textContent = '⬇️ Скачать с печатью';
+  }
+}
+
+
+// ── Send signed contract by email ─────────────────────────────
+let signedPdfCache = null; // store last generated signed PDF
+
+async function sendSignedByEmail() {
+  const to = document.getElementById('signEmailTo').value.trim();
+  if(!to || !to.includes('@')) {
+    document.getElementById('signMsg').textContent = 'Введите корректный email';
+    document.getElementById('signMsg').style.color = 'var(--dan)';
+    return;
+  }
+  const btn = document.getElementById('sendSignedBtn');
+  btn.disabled = true; btn.textContent = '⏳ Подготовка...';
+  document.getElementById('signMsg').textContent = '';
+
+  try {
+    // Auth if needed
+    if(!gAccessToken) {
+      await new Promise((res,rej)=>{
+        gTokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: GCLIENT_ID,
+          scope: 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/gmail.send',
+          callback:(r)=>{ if(r.error){rej(new Error(r.error));return;} gAccessToken=r.access_token; res(); }
+        });
+        gTokenClient.requestAccessToken({prompt:'consent'});
+      });
+    }
+
+    btn.textContent = '⏳ Генерирую PDF...';
+
+    // Generate signed PDF (same logic as downloadSigned but return bytes)
+    let pdfBytes;
+    if(!signPdfBytes) throw new Error('Договор не загружен');
+
+    if(typeof PDFLib === 'undefined') {
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js';
+        s.onload=res; s.onerror=rej; document.head.appendChild(s);
+      });
+    }
+
+    const {PDFDocument} = PDFLib;
+    const pdfDoc = await PDFDocument.load(signPdfBytes);
+    const pages = pdfDoc.getPages();
+
+    if(stampPlaced && stampPos) {
+      const targetPage = pages[stampPos.page - 1];
+      const {width: pdfW, height: pdfH} = targetPage.getSize();
+      const scaleX = pdfW / stampPos.canvasW;
+      const scaleY = pdfH / stampPos.canvasH;
+      const pdfX = stampPos.px * scaleX;
+      const pdfY = pdfH - stampPos.py * scaleY;
+      const stampBytes = await fetch(STAMP_DEFAULT).then(r=>r.arrayBuffer());
+      const stampImg = await pdfDoc.embedPng(stampBytes);
+      targetPage.drawImage(stampImg, {
+        x: pdfX - 35, y: pdfY - 25,
+        width: 70, height: 50, opacity: 0.85
+      });
+    }
+
+    pdfBytes = await pdfDoc.save();
+    const fileName = 'dogovor_podpisany.pdf';
+
+    btn.textContent = '⏳ Отправляю письмо...';
+
+    // Build MIME multipart email with PDF attachment
+    const boundary = 'boundary_' + Date.now();
+    const subject = 'Подписанный договор';
+    const bodyText = 'Добрый день!\nВо вложении подписанный договор.\n\n--\nС уважением,\nКарпов Сергей | 89647851386 | АТИ: 2936939';
+    const subjectEncoded = '=?UTF-8?B?' + btoa(unescape(encodeURIComponent(subject))) + '?=';
+    const bodyB64 = btoa(unescape(encodeURIComponent(bodyText)));
+    const pdfB64 = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
+    const fileNameEncoded = '=?UTF-8?B?' + btoa(unescape(encodeURIComponent(fileName))) + '?=';
+
+    const mime = [
+      `To: ${to}`,
+      `Subject: ${subjectEncoded}`,
+      'MIME-Version: 1.0',
+      `Content-Type: multipart/mixed; boundary="${boundary}"`,
+      '',
+      `--${boundary}`,
+      'Content-Type: text/plain; charset=UTF-8',
+      'Content-Transfer-Encoding: base64',
+      '',
+      bodyB64,
+      '',
+      `--${boundary}`,
+      'Content-Type: application/pdf',
+      'Content-Transfer-Encoding: base64',
+      `Content-Disposition: attachment; filename="${fileNameEncoded}"`,
+      '',
+      pdfB64,
+      '',
+      `--${boundary}--`
+    ].join('\r\n');
+
+    const encoded = btoa(unescape(encodeURIComponent(mime)))
+      .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+
+    const resp = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + gAccessToken, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ raw: encoded })
+    });
+
+    if(!resp.ok) { const e=await resp.json(); throw new Error(e.error?.message||'Ошибка отправки'); }
+
+    document.getElementById('signMsg').textContent = '✅ Договор отправлен на ' + to;
+    document.getElementById('signMsg').style.color = 'var(--acc)';
+    showToast('✅ Договор отправлен!');
+
+  } catch(e) {
+    document.getElementById('signMsg').textContent = 'Ошибка: ' + e.message;
+    document.getElementById('signMsg').style.color = 'var(--dan)';
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✉️ Отправить договор на почту';
   }
 }
 
