@@ -1,0 +1,26 @@
+{
+  "name": "ИП Карпов С.В. — Документы",
+  "short_name": "Карпов Docs",
+  "description": "Генератор счётов и актов. Грузоперевозки.",
+  "start_url": "/gruz/",
+  "scope": "/gruz/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f0f11",
+  "theme_color": "#e8c84a",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
