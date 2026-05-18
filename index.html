@@ -1303,7 +1303,14 @@ async function sendSignedByEmail() {
     const bodyText = 'Добрый день!\nВо вложении подписанный договор.\n\n--\nС уважением,\nКарпов Сергей | 89647851386 | АТИ: 2936939';
     const subjectEncoded = '=?UTF-8?B?' + btoa(unescape(encodeURIComponent(subject))) + '?=';
     const bodyB64 = btoa(unescape(encodeURIComponent(bodyText)));
-    const pdfB64 = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
+    // Chunked base64 to avoid call stack overflow on large PDFs
+    const pdfArr = new Uint8Array(pdfBytes);
+    let pdfB64 = '';
+    const chunkSize = 8192;
+    for(let i = 0; i < pdfArr.length; i += chunkSize) {
+      pdfB64 += String.fromCharCode(...pdfArr.subarray(i, i + chunkSize));
+    }
+    pdfB64 = btoa(pdfB64);
     const fileNameEncoded = '=?UTF-8?B?' + btoa(unescape(encodeURIComponent(fileName))) + '?=';
 
     const mime = [
