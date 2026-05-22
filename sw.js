@@ -1,6 +1,6 @@
 // Service Worker — ИП Карпов Docs PWA
 // Версия кэша — меняй при каждом обновлении index.html
-const CACHE = 'karpov-docs-v2';
+const CACHE = 'karpov-docs-v3';
 
 // Файлы для кэширования при установке
 const PRECACHE = [
