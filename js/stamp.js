@@ -21,7 +21,7 @@
     img.onerror = function() {
       console.log('Default stamp not found — user can upload manually');
     };
-    img.src = 'stamp.png?' + Date.now();
+    img.src = 'img/mark.png';
   }
 
   if (document.readyState === 'loading') {
