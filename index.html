@@ -713,6 +713,45 @@ const GCLIENT_ID = '1065862583210-pc1ulr62167km969n4kaqc5f79hre1j7.apps.googleus
 const GAPI_KEY   = 'AIzaSyD-miNligFmgCvFWlYj6j2Hz0hq0EsfxLU';
 let gTokenClient = null;
 let gAccessToken = null;
+let gAuthCallback = null; // shared callback
+
+function getTokenClient() {
+  if(!gTokenClient) {
+    gTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GCLIENT_ID,
+      scope: 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/spreadsheets',
+      callback: (r) => {
+        if(r.error) {
+          console.error('Auth error:', r.error);
+          if(gAuthCallback) gAuthCallback(null, r.error);
+          return;
+        }
+        gAccessToken = r.access_token;
+        // Update UI
+        const btnTxt = document.getElementById('loginBtnText');
+        const btn    = document.getElementById('loginBtn');
+        const status = document.getElementById('loginStatus');
+        if(btnTxt) btnTxt.textContent = 'Google';
+        if(btn){ btn.style.borderColor='var(--acc)'; btn.style.color='var(--acc)'; btn.disabled=false; }
+        if(status){ status.textContent='АВТОРИЗОВАН'; status.style.color='var(--acc)'; }
+        // Hide overlay
+        const overlay = document.getElementById('googleOverlay');
+        if(overlay) overlay.style.display='none';
+        if(gAuthCallback) gAuthCallback(r.access_token, null);
+        gAuthCallback = null;
+      }
+    });
+  }
+  return gTokenClient;
+}
+
+function requestAuth(prompt, resolve, reject) {
+  gAuthCallback = (token, err) => {
+    if(err) reject(new Error(err));
+    else resolve(token);
+  };
+  getTokenClient().requestAccessToken({prompt: prompt||''});
+}
 let gPickerReady = false;
 let gParsed      = null;
 
@@ -1502,27 +1541,10 @@ initTelegramAuth();
 const SHEETS_ID = '1-HY2VvFDw6pqA7lUzAkmpi6DGi6vA6lSecNI_BNPgek';
 
 async function appendToSheet(d) {
-  // Silent token refresh — no popup, works in PWA
+  // Use shared token client — silent refresh
   if(!gAccessToken) {
     try {
-      await new Promise((res,rej) => {
-        const tc = google.accounts.oauth2.initTokenClient({
-          client_id: GCLIENT_ID,
-          scope: 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/spreadsheets',
-          callback: (r) => {
-            if(r.error){ rej(new Error(r.error)); return; }
-            gAccessToken = r.access_token;
-            const btnTxt = document.getElementById('loginBtnText');
-            const btn    = document.getElementById('loginBtn');
-            const status = document.getElementById('loginStatus');
-            if(btnTxt) btnTxt.textContent = 'Google';
-            if(btn){ btn.style.borderColor='var(--acc)'; btn.style.color='var(--acc)'; }
-            if(status){ status.textContent='АВТОРИЗОВАН'; status.style.color='var(--acc)'; }
-            res();
-          }
-        });
-        tc.requestAccessToken({prompt: ''});
-      });
+      await new Promise((res, rej) => requestAuth('', res, rej));
     } catch(e) {
       console.warn('Silent auth skipped:', e);
       return;
