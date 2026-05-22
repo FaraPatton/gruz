@@ -1,31 +1,36 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <meta name="theme-color" content="#e8c84a">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Карпов Docs">
-  <title>ИП Карпов</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="css/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#e8c84a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Карпов Docs">
+<title>ИП Карпов</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <header class="app-hdr">
-  <div class="hdr-in">
-    <div class="hdr-badge">грузоперевозки</div>
-    <h1>ИП Карпов С.В.</h1>
-    <p style="color:var(--acc)">ATI: 2936939</p>
-    <button id="loginBtn" onclick="googleLogin()" style="margin-top:12px;background:transparent;border:1.5px solid #e8803a;color:#e8803a;border-radius:20px;padding:7px 22px;font-size:12px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1);display:inline-flex;align-items:center;gap:8px;"><span id="loginBtnText">Войти в Google</span><span id="loginBtnIcon" style="display:none"></span></button>
-    <div id="loginStatus" style="font-size:10px;color:var(--mut);margin-top:6px;min-height:12px;font-family:monospace;letter-spacing:1.5px;transition:color .3s;"></div>
-  </div>
+<div class="hdr-in">
+<div class="hdr-badge">грузоперевозки</div>
+<h1>ИП Карпов С.В.</h1>
+<p style="color:var(--acc)">ATI: 2936939</p>
+<button id="loginBtn" onclick="googleLogin()" style="margin-top:12px;background:transparent;border:1.5px solid #e8803a;color:#e8803a;border-radius:20px;padding:7px 22px;font-size:12px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1);display:inline-flex;align-items:center;gap:8px;">
+  <span id="loginBtnText">Войти в Google</span>
+  <span id="loginBtnIcon" style="display:none"></span>
+</button>
+<div id="loginStatus" style="font-size:10px;color:var(--mut);margin-top:6px;min-height:12px;font-family:monospace;letter-spacing:1.5px;transition:color .3s;"></div>
+</div>
 </header>
+
 <div class="main">
+  <!-- Реквизиты -->
   <div class="dc">
     <div class="cl">Реквизиты документа</div>
     <div class="row g-3">
@@ -34,15 +39,19 @@
       <div class="col-4"><label class="fl">Дата акта</label><input type="date" id="act_date" class="fi"></div>
     </div>
   </div>
+
+  <!-- Заказчик -->
   <div class="dc">
     <div class="cl">Заказчик / Плательщик</div>
-    <div class="mb-3"><label class="fl">Название организации</label><input type="text" id="customer_name" class="fi" value='ООО "Оковцы"'></div>
+    <div class="mb-3"><label class="fl">Название организации</label><input type="text" id="customer_name" class="fi" value='ООО &quot;Оковцы&quot;'></div>
     <div class="row g-3 mb-3">
       <div class="col-6"><label class="fl">ИНН</label><input type="text" id="customer_inn" class="fi" value="6939005050"></div>
       <div class="col-6"><label class="fl">КПП</label><input type="text" id="customer_kpp" class="fi" value="693901001"></div>
     </div>
     <div><label class="fl">Адрес</label><input type="text" id="customer_addr" class="fi" value="172232, Тверская область, пгт Селижарово, д. Оковцы, Речная ул., д. 1"></div>
   </div>
+
+  <!-- Маршрут -->
   <div class="dc">
     <div class="cl">Маршрут и услуга</div>
     <div class="row g-3 mb-3">
@@ -64,6 +73,8 @@
       <div class="col-6"><label class="fl">Прописью (авто)</label><input type="text" id="amount_words" class="fi" readonly></div>
     </div>
   </div>
+
+  <!-- Печать -->
   <div class="dc">
     <div class="cl" style="margin-bottom:14px">Печать / подпись</div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
@@ -81,27 +92,27 @@
       </div>
     </div>
   </div>
-  <div class="parse-box" id="parseBox"><h3>📄 Данные из файла</h3><div id="parseRows"></div><div class="pbtns"><button class="pbtn-ok" onclick="applyParsed()">✅ Заполнить форму</button><button class="pbtn-no" onclick="closeParsed()">Отмена</button></div></div>
+
+  <div class="parse-box" id="parseBox">
+    <h3>📄 Данные из файла</h3>
+    <div id="parseRows"></div>
+    <div class="pbtns">
+      <button class="pbtn-ok" onclick="applyParsed()">✅ Заполнить форму</button>
+      <button class="pbtn-no" onclick="closeParsed()">Отмена</button>
+    </div>
+  </div>
 
   <div class="row g-3 mb-3">
     <div class="col-6"><button class="bd" onclick="genInvoice()">📄 Счёт</button></div>
     <div class="col-6"><button class="bd" onclick="genAct()">📋 Акт</button></div>
   </div>
-  <div class="mb-2">
-    <button class="bh bh-drive" onclick="openDrivePicker()" id="driveBtn" style="width:100%">📂 Архив поездок</button>
-  </div>
-  <div class="mb-2">
-    <button class="bh bh-archive" onclick="archiveToDrive()" id="archiveBtn" style="width:100%">📤 Загрузить документы в архив</button>
-  </div>
-  <div class="mb-2">
-    <button class="bh bh-email" onclick="toggleEmail()" style="width:100%" id="emailToggleBtn">✉️ Отправить комплект документов</button>
-  </div>
-  <div class="mb-2">
-    <button class="bh bh-sign" onclick="toggleSign()" style="width:100%" id="signToggleBtn">🖊 Подписать договор</button>
-  </div>
-  <div class="mb-2">
-    <button class="bh bh-analytics" onclick="toggleAnalytics()" style="width:100%" id="analyticsToggleBtn">📊 Аналитика рейсов</button>
-  </div>
+
+  <div class="mb-2"><button class="bh bh-drive" onclick="openDrivePicker()" id="driveBtn" style="width:100%">📂 Архив поездок</button></div>
+  <div class="mb-2"><button class="bh bh-archive" onclick="archiveToDrive()" id="archiveBtn" style="width:100%">📤 Загрузить документы в архив</button></div>
+  <div class="mb-2"><button class="bh bh-email" onclick="toggleEmail()" style="width:100%" id="emailToggleBtn">✉️ Отправить комплект документов</button></div>
+  <div class="mb-2"><button class="bh bh-sign" onclick="toggleSign()" style="width:100%" id="signToggleBtn">🖊 Подписать договор</button></div>
+  <div class="mb-2"><button class="bh bh-analytics" onclick="toggleAnalytics()" style="width:100%" id="analyticsToggleBtn">📊 Аналитика рейсов</button></div>
+
   <div id="emailPanel" style="display:none;margin-bottom:8px;">
     <div class="dc" style="padding:16px;margin-bottom:0">
       <label class="fl">Email заказчика</label>
@@ -110,8 +121,7 @@
       <p id="emailMsg" style="font-size:12px;text-align:center;margin-top:8px;min-height:14px;"></p>
     </div>
   </div>
-  
-  <!-- Sign contract panel -->
+
   <div id="signPanel" style="display:none;margin-bottom:8px;">
     <div class="dc" style="padding:16px;margin-bottom:0">
       <label class="fl">Загрузить договор (PDF)</label>
@@ -121,7 +131,7 @@
         <span id="contractName" style="font-size:12px;color:var(--acc);display:none"></span>
       </div>
       <div id="signCanvas" style="display:none;margin-bottom:12px;">
-        <p style="font-size:11px;color:var(--mut);margin-bottom:6px;">Нажмите на документ чтобы поставить печать. Нажмите снова чтобы переместить.</p>
+        <p style="font-size:11px;color:var(--mut);margin-bottom:6px;">Нажмите на документ чтобы поставить печать.</p>
         <div style="position:relative;overflow:auto;max-height:500px;border:1px solid var(--brd);border-radius:8px;background:#fff;" id="signViewport">
           <canvas id="pdfCanvas" style="display:block;"></canvas>
           <img id="stampOverlay" src="" style="position:absolute;width:80px;height:56px;cursor:move;display:none;opacity:0.85;" draggable="false">
@@ -144,8 +154,6 @@
     </div>
   </div>
 
-
-  <!-- Analytics panel -->
   <div id="analyticsPanel" style="display:none;margin-bottom:8px;">
     <div class="dc" style="padding:16px;margin-bottom:0">
       <p style="font-size:12px;text-align:center;color:var(--mut);padding:10px">Загружаю данные...</p>
@@ -156,46 +164,27 @@
   <p class="hint">Нажми «Архив поездок» чтобы открыть Drive и заполнить данные автоматически.</p>
 </div>
 
+<!-- Google overlay -->
 <div class="google-overlay" id="googleOverlay" style="display:none;">
   <div class="hg-svg-wrap">
     <svg class="hg-svg" viewBox="0 0 80 120" xmlns="http://www.w3.org/2000/svg">
-      <!-- Frame bars -->
       <rect x="8" y="2" width="64" height="6" rx="3" fill="#e8803a"/>
       <rect x="8" y="112" width="64" height="6" rx="3" fill="#e8803a"/>
-      <!-- Glass outline - fully rounded hourglass using cubic bezier -->
-      <path d="M14,8 C14,8 14,28 40,58 C66,28 66,8 66,8 Z"
-            fill="rgba(232,128,58,0.09)" stroke="#e8803a" stroke-width="1.5" stroke-linejoin="round"/>
-      <path d="M14,112 C14,112 14,92 40,62 C66,92 66,112 66,112 Z"
-            fill="rgba(232,128,58,0.09)" stroke="#e8803a" stroke-width="1.5" stroke-linejoin="round"/>
-      <!-- Neck -->
+      <path d="M14,8 C14,8 14,28 40,58 C66,28 66,8 66,8 Z" fill="rgba(232,128,58,0.09)" stroke="#e8803a" stroke-width="1.5"/>
+      <path d="M14,112 C14,112 14,92 40,62 C66,92 66,112 66,112 Z" fill="rgba(232,128,58,0.09)" stroke="#e8803a" stroke-width="1.5"/>
       <line x1="40" y1="58" x2="40" y2="62" stroke="#e8803a" stroke-width="2" opacity="0.5" stroke-linecap="round"/>
-      <!-- Sand top -->
-      <clipPath id="topClip">
-        <path d="M15,9 C15,9 15,28 40,57 C65,28 65,9 65,9 Z"/>
-      </clipPath>
+      <clipPath id="topClip"><path d="M15,9 C15,9 15,28 40,57 C65,28 65,9 65,9 Z"/></clipPath>
       <rect id="sandTop" x="15" y="9" width="50" height="48" fill="url(#sandGrad)" clip-path="url(#topClip)"/>
-      <!-- Sand bottom -->
-      <clipPath id="botClip">
-        <path d="M15,111 C15,111 15,92 40,63 C65,92 65,111 65,111 Z"/>
-      </clipPath>
+      <clipPath id="botClip"><path d="M15,111 C15,111 15,92 40,63 C65,92 65,111 65,111 Z"/></clipPath>
       <rect id="sandBot" x="15" y="63" width="50" height="48" fill="url(#sandGrad2)" clip-path="url(#botClip)"/>
-      <!-- Sand drip stream -->
       <rect id="sandStream" x="38.5" y="57" width="3" height="6" rx="1.5" fill="#e8b84a" opacity="0.9"/>
-      <!-- Gradient defs -->
       <defs>
-        <linearGradient id="sandGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#e8b84a"/>
-          <stop offset="100%" stop-color="#d4963a"/>
-        </linearGradient>
-        <linearGradient id="sandGrad2" x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0%" stop-color="#c4862a"/>
-          <stop offset="100%" stop-color="#e8a83a"/>
-        </linearGradient>
-        <!-- Animations -->
-        <animate xlink:href="#sandTop" attributeName="y" values="9;57;9" dur="2.4s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"/>
-        <animate xlink:href="#sandTop" attributeName="height" values="48;0;48" dur="2.4s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"/>
-        <animate xlink:href="#sandBot" attributeName="y" values="111;63;111" dur="2.4s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"/>
-        <animate xlink:href="#sandBot" attributeName="height" values="0;48;0" dur="2.4s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"/>
+        <linearGradient id="sandGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e8b84a"/><stop offset="100%" stop-color="#d4963a"/></linearGradient>
+        <linearGradient id="sandGrad2" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#c4862a"/><stop offset="100%" stop-color="#e8a83a"/></linearGradient>
+        <animate xlink:href="#sandTop" attributeName="y" values="9;57;9" dur="2.4s" repeatCount="indefinite"/>
+        <animate xlink:href="#sandTop" attributeName="height" values="48;0;48" dur="2.4s" repeatCount="indefinite"/>
+        <animate xlink:href="#sandBot" attributeName="y" values="111;63;111" dur="2.4s" repeatCount="indefinite"/>
+        <animate xlink:href="#sandBot" attributeName="height" values="0;48;0" dur="2.4s" repeatCount="indefinite"/>
         <animate xlink:href="#sandStream" attributeName="opacity" values="1;1;0;0;1" dur="2.4s" repeatCount="indefinite"/>
       </defs>
     </svg>
@@ -203,6 +192,7 @@
   <div class="google-overlay-text">ПЕРЕХОД В GOOGLE</div>
   <div class="google-overlay-sub">АВТОРИЗАЦИЯ...</div>
 </div>
+
 <div class="toast" id="toast"></div>
 
 <!-- External libraries -->
@@ -213,9 +203,10 @@
 
 <!-- App modules -->
 <script src="fonts/liberation.js"></script>
+<script src="js/config.js"></script>
 <script src="js/utils.js"></script>
-<script src="js/pdf.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/pdf.js"></script>
 <script src="js/drive.js"></script>
 <script src="js/email.js"></script>
 <script src="js/sign.js"></script>
@@ -223,10 +214,10 @@
 
 <!-- PWA Service Worker -->
 <script>
-if('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js')
-      .then(r => console.log('SW registered:', r.scope))
+      .then(r => console.log('SW:', r.scope))
       .catch(e => console.log('SW error:', e));
   });
 }
