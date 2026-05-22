@@ -1,16 +1,32 @@
 // Analytics: fast Drive registry + one-time PDF archive scan
 
 const TRIPS_REGISTRY_NAME = 'trips.json';
-const TRIPS_REGISTRY_VERSION = 2;
+const TRIPS_REGISTRY_VERSION = 3;
 const EXECUTOR_MARKERS = ['Карпов', '771313296859', '40802810438000085714', 'Керамический', 'СБЕРБАНК'];
+const ANALYTICS_GREEN = '#39d98a';
+const ANALYTICS_GREEN_DARK = '#1f9d63';
 
 let analyticsRegistryFileId = null;
 
 function toggleAnalytics() {
   const panel = document.getElementById('analyticsPanel');
   const open = getComputedStyle(panel).display === 'none';
-  panel.style.display = open ? 'block' : 'none';
-  if (open) loadDriveAnalytics();
+  if (!open) {
+    panel.style.opacity = '0';
+    panel.style.transform = 'translateY(-10px) scale(.985)';
+    setTimeout(() => { panel.style.display = 'none'; }, 170);
+    return;
+  }
+
+  panel.style.display = 'block';
+  panel.style.opacity = '0';
+  panel.style.transform = 'translateY(-14px) scale(.985)';
+  panel.style.transition = 'opacity .26s ease, transform .26s cubic-bezier(.2,.8,.2,1)';
+  requestAnimationFrame(() => {
+    panel.style.opacity = '1';
+    panel.style.transform = 'translateY(0) scale(1)';
+  });
+  loadDriveAnalytics();
 }
 
 async function loadDriveAnalytics(refresh) {
@@ -337,7 +353,7 @@ function normalizeTrip(trip) {
   const date = trip.date || `${year}-${String(trip.month || 1).padStart(2, '0')}-${String(trip.day || 1).padStart(2, '0')}`;
   const month = parseInt(trip.month || date.slice(5, 7), 10) || 1;
   const day = parseInt(trip.day || date.slice(8, 10), 10) || 1;
-  const customerName = cleanCustomer(trip.customerName || trip.customer || '');
+  const customerName = customerDisplayName(trip.customerName || trip.customer || '');
   const docNum = String(trip.docNum || '').trim();
 
   const normalized = {
@@ -409,6 +425,47 @@ function cleanText(value) {
   return String(value || '').replace(/\s+/g, ' ').replace(/,\s*$/g, '').trim();
 }
 
+function customerDisplayName(value) {
+  const raw = cleanCustomer(value);
+  if (!raw || isBadCustomerText(raw)) return '';
+
+  const orgQuoted = raw.match(/((?:ООО|АО|ЗАО|ПАО|НКО)\s+"[^"]{2,80}")/i);
+  if (orgQuoted) return orgQuoted[1].trim();
+
+  const ipName = raw.match(/(ИП\s+[А-ЯЁ][а-яё-]+(?:\s+[А-ЯЁ][а-яё-]+){1,2})/);
+  if (ipName) return ipName[1].trim();
+
+  const orgPlain = raw.match(/((?:ООО|АО|ЗАО|ПАО|НКО)\s+[А-ЯЁA-Z][А-ЯЁа-яёA-Z0-9 .-]{2,70})/i);
+  if (orgPlain) {
+    const name = orgPlain[1]
+      .replace(/\s+(?:ИНН|КПП|адрес|тел|№|Наименование|Товары|Услуги).*$/i, '')
+      .replace(/,\s*.*$/, '')
+      .trim();
+    if (!isBadCustomerText(name)) return name;
+  }
+
+  const person = raw.match(/\b([А-ЯЁ][а-яё-]+(?:\s+[А-ЯЁ][а-яё-]+){1,2})\b/);
+  if (person && !isBadCustomerText(person[1])) return person[1].trim();
+
+  return '';
+}
+
+function isBadCustomerText(value) {
+  const v = cleanText(value);
+  const low = v.toLowerCase();
+  if (!v || v.length < 3) return true;
+  if (!/[а-яёa-z]/i.test(v)) return true;
+  if (/^\d/.test(v)) return true;
+  if ((v.match(/\d/g) || []).length >= 5) return true;
+  if (isExecutorCustomer(v, '')) return true;
+  return [
+    'инн', 'кпп', 'бик', 'сч.', 'счет', 'счёт', 'банк', 'получатель',
+    'адрес', 'тел', 'область', 'район', 'городского типа', 'деревня',
+    'поселок', 'посёлок', 'улица', 'ул.', 'дом ', ' д.', 'кв.',
+    'наименование работ', 'товары', 'услуги', 'кол-во', 'цена', 'сумма'
+  ].some(marker => low.includes(marker));
+}
+
 function extractCustomerDetails(text) {
   const t = cleanText(text);
   const labelRe = /(Заказчик|Плательщик|Покупатель):\s*/ig;
@@ -434,7 +491,7 @@ function customerFromBlock(block) {
   const b = cleanText(block);
   const org = matchOne(b, /((?:ООО|ИП|АО|ЗАО|ПАО|НКО)\s+(?:"[^"]+"|[А-ЯЁA-Z0-9][^,;:]{1,80}))/i);
   return {
-    name: cleanCustomer(org || b),
+    name: customerDisplayName(org || b),
     inn: matchOne(b, /ИНН\s*(\d{10,12})/i),
     kpp: matchOne(b, /КПП\s*(\d{9})/i)
   };
@@ -470,7 +527,7 @@ function toIsoDate(value) {
 
 function renderRegistryEmpty(panel) {
   panel.innerHTML = analyticsShell(
-    '<div style="font-family:monospace;font-size:10px;letter-spacing:2px;color:var(--acc);margin-bottom:10px">АРХИВ DRIVE — АНАЛИТИКА</div>' +
+    '<div style="--acc:' + ANALYTICS_GREEN + ';font-family:monospace;font-size:10px;letter-spacing:0;color:var(--acc);margin-bottom:10px;font-weight:700">АРХИВ DRIVE - АНАЛИТИКА</div>' +
     '<p style="font-size:12px;color:var(--txt2);line-height:1.45;margin:0 0 12px">Реестр trips.json пока не найден. Его можно собрать автоматически из PDF-файлов в архиве: подойдут счета и акты с именами вида schet_1 или akt_1.</p>' +
     '<button class="bd" onclick="rebuildTripsRegistry()" style="font-size:13px;padding:10px">Собрать реестр из PDF</button>'
   );
@@ -511,10 +568,10 @@ function renderDriveAnalytics(entries, yr, panel) {
   const maxRoutes = Math.max(...routeStats.map(s => s.count), 1);
 
   panel.innerHTML =
-    '<div class="dc" style="padding:18px;margin-bottom:0;background:linear-gradient(180deg,rgba(232,200,74,.055),rgba(255,255,255,.018));border-color:rgba(232,200,74,.2);box-shadow:0 18px 46px rgba(0,0,0,.18)">' +
+    '<div class="dc" style="--acc:' + ANALYTICS_GREEN + ';--ana:' + ANALYTICS_GREEN + ';--ana2:' + ANALYTICS_GREEN_DARK + ';padding:18px;margin-bottom:0;background:linear-gradient(180deg,rgba(57,217,138,.075),rgba(255,255,255,.018));border-color:rgba(57,217,138,.2);box-shadow:0 18px 46px rgba(0,0,0,.18)">' +
       '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:14px">' +
         '<div style="font-family:monospace;font-size:10px;letter-spacing:0;color:var(--acc);font-weight:700">АРХИВ DRIVE - АНАЛИТИКА</div>' +
-        '<button onclick="rebuildTripsRegistry()" style="background:rgba(255,255,255,.035);color:var(--mut);border:1px solid rgba(232,200,74,.22);border-radius:8px;padding:5px 10px;font-size:10px;font-family:monospace;letter-spacing:0;cursor:pointer;transition:.18s ease">ПЕРЕСОБРАТЬ</button>' +
+        '<button onclick="rebuildTripsRegistry()" style="background:rgba(255,255,255,.035);color:var(--mut);border:1px solid rgba(57,217,138,.24);border-radius:8px;padding:5px 10px;font-size:10px;font-family:monospace;letter-spacing:0;cursor:pointer;transition:.18s ease">ПЕРЕСОБРАТЬ</button>' +
       '</div>' +
       '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px">' +
         [0, ...years].map(y => yearButton(y, selectedYear)).join('') +
@@ -553,7 +610,7 @@ function yearButton(year, selectedYear) {
   const active = year === selectedYear;
   const label = year === 0 ? 'Все' : year;
   return '<button onclick="analyticsYear=' + year + ';renderDriveAnalytics(driveCache,' + year + ',document.getElementById(&quot;analyticsPanel&quot;))" ' +
-    'style="background:' + (active ? 'linear-gradient(180deg,#f2d451,#e3bd36)' : 'rgba(255,255,255,.025)') + ';color:' + (active ? '#0f0f11' : 'var(--mut)') + ';border:1px solid ' + (active ? 'rgba(242,212,81,.9)' : 'rgba(255,255,255,.09)') + ';border-radius:14px;padding:4px 11px;font-size:11px;font-family:monospace;letter-spacing:0;cursor:pointer;box-shadow:' + (active ? '0 8px 22px rgba(232,200,74,.18)' : 'none') + ';transition:.18s ease">' +
+    'style="background:' + (active ? 'linear-gradient(180deg,var(--ana),var(--ana2))' : 'rgba(255,255,255,.025)') + ';color:' + (active ? '#07140d' : 'var(--mut)') + ';border:1px solid ' + (active ? 'rgba(57,217,138,.78)' : 'rgba(255,255,255,.09)') + ';border-radius:14px;padding:4px 11px;font-size:11px;font-family:monospace;letter-spacing:0;cursor:pointer;box-shadow:' + (active ? '0 8px 22px rgba(57,217,138,.14)' : 'none') + ';transition:.18s ease">' +
     label + '</button>';
 }
 
@@ -571,7 +628,7 @@ function sectionTitle(text) {
 function monthBar(value, max, label) {
   const h = value ? Math.max(Math.round(value / max * 62), 4) : 0;
   return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0">' +
-    '<div title="' + value + '" style="width:100%;height:' + h + 'px;background:' + (value ? 'linear-gradient(180deg,#f3d65a,#d7ae2e)' : 'rgba(255,255,255,.06)') + ';border-radius:6px 6px 2px 2px;box-shadow:' + (value ? '0 8px 18px rgba(232,200,74,.13)' : 'none') + ';transition:height .28s ease"></div>' +
+    '<div title="' + value + '" style="width:100%;height:' + h + 'px;background:' + (value ? 'linear-gradient(180deg,var(--ana),var(--ana2))' : 'rgba(255,255,255,.06)') + ';border-radius:6px 6px 2px 2px;box-shadow:' + (value ? '0 8px 18px rgba(57,217,138,.12)' : 'none') + ';transition:height .28s ease"></div>' +
     '<div style="font-size:8px;color:var(--mut);margin-top:3px">' + label + '</div>' +
   '</div>';
 }
@@ -590,7 +647,7 @@ function metricRow(name, value, width) {
       '<span style="color:var(--txt2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + aEsc(name) + '">' + aEsc(name) + '</span>' +
       '<span style="color:var(--acc);font-weight:600;white-space:nowrap">' + aEsc(value) + '</span>' +
     '</div>' +
-    '<div style="height:6px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden"><div style="height:100%;width:' + width + '%;background:linear-gradient(90deg,#f2d451,#d7ae2e);border-radius:999px;box-shadow:0 0 16px rgba(232,200,74,.18);transition:width .28s ease"></div></div>' +
+    '<div style="height:6px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden"><div style="height:100%;width:' + width + '%;background:linear-gradient(90deg,var(--ana),var(--ana2));border-radius:999px;box-shadow:0 0 16px rgba(57,217,138,.16);transition:width .28s ease"></div></div>' +
   '</div>';
 }
 
