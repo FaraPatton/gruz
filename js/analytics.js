@@ -1,7 +1,8 @@
 // Analytics: fast Drive registry + one-time PDF archive scan
 
 const TRIPS_REGISTRY_NAME = 'trips.json';
-const TRIPS_REGISTRY_VERSION = 1;
+const TRIPS_REGISTRY_VERSION = 2;
+const EXECUTOR_MARKERS = ['Карпов', '771313296859', '40802810438000085714', 'Керамический', 'СБЕРБАНК'];
 
 let analyticsRegistryFileId = null;
 
@@ -277,19 +278,10 @@ function parseTripFromPdfText(text, file) {
   const year = dateMatch ? parseInt(dateMatch[3], 10) : (file.fallbackYear || null);
   if (!year || year < 2015) return null;
 
-  const customerRaw = pickFirst(
-    matchOne(t, /Заказчик:\s*(.+?)(?:,\s*ИНН|\s+ИНН|Плательщик:)/i),
-    matchOne(t, /Плательщик:\s*(.+?)(?:,\s*ИНН|\s+ИНН)/i)
-  );
-  const customerName = cleanCustomer(customerRaw);
-  const customerInn = pickFirst(
-    matchOne(t, /Заказчик:.*?ИНН\s*(\d{10,12})/i),
-    matchOne(t, /Плательщик:.*?ИНН\s*(\d{10,12})/i)
-  );
-  const customerKpp = pickFirst(
-    matchOne(t, /Заказчик:.*?КПП\s*(\d{9})/i),
-    matchOne(t, /Плательщик:.*?КПП\s*(\d{9})/i)
-  );
+  const customer = extractCustomerDetails(t);
+  const customerName = customer.name;
+  const customerInn = customer.inn;
+  const customerKpp = customer.kpp;
 
   const amount = amountFromText(t);
   const route = cleanText(matchOne(
@@ -417,10 +409,55 @@ function cleanText(value) {
   return String(value || '').replace(/\s+/g, ' ').replace(/,\s*$/g, '').trim();
 }
 
+function extractCustomerDetails(text) {
+  const t = cleanText(text);
+  const labelRe = /(Заказчик|Плательщик|Покупатель):\s*/ig;
+  const candidates = [];
+  let m;
+
+  while ((m = labelRe.exec(t)) !== null) {
+    const start = m.index + m[0].length;
+    const next = t.slice(start).search(/\s(?:Заказчик|Плательщик|Покупатель|Товары|Услуги|№|Итого|Всего)\s*[:№]/i);
+    const block = t.slice(start, next >= 0 ? start + next : start + 360);
+    const details = customerFromBlock(block);
+    if (details.name && !isExecutorCustomer(details.name, details.inn)) candidates.push(details);
+  }
+
+  if (candidates.length) return candidates[0];
+
+  const wholeTextOrg = matchOne(t, /((?:ООО|ИП|АО|ЗАО|ПАО|НКО)\s+(?:"[^"]+"|[А-ЯЁA-Z0-9][^,;:]{1,80}))/i);
+  const fallback = customerFromBlock(wholeTextOrg);
+  return isExecutorCustomer(fallback.name, fallback.inn) ? { name: '', inn: '', kpp: '' } : fallback;
+}
+
+function customerFromBlock(block) {
+  const b = cleanText(block);
+  const org = matchOne(b, /((?:ООО|ИП|АО|ЗАО|ПАО|НКО)\s+(?:"[^"]+"|[А-ЯЁA-Z0-9][^,;:]{1,80}))/i);
+  return {
+    name: cleanCustomer(org || b),
+    inn: matchOne(b, /ИНН\s*(\d{10,12})/i),
+    kpp: matchOne(b, /КПП\s*(\d{9})/i)
+  };
+}
+
+function isExecutorCustomer(name, inn) {
+  const value = (String(name || '') + ' ' + String(inn || '')).toLowerCase();
+  return EXECUTOR_MARKERS.some(marker => value.includes(marker.toLowerCase()));
+}
+
 function cleanCustomer(value) {
   let v = cleanText(value).trim();
+  v = v
+    .replace(/\s*(?:ИНН|КПП|ОГРН|Адрес|Тел\.?).*$/i, '')
+    .replace(/,\s*(?:\d{6}|г\.|город|ул\.|улица|д\.|дом).*$/i, '')
+    .replace(/,\s*$/, '')
+    .trim();
   const quoted = v.match(/^"(.+)"$/);
   if (quoted) v = quoted[1].trim();
+  const orgQuoted = v.match(/^((?:ООО|АО|ЗАО|ПАО|НКО)\s+"[^"]+")/i);
+  if (orgQuoted) return orgQuoted[1].trim();
+  const ipName = v.match(/^(ИП\s+[А-ЯЁ][а-яё-]+(?:\s+[А-ЯЁ][а-яё-]+){1,2})/);
+  if (ipName) return ipName[1].trim();
   v = v.replace(/\s+,/g, ',');
   if (/^ООО\s+[^"]/.test(v) && !v.includes('"')) v = 'ООО "' + v.slice(4).trim() + '"';
   return v;
@@ -458,7 +495,8 @@ function renderDriveAnalytics(entries, yr, panel) {
   const maxM = Math.max(...monthly, 1);
   const monthNames = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
 
-  const customerStats = groupStats(filtered, e => e.customerName || 'Без названия');
+  const customerRows = filtered.filter(e => e.customerName && !isExecutorCustomer(e.customerName, e.customerInn));
+  const customerStats = groupStats(customerRows, e => e.customerName);
   const topByTrips = customerStats.slice().sort((a, b) => b.count - a.count).slice(0, 5);
   const topByMoney = customerStats.slice().sort((a, b) => b.amount - a.amount).slice(0, 5);
   const routeStats = groupStats(filtered.filter(e => e.route), e => e.route).sort((a, b) => b.count - a.count).slice(0, 5);
@@ -473,10 +511,10 @@ function renderDriveAnalytics(entries, yr, panel) {
   const maxRoutes = Math.max(...routeStats.map(s => s.count), 1);
 
   panel.innerHTML =
-    '<div class="dc" style="padding:16px;margin-bottom:0">' +
-      '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:12px">' +
-        '<div style="font-family:monospace;font-size:10px;letter-spacing:2px;color:var(--acc)">АРХИВ DRIVE — АНАЛИТИКА</div>' +
-        '<button onclick="rebuildTripsRegistry()" style="background:transparent;color:var(--mut);border:1px solid var(--brd);border-radius:8px;padding:4px 8px;font-size:10px;font-family:monospace;cursor:pointer">ПЕРЕСОБРАТЬ</button>' +
+    '<div class="dc" style="padding:18px;margin-bottom:0;background:linear-gradient(180deg,rgba(232,200,74,.055),rgba(255,255,255,.018));border-color:rgba(232,200,74,.2);box-shadow:0 18px 46px rgba(0,0,0,.18)">' +
+      '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:14px">' +
+        '<div style="font-family:monospace;font-size:10px;letter-spacing:0;color:var(--acc);font-weight:700">АРХИВ DRIVE - АНАЛИТИКА</div>' +
+        '<button onclick="rebuildTripsRegistry()" style="background:rgba(255,255,255,.035);color:var(--mut);border:1px solid rgba(232,200,74,.22);border-radius:8px;padding:5px 10px;font-size:10px;font-family:monospace;letter-spacing:0;cursor:pointer;transition:.18s ease">ПЕРЕСОБРАТЬ</button>' +
       '</div>' +
       '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px">' +
         [0, ...years].map(y => yearButton(y, selectedYear)).join('') +
@@ -487,7 +525,7 @@ function renderDriveAnalytics(entries, yr, panel) {
         statCard(money(avgAmt), 'Средний чек') +
       '</div>' +
       sectionTitle('РЕЙСЫ ПО МЕСЯЦАМ') +
-      '<div style="display:flex;align-items:flex-end;gap:3px;height:66px;margin-bottom:18px">' +
+      '<div style="display:flex;align-items:flex-end;gap:5px;height:76px;margin-bottom:20px;padding:6px 2px 0;border-bottom:1px solid rgba(255,255,255,.06)">' +
         monthly.map((v, i) => monthBar(v, maxM, monthNames[i])).join('') +
       '</div>' +
       sectionTitle('ПО ГОДАМ') +
@@ -495,7 +533,7 @@ function renderDriveAnalytics(entries, yr, panel) {
       analyticsList('ТОП ЗАКАЗЧИКОВ ПО РЕЙСАМ', topByTrips, maxTopTrips, row => row.count + ' рейсов') +
       analyticsList('ТОП ЗАКАЗЧИКОВ ПО ВЫРУЧКЕ', topByMoney, maxTopMoney, row => money(row.amount), true) +
       analyticsList('ПОПУЛЯРНЫЕ МАРШРУТЫ', routeStats, maxRoutes, row => row.count + ' рейсов') +
-      '<button class="bd" onclick="driveCache=null;loadDriveAnalytics(true)" style="margin-top:12px;font-size:13px;padding:10px">Обновить из trips.json</button>' +
+      '<button class="bd" onclick="driveCache=null;loadDriveAnalytics(true)" style="margin-top:14px;font-size:13px;padding:11px;border-radius:8px">Обновить из trips.json</button>' +
     '</div>';
 }
 
@@ -515,26 +553,26 @@ function yearButton(year, selectedYear) {
   const active = year === selectedYear;
   const label = year === 0 ? 'Все' : year;
   return '<button onclick="analyticsYear=' + year + ';renderDriveAnalytics(driveCache,' + year + ',document.getElementById(&quot;analyticsPanel&quot;))" ' +
-    'style="background:' + (active ? 'var(--acc)' : 'transparent') + ';color:' + (active ? '#0f0f11' : 'var(--mut)') + ';border:1px solid ' + (active ? 'var(--acc)' : 'var(--brd)') + ';border-radius:12px;padding:3px 10px;font-size:11px;font-family:monospace;cursor:pointer">' +
+    'style="background:' + (active ? 'linear-gradient(180deg,#f2d451,#e3bd36)' : 'rgba(255,255,255,.025)') + ';color:' + (active ? '#0f0f11' : 'var(--mut)') + ';border:1px solid ' + (active ? 'rgba(242,212,81,.9)' : 'rgba(255,255,255,.09)') + ';border-radius:14px;padding:4px 11px;font-size:11px;font-family:monospace;letter-spacing:0;cursor:pointer;box-shadow:' + (active ? '0 8px 22px rgba(232,200,74,.18)' : 'none') + ';transition:.18s ease">' +
     label + '</button>';
 }
 
 function statCard(value, label) {
-  return '<div style="background:var(--surf2);border:1px solid var(--brd);border-radius:8px;padding:10px;text-align:center;min-width:0">' +
-    '<div style="font-size:15px;font-weight:700;color:var(--acc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + value + '</div>' +
-    '<div style="font-size:10px;color:var(--mut);margin-top:2px">' + label + '</div>' +
+  return '<div style="background:linear-gradient(180deg,rgba(255,255,255,.048),rgba(255,255,255,.022));border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px 10px;text-align:center;min-width:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)">' +
+    '<div style="font-size:16px;font-weight:750;color:var(--acc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + value + '</div>' +
+    '<div style="font-size:10px;color:var(--mut);margin-top:4px">' + label + '</div>' +
   '</div>';
 }
 
 function sectionTitle(text) {
-  return '<div style="font-family:monospace;font-size:10px;letter-spacing:1px;color:var(--mut);margin:14px 0 8px">' + text + '</div>';
+  return '<div style="font-family:monospace;font-size:10px;letter-spacing:0;color:var(--mut);margin:16px 0 9px">' + text + '</div>';
 }
 
 function monthBar(value, max, label) {
-  const h = value ? Math.max(Math.round(value / max * 56), 3) : 0;
+  const h = value ? Math.max(Math.round(value / max * 62), 4) : 0;
   return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0">' +
-    '<div title="' + value + '" style="width:100%;height:' + h + 'px;background:' + (value ? 'var(--acc)' : 'var(--brd)') + ';border-radius:2px 2px 0 0"></div>' +
-    '<div style="font-size:8px;color:var(--mut)">' + label + '</div>' +
+    '<div title="' + value + '" style="width:100%;height:' + h + 'px;background:' + (value ? 'linear-gradient(180deg,#f3d65a,#d7ae2e)' : 'rgba(255,255,255,.06)') + ';border-radius:6px 6px 2px 2px;box-shadow:' + (value ? '0 8px 18px rgba(232,200,74,.13)' : 'none') + ';transition:height .28s ease"></div>' +
+    '<div style="font-size:8px;color:var(--mut);margin-top:3px">' + label + '</div>' +
   '</div>';
 }
 
@@ -547,12 +585,12 @@ function analyticsList(title, rows, max, formatValue, amountWidth) {
 }
 
 function metricRow(name, value, width) {
-  return '<div style="margin-bottom:8px">' +
-    '<div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin-bottom:3px">' +
+  return '<div style="margin-bottom:8px;padding:7px 0">' +
+    '<div style="display:flex;justify-content:space-between;gap:10px;font-size:12px;margin-bottom:6px;align-items:baseline">' +
       '<span style="color:var(--txt2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + aEsc(name) + '">' + aEsc(name) + '</span>' +
       '<span style="color:var(--acc);font-weight:600;white-space:nowrap">' + aEsc(value) + '</span>' +
     '</div>' +
-    '<div style="height:4px;background:var(--brd);border-radius:2px"><div style="height:100%;width:' + width + '%;background:var(--acc);border-radius:2px"></div></div>' +
+    '<div style="height:6px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden"><div style="height:100%;width:' + width + '%;background:linear-gradient(90deg,#f2d451,#d7ae2e);border-radius:999px;box-shadow:0 0 16px rgba(232,200,74,.18);transition:width .28s ease"></div></div>' +
   '</div>';
 }
 
