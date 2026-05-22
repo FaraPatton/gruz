@@ -1,11 +1,11 @@
 // ══ Service Worker ═══════════════════════════════════════════════════
-const CACHE = 'gruz-v8';
+const CACHE = 'gruz-v9';
 const ASSETS = [
   '/gruz/', '/gruz/index.html', '/gruz/css/style.css',
   '/gruz/js/stamp.js',
   '/gruz/js/config.js', '/gruz/js/utils.js', '/gruz/js/auth.js',
   '/gruz/js/pdf.js', '/gruz/js/drive.js', '/gruz/js/email.js',
-  '/gruz/js/sign.js', '/gruz/js/analytics.js?v=8',
+  '/gruz/js/sign.js', '/gruz/js/analytics.js?v=9',
   '/gruz/fonts/liberation.js',
   '/gruz/manifest.json', '/gruz/img/mark.png',
   '/gruz/img/icon-192.png', '/gruz/img/icon-512.png'
