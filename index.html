@@ -84,15 +84,25 @@ body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,s
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surf);border:1px solid var(--brd);color:var(--txt);font-size:13px;padding:10px 20px;border-radius:30px;z-index:200;transition:transform .3s,opacity .3s;opacity:0;white-space:nowrap;}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
 .hint{font-size:11px;color:var(--mut);text-align:center;line-height:1.7;margin-top:4px;}
-.bh-archive{border-color:#34a853;color:#34a853;}
-.bh-archive:hover{border-color:#34a853;background:rgba(52,168,83,.08);}
+@keyframes loginPulse{0%{box-shadow:0 0 0 0 rgba(232,128,58,.7);}70%{box-shadow:0 0 0 7px rgba(232,128,58,0);}100%{box-shadow:0 0 0 0 rgba(232,128,58,0);}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@keyframes textPulse{0%,100%{opacity:.5;}50%{opacity:1;}}
+@keyframes hgRotate{0%,42%{transform:rotate(0deg);}50%,92%{transform:rotate(180deg);}100%{transform:rotate(360deg);}}
+@keyframes hgGlow{0%,100%{filter:drop-shadow(0 0 4px rgba(232,128,58,.3));}50%{filter:drop-shadow(0 0 10px rgba(232,128,58,.6));}}
+.google-overlay{position:fixed;inset:0;background:rgba(10,10,14,.95);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;backdrop-filter:blur(8px);}
+.google-overlay-text{font-family:monospace;font-size:12px;color:#e8803a;letter-spacing:4px;animation:textPulse 2s ease infinite;}
+.google-overlay-sub{font-family:monospace;font-size:10px;color:#444;letter-spacing:3px;}
+.hg-svg-wrap{animation:hgRotate 2.4s ease-in-out infinite, hgGlow 2.4s ease-in-out infinite;}
+.hg-svg{width:56px;height:84px;}
+.bh-archive{border-color:#e8c84a;color:#e8c84a;}
+.bh-archive:hover{border-color:#e8c84a;background:rgba(232,200,74,.08);}
 .bh-archive:disabled{opacity:.5;cursor:not-allowed;}
 .bh-email{border-color:#ea4335;color:#ea4335;}
 .bh-email:hover{border-color:#ea4335;background:rgba(234,67,53,.08);}
 .bh-sign{border-color:#9c27b0;color:#9c27b0;}
 .bh-sign:hover{border-color:#9c27b0;background:rgba(156,39,176,.08);}
-.bh-analytics{border-color:#0f9d58;color:#0f9d58;}
-.bh-analytics:hover{border-color:#0f9d58;background:rgba(15,157,88,.08);}
+.bh-analytics{border-color:#34a853;color:#34a853;}
+.bh-analytics:hover{border-color:#34a853;background:rgba(52,168,83,.08);}
 /* Toggle switch */
 .toggle-switch{position:relative;display:inline-block;width:48px;height:26px;flex-shrink:0;}
 .toggle-switch input{opacity:0;width:0;height:0;}
@@ -126,6 +136,8 @@ body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,s
     <div class="hdr-badge">грузоперевозки</div>
     <h1>ИП Карпов С.В.</h1>
     <p style="color:var(--acc)">ATI: 2936939</p>
+    <button id="loginBtn" onclick="googleLogin()" style="margin-top:12px;background:transparent;border:1.5px solid #e8803a;color:#e8803a;border-radius:20px;padding:7px 22px;font-size:12px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1);display:inline-flex;align-items:center;gap:8px;"><span id="loginBtnText">Войти в Google</span><span id="loginBtnIcon" style="display:none"></span></button>
+    <div id="loginStatus" style="font-size:10px;color:var(--mut);margin-top:6px;min-height:12px;font-family:monospace;letter-spacing:1.5px;transition:color .3s;"></div>
   </div>
 </header>
 <div class="main">
@@ -259,6 +271,53 @@ body{background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,s
   <p class="hint">Нажми «Архив поездок» чтобы открыть Drive и заполнить данные автоматически.</p>
 </div>
 
+<div class="google-overlay" id="googleOverlay" style="display:none;">
+  <div class="hg-svg-wrap">
+    <svg class="hg-svg" viewBox="0 0 80 120" xmlns="http://www.w3.org/2000/svg">
+      <!-- Frame bars -->
+      <rect x="8" y="2" width="64" height="6" rx="3" fill="#e8803a"/>
+      <rect x="8" y="112" width="64" height="6" rx="3" fill="#e8803a"/>
+      <!-- Glass outline - fully rounded hourglass using cubic bezier -->
+      <path d="M14,8 C14,8 14,28 40,58 C66,28 66,8 66,8 Z"
+            fill="rgba(232,128,58,0.09)" stroke="#e8803a" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M14,112 C14,112 14,92 40,62 C66,92 66,112 66,112 Z"
+            fill="rgba(232,128,58,0.09)" stroke="#e8803a" stroke-width="1.5" stroke-linejoin="round"/>
+      <!-- Neck -->
+      <line x1="40" y1="58" x2="40" y2="62" stroke="#e8803a" stroke-width="2" opacity="0.5" stroke-linecap="round"/>
+      <!-- Sand top -->
+      <clipPath id="topClip">
+        <path d="M15,9 C15,9 15,28 40,57 C65,28 65,9 65,9 Z"/>
+      </clipPath>
+      <rect id="sandTop" x="15" y="9" width="50" height="48" fill="url(#sandGrad)" clip-path="url(#topClip)"/>
+      <!-- Sand bottom -->
+      <clipPath id="botClip">
+        <path d="M15,111 C15,111 15,92 40,63 C65,92 65,111 65,111 Z"/>
+      </clipPath>
+      <rect id="sandBot" x="15" y="63" width="50" height="48" fill="url(#sandGrad2)" clip-path="url(#botClip)"/>
+      <!-- Sand drip stream -->
+      <rect id="sandStream" x="38.5" y="57" width="3" height="6" rx="1.5" fill="#e8b84a" opacity="0.9"/>
+      <!-- Gradient defs -->
+      <defs>
+        <linearGradient id="sandGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#e8b84a"/>
+          <stop offset="100%" stop-color="#d4963a"/>
+        </linearGradient>
+        <linearGradient id="sandGrad2" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%" stop-color="#c4862a"/>
+          <stop offset="100%" stop-color="#e8a83a"/>
+        </linearGradient>
+        <!-- Animations -->
+        <animate xlink:href="#sandTop" attributeName="y" values="9;57;9" dur="2.4s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"/>
+        <animate xlink:href="#sandTop" attributeName="height" values="48;0;48" dur="2.4s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"/>
+        <animate xlink:href="#sandBot" attributeName="y" values="111;63;111" dur="2.4s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"/>
+        <animate xlink:href="#sandBot" attributeName="height" values="0;48;0" dur="2.4s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"/>
+        <animate xlink:href="#sandStream" attributeName="opacity" values="1;1;0;0;1" dur="2.4s" repeatCount="indefinite"/>
+      </defs>
+    </svg>
+  </div>
+  <div class="google-overlay-text">ПЕРЕХОД В GOOGLE</div>
+  <div class="google-overlay-sub">АВТОРИЗАЦИЯ...</div>
+</div>
 <div class="toast" id="toast"></div>
 <script>
 
@@ -543,6 +602,7 @@ function genInvoice(existingDoc){
   }
 
   doc.save("schet_"+d.num+"_"+d.docDate.replace(/\\./g,"-")+".pdf");
+  appendToSheet(d);
 }
 
 // ── ACT ────────────────────────────────────────────────────────────
@@ -1442,7 +1502,19 @@ initTelegramAuth();
 const SHEETS_ID = '1-HY2VvFDw6pqA7lUzAkmpi6DGi6vA6lSecNI_BNPgek';
 
 async function appendToSheet(d) {
-  if(!gAccessToken) return;
+  // Request auth if needed
+  if(!gAccessToken) {
+    try {
+      await new Promise((res,rej) => {
+        gTokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: GCLIENT_ID,
+          scope: 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/spreadsheets',
+          callback: (r) => { if(r.error){rej(new Error(r.error));return;} gAccessToken=r.access_token; res(); }
+        });
+        gTokenClient.requestAccessToken({prompt: ''});
+      });
+    } catch(e) { console.warn('Auth for sheets failed:', e); return; }
+  }
   const date  = d.docDate || new Date().toLocaleDateString('ru-RU');
   const parts = date.split('.');
   const month = parts[1] ? parseInt(parts[1]) : new Date().getMonth()+1;
@@ -1578,6 +1650,66 @@ function renderAnalytics(rows, panel) {
       <button class="bd" onclick="loadAnalytics()" style="margin-top:6px;font-size:13px;padding:10px">🔄 Обновить</button>
     </div>
   `;
+}
+
+
+// ── Google Login ──────────────────────────────────────────────
+async function googleLogin() {
+  const btn    = document.getElementById('loginBtn');
+  const btnTxt = document.getElementById('loginBtnText');
+  const btnIcon= document.getElementById('loginBtnIcon');
+  const status = document.getElementById('loginStatus');
+  const overlay= document.getElementById('googleOverlay');
+
+  if(gAccessToken) {
+    status.textContent = 'УЖЕ АВТОРИЗОВАН';
+    status.style.color = 'var(--acc)';
+    return;
+  }
+
+  // Show hourglass overlay
+  overlay.style.display = 'flex';
+  btn.disabled = true;
+  btnTxt.textContent = 'Войти в Google';
+  status.textContent = '';
+
+  try {
+    await new Promise((res, rej) => {
+      gTokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: GCLIENT_ID,
+        scope: 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/spreadsheets',
+        callback: (r) => {
+          if(r.error){ rej(new Error(r.error)); return; }
+          gAccessToken = r.access_token;
+          res();
+        }
+      });
+      gTokenClient.requestAccessToken({prompt: ''});
+    });
+
+    // Hide overlay + success state
+    overlay.style.display = 'none';
+    btnIcon.textContent = '✓';
+    btnIcon.style.color = 'var(--acc)';
+    btnTxt.textContent = 'Google';
+    btn.style.borderColor = 'var(--acc)';
+    btn.style.color       = 'var(--acc)';
+    btn.style.boxShadow   = '0 0 10px rgba(232,200,74,.2)';
+    btn.disabled = false;
+    status.textContent = 'АВТОРИЗОВАН';
+    status.style.color = 'var(--acc)';
+
+  } catch(e) {
+    overlay.style.display = 'none';
+    btnIcon.textContent = 'G';
+    btnIcon.style.color = '#e8803a';
+    btnTxt.textContent = 'Войти в Google';
+    btn.style.boxShadow = 'none';
+    btn.disabled = false;
+    status.textContent = 'ОШИБКА';
+    status.style.color = 'var(--dan)';
+    console.error('Login:', e);
+  }
 }
 
 </script>
