@@ -7,8 +7,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Карпов Docs">
-<title>ИП Карпов</title>
+<meta name="apple-mobile-web-app-title" content="ÐÐ°ÑÐ¿Ð¾Ð² Docs">
+<title>ÐÐ ÐÐ°ÑÐ¿Ð¾Ð²</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
@@ -18,11 +18,11 @@
 
 <header class="app-hdr">
 <div class="hdr-in">
-<div class="hdr-badge">грузоперевозки</div>
-<h1>ИП Карпов С.В.</h1>
+<div class="hdr-badge">Ð³ÑÑÐ·Ð¾Ð¿ÐµÑÐµÐ²Ð¾Ð·ÐºÐ¸</div>
+<h1>ÐÐ ÐÐ°ÑÐ¿Ð¾Ð² Ð¡.Ð.</h1>
 <p style="color:var(--acc)">ATI: 2936939</p>
 <button id="loginBtn" onclick="googleLogin()" style="margin-top:12px;background:transparent;border:1.5px solid #e8803a;color:#e8803a;border-radius:20px;padding:7px 22px;font-size:12px;font-family:monospace;letter-spacing:1.5px;cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1);display:inline-flex;align-items:center;gap:8px;">
-  <span id="loginBtnText">Войти в Google</span>
+  <span id="loginBtnText">ÐÐ¾Ð¹ÑÐ¸ Ð² Google</span>
   <span id="loginBtnIcon" style="display:none"></span>
 </button>
 <div id="loginStatus" style="font-size:10px;color:var(--mut);margin-top:6px;min-height:12px;font-family:monospace;letter-spacing:1.5px;transition:color .3s;"></div>
@@ -30,55 +30,55 @@
 </header>
 
 <div class="main">
-  <!-- Реквизиты -->
+  <!-- Ð ÐµÐºÐ²Ð¸Ð·Ð¸ÑÑ -->
   <div class="dc">
-    <div class="cl">Реквизиты документа</div>
+    <div class="cl">Ð ÐµÐºÐ²Ð¸Ð·Ð¸ÑÑ Ð´Ð¾ÐºÑÐ¼ÐµÐ½ÑÐ°</div>
     <div class="row g-3">
-      <div class="col-4"><label class="fl">Номер №</label><input type="number" id="doc_num" class="fi" value="7" min="1"></div>
-      <div class="col-4"><label class="fl">Дата счёта</label><input type="date" id="doc_date" class="fi"></div>
-      <div class="col-4"><label class="fl">Дата акта</label><input type="date" id="act_date" class="fi"></div>
+      <div class="col-4"><label class="fl">ÐÐ¾Ð¼ÐµÑ â</label><input type="number" id="doc_num" class="fi" value="7" min="1"></div>
+      <div class="col-4"><label class="fl">ÐÐ°ÑÐ° ÑÑÑÑÐ°</label><input type="date" id="doc_date" class="fi"></div>
+      <div class="col-4"><label class="fl">ÐÐ°ÑÐ° Ð°ÐºÑÐ°</label><input type="date" id="act_date" class="fi"></div>
     </div>
   </div>
 
-  <!-- Заказчик -->
+  <!-- ÐÐ°ÐºÐ°Ð·ÑÐ¸Ðº -->
   <div class="dc">
-    <div class="cl">Заказчик / Плательщик</div>
-    <div class="mb-3"><label class="fl">Название организации</label><input type="text" id="customer_name" class="fi" value='ООО &quot;Оковцы&quot;'></div>
+    <div class="cl">ÐÐ°ÐºÐ°Ð·ÑÐ¸Ðº / ÐÐ»Ð°ÑÐµÐ»ÑÑÐ¸Ðº</div>
+    <div class="mb-3"><label class="fl">ÐÐ°Ð·Ð²Ð°Ð½Ð¸Ðµ Ð¾ÑÐ³Ð°Ð½Ð¸Ð·Ð°ÑÐ¸Ð¸</label><input type="text" id="customer_name" class="fi" value='ÐÐÐ &quot;ÐÐºÐ¾Ð²ÑÑ&quot;'></div>
     <div class="row g-3 mb-3">
-      <div class="col-6"><label class="fl">ИНН</label><input type="text" id="customer_inn" class="fi" value="6939005050"></div>
-      <div class="col-6"><label class="fl">КПП</label><input type="text" id="customer_kpp" class="fi" value="693901001"></div>
+      <div class="col-6"><label class="fl">ÐÐÐ</label><input type="text" id="customer_inn" class="fi" value="6939005050"></div>
+      <div class="col-6"><label class="fl">ÐÐÐ</label><input type="text" id="customer_kpp" class="fi" value="693901001"></div>
     </div>
-    <div><label class="fl">Адрес</label><input type="text" id="customer_addr" class="fi" value="172232, Тверская область, пгт Селижарово, д. Оковцы, Речная ул., д. 1"></div>
+    <div><label class="fl">ÐÐ´ÑÐµÑ</label><input type="text" id="customer_addr" class="fi" value="172232, Ð¢Ð²ÐµÑÑÐºÐ°Ñ Ð¾Ð±Ð»Ð°ÑÑÑ, Ð¿Ð³Ñ Ð¡ÐµÐ»Ð¸Ð¶Ð°ÑÐ¾Ð²Ð¾, Ð´. ÐÐºÐ¾Ð²ÑÑ, Ð ÐµÑÐ½Ð°Ñ ÑÐ»., Ð´. 1"></div>
   </div>
 
-  <!-- Маршрут -->
+  <!-- ÐÐ°ÑÑÑÑÑ -->
   <div class="dc">
-    <div class="cl">Маршрут и услуга</div>
+    <div class="cl">ÐÐ°ÑÑÑÑÑ Ð¸ ÑÑÐ»ÑÐ³Ð°</div>
     <div class="row g-3 mb-3">
-      <div class="col-12"><label class="fl">Откуда (пункт А)</label><input type="text" id="from_a" class="fi" value="Москва, Сигнальный проезд д. 16"></div>
+      <div class="col-12"><label class="fl">ÐÑÐºÑÐ´Ð° (Ð¿ÑÐ½ÐºÑ Ð)</label><input type="text" id="from_a" class="fi" value="ÐÐ¾ÑÐºÐ²Ð°, Ð¡Ð¸Ð³Ð½Ð°Ð»ÑÐ½ÑÐ¹ Ð¿ÑÐ¾ÐµÐ·Ð´ Ð´. 16"></div>
       <input type="hidden" id="from_b" value="">
     </div>
     <div class="row g-3 mb-3">
-      <div class="col-12"><label class="fl">Куда (пункт Б)</label><input type="text" id="to_a" class="fi" value="Тверская область, Оковцы, ул. Речная д. 1"></div>
+      <div class="col-12"><label class="fl">ÐÑÐ´Ð° (Ð¿ÑÐ½ÐºÑ Ð)</label><input type="text" id="to_a" class="fi" value="Ð¢Ð²ÐµÑÑÐºÐ°Ñ Ð¾Ð±Ð»Ð°ÑÑÑ, ÐÐºÐ¾Ð²ÑÑ, ÑÐ». Ð ÐµÑÐ½Ð°Ñ Ð´. 1"></div>
       <input type="hidden" id="to_b" value="">
     </div>
     <div class="row g-3 mb-3">
-      <div class="col-12 col-sm-4"><label class="fl">Автомобиль</label><input type="text" id="car" class="fi" value="MAN, М563УС(799)"></div>
-      <div class="col-6 col-sm-4"><label class="fl">Дата загрузки</label><input type="date" id="load_date" class="fi"></div>
-      <div class="col-6 col-sm-4"><label class="fl">Дата выгрузки</label><input type="date" id="unload_date" class="fi"></div>
+      <div class="col-12 col-sm-4"><label class="fl">ÐÐ²ÑÐ¾Ð¼Ð¾Ð±Ð¸Ð»Ñ</label><input type="text" id="car" class="fi" value="MAN, Ð563Ð£Ð¡(799)"></div>
+      <div class="col-6 col-sm-4"><label class="fl">ÐÐ°ÑÐ° Ð·Ð°Ð³ÑÑÐ·ÐºÐ¸</label><input type="date" id="load_date" class="fi"></div>
+      <div class="col-6 col-sm-4"><label class="fl">ÐÐ°ÑÐ° Ð²ÑÐ³ÑÑÐ·ÐºÐ¸</label><input type="date" id="unload_date" class="fi"></div>
     </div>
     <div class="idiv"></div>
     <div class="row g-3">
-      <div class="col-6"><label class="fl">Сумма</label><div class="aw"><input type="number" id="amount" class="fi" value="35000" min="0" step="100"><span class="ct">₽</span></div></div>
-      <div class="col-6"><label class="fl">Прописью (авто)</label><input type="text" id="amount_words" class="fi" readonly></div>
+      <div class="col-6"><label class="fl">Ð¡ÑÐ¼Ð¼Ð°</label><div class="aw"><input type="number" id="amount" class="fi" value="35000" min="0" step="100"><span class="ct">â½</span></div></div>
+      <div class="col-6"><label class="fl">ÐÑÐ¾Ð¿Ð¸ÑÑÑ (Ð°Ð²ÑÐ¾)</label><input type="text" id="amount_words" class="fi" readonly></div>
     </div>
   </div>
 
-  <!-- Печать -->
+  <!-- ÐÐµÑÐ°ÑÑ -->
   <div class="dc">
-    <div class="cl" style="margin-bottom:14px">Печать / подпись</div>
+    <div class="cl" style="margin-bottom:14px">ÐÐµÑÐ°ÑÑ / Ð¿Ð¾Ð´Ð¿Ð¸ÑÑ</div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-      <span style="font-size:13px;color:var(--txt2);">Добавлять печать в документ</span>
+      <span style="font-size:13px;color:var(--txt2);">ÐÐ¾Ð±Ð°Ð²Ð»ÑÑÑ Ð¿ÐµÑÐ°ÑÑ Ð² Ð´Ð¾ÐºÑÐ¼ÐµÐ½Ñ</span>
       <label class="toggle-switch">
         <input type="checkbox" id="stampToggle" checked>
         <span class="toggle-slider"></span>
@@ -87,68 +87,68 @@
     <div id="stampZone">
       <div class="uz">
         <input type="file" id="stampFile" accept="image/*">
-        <div id="spPh"><div style="font-size:20px;margin-bottom:3px">🔏</div><div class="uh">Печать загружена по умолчанию<br><small>Нажмите чтобы заменить</small></div></div>
+        <div id="spPh"><div style="font-size:20px;margin-bottom:3px">ð</div><div class="uh">ÐÐµÑÐ°ÑÑ Ð·Ð°Ð³ÑÑÐ¶ÐµÐ½Ð° Ð¿Ð¾ ÑÐ¼Ð¾Ð»ÑÐ°Ð½Ð¸Ñ<br><small>ÐÐ°Ð¶Ð¼Ð¸ÑÐµ ÑÑÐ¾Ð±Ñ Ð·Ð°Ð¼ÐµÐ½Ð¸ÑÑ</small></div></div>
         <img id="spPrev" class="up" style="display:none">
       </div>
     </div>
   </div>
 
   <div class="parse-box" id="parseBox">
-    <h3>📄 Данные из файла</h3>
+    <h3>ð ÐÐ°Ð½Ð½ÑÐµ Ð¸Ð· ÑÐ°Ð¹Ð»Ð°</h3>
     <div id="parseRows"></div>
     <div class="pbtns">
-      <button class="pbtn-ok" onclick="applyParsed()">✅ Заполнить форму</button>
-      <button class="pbtn-no" onclick="closeParsed()">Отмена</button>
+      <button class="pbtn-ok" onclick="applyParsed()">â ÐÐ°Ð¿Ð¾Ð»Ð½Ð¸ÑÑ ÑÐ¾ÑÐ¼Ñ</button>
+      <button class="pbtn-no" onclick="closeParsed()">ÐÑÐ¼ÐµÐ½Ð°</button>
     </div>
   </div>
 
   <div class="row g-3 mb-3">
-    <div class="col-6"><button class="bd" onclick="genInvoice()">📄 Счёт</button></div>
-    <div class="col-6"><button class="bd" onclick="genAct()">📋 Акт</button></div>
+    <div class="col-6"><button class="bd" onclick="genInvoice()">ð Ð¡ÑÑÑ</button></div>
+    <div class="col-6"><button class="bd" onclick="genAct()">ð ÐÐºÑ</button></div>
   </div>
 
-  <div class="mb-2"><button class="bh bh-drive" onclick="openDrivePicker()" id="driveBtn" style="width:100%">📂 Архив поездок</button></div>
-  <div class="mb-2"><button class="bh bh-archive" onclick="archiveToDrive()" id="archiveBtn" style="width:100%">📤 Загрузить документы в архив</button></div>
-  <div class="mb-2"><button class="bh bh-email" onclick="toggleEmail()" style="width:100%" id="emailToggleBtn">✉️ Отправить комплект документов</button></div>
-  <div class="mb-2"><button class="bh bh-sign" onclick="toggleSign()" style="width:100%" id="signToggleBtn">🖊 Подписать договор</button></div>
-  <div class="mb-2"><button class="bh bh-analytics" onclick="toggleAnalytics()" style="width:100%" id="analyticsToggleBtn">📊 Аналитика рейсов</button></div>
+  <div class="mb-2"><button class="bh bh-drive" onclick="openDrivePicker()" id="driveBtn" style="width:100%">ð ÐÑÑÐ¸Ð² Ð¿Ð¾ÐµÐ·Ð´Ð¾Ðº</button></div>
+  <div class="mb-2"><button class="bh bh-archive" onclick="archiveToDrive()" id="archiveBtn" style="width:100%">ð¤ ÐÐ°Ð³ÑÑÐ·Ð¸ÑÑ Ð´Ð¾ÐºÑÐ¼ÐµÐ½ÑÑ Ð² Ð°ÑÑÐ¸Ð²</button></div>
+  <div class="mb-2"><button class="bh bh-email" onclick="toggleEmail()" style="width:100%" id="emailToggleBtn">âï¸ ÐÑÐ¿ÑÐ°Ð²Ð¸ÑÑ ÐºÐ¾Ð¼Ð¿Ð»ÐµÐºÑ Ð´Ð¾ÐºÑÐ¼ÐµÐ½ÑÐ¾Ð²</button></div>
+  <div class="mb-2"><button class="bh bh-sign" onclick="toggleSign()" style="width:100%" id="signToggleBtn">ð ÐÐ¾Ð´Ð¿Ð¸ÑÐ°ÑÑ Ð´Ð¾Ð³Ð¾Ð²Ð¾Ñ</button></div>
+  <div class="mb-2"><button class="bh bh-analytics" onclick="toggleAnalytics()" style="width:100%" id="analyticsToggleBtn">ð ÐÐ½Ð°Ð»Ð¸ÑÐ¸ÐºÐ° ÑÐµÐ¹ÑÐ¾Ð²</button></div>
 
   <div id="emailPanel" style="display:none;margin-bottom:8px;">
     <div class="dc" style="padding:16px;margin-bottom:0">
-      <label class="fl">Email заказчика</label>
+      <label class="fl">Email Ð·Ð°ÐºÐ°Ð·ÑÐ¸ÐºÐ°</label>
       <input type="email" id="emailTo" class="fi" placeholder="example@mail.ru" style="margin-bottom:12px">
-      <button class="bd" onclick="sendEmail()" id="sendEmailBtn">✉️ Отправить письмо</button>
+      <button class="bd" onclick="sendEmail()" id="sendEmailBtn">âï¸ ÐÑÐ¿ÑÐ°Ð²Ð¸ÑÑ Ð¿Ð¸ÑÑÐ¼Ð¾</button>
       <p id="emailMsg" style="font-size:12px;text-align:center;margin-top:8px;min-height:14px;"></p>
     </div>
   </div>
 
   <div id="signPanel" style="display:none;margin-bottom:8px;">
     <div class="dc" style="padding:16px;margin-bottom:0">
-      <label class="fl">Загрузить договор (PDF)</label>
+      <label class="fl">ÐÐ°Ð³ÑÑÐ·Ð¸ÑÑ Ð´Ð¾Ð³Ð¾Ð²Ð¾Ñ (PDF)</label>
       <div class="uz" style="margin-bottom:12px;min-height:52px;">
         <input type="file" id="contractFile" accept="application/pdf">
-        <div id="contractPh"><div style="font-size:16px;margin-bottom:2px">📄</div><div class="uh">Выберите PDF договор</div></div>
+        <div id="contractPh"><div style="font-size:16px;margin-bottom:2px">ð</div><div class="uh">ÐÑÐ±ÐµÑÐ¸ÑÐµ PDF Ð´Ð¾Ð³Ð¾Ð²Ð¾Ñ</div></div>
         <span id="contractName" style="font-size:12px;color:var(--acc);display:none"></span>
       </div>
       <div id="signCanvas" style="display:none;margin-bottom:12px;">
-        <p style="font-size:11px;color:var(--mut);margin-bottom:6px;">Нажмите на документ чтобы поставить печать.</p>
+        <p style="font-size:11px;color:var(--mut);margin-bottom:6px;">ÐÐ°Ð¶Ð¼Ð¸ÑÐµ Ð½Ð° Ð´Ð¾ÐºÑÐ¼ÐµÐ½Ñ ÑÑÐ¾Ð±Ñ Ð¿Ð¾ÑÑÐ°Ð²Ð¸ÑÑ Ð¿ÐµÑÐ°ÑÑ.</p>
         <div style="position:relative;overflow:auto;max-height:500px;border:1px solid var(--brd);border-radius:8px;background:#fff;" id="signViewport">
           <canvas id="pdfCanvas" style="display:block;"></canvas>
           <img id="stampOverlay" src="" style="position:absolute;width:80px;height:56px;cursor:move;display:none;opacity:0.85;" draggable="false">
         </div>
         <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
-          <label class="fl" style="margin:0;white-space:nowrap;">Страница:</label>
-          <button onclick="signPagePrev()" class="bh" style="width:36px;padding:6px;font-size:14px">‹</button>
+          <label class="fl" style="margin:0;white-space:nowrap;">Ð¡ÑÑÐ°Ð½Ð¸ÑÐ°:</label>
+          <button onclick="signPagePrev()" class="bh" style="width:36px;padding:6px;font-size:14px">â¹</button>
           <span id="signPageInfo" style="font-size:12px;color:var(--mut);white-space:nowrap;">1 / 1</span>
-          <button onclick="signPageNext()" class="bh" style="width:36px;padding:6px;font-size:14px">›</button>
+          <button onclick="signPageNext()" class="bh" style="width:36px;padding:6px;font-size:14px">âº</button>
         </div>
       </div>
-      <button class="bd" onclick="downloadSigned()" id="downloadSignBtn" style="display:none">⬇️ Скачать с печатью</button>
+      <button class="bd" onclick="downloadSigned()" id="downloadSignBtn" style="display:none">â¬ï¸ Ð¡ÐºÐ°ÑÐ°ÑÑ Ñ Ð¿ÐµÑÐ°ÑÑÑ</button>
       <div id="signEmailBlock" style="display:none;margin-top:12px;">
         <div style="height:1px;background:var(--brd);margin-bottom:12px;"></div>
-        <label class="fl">Отправить подписанный договор на email</label>
+        <label class="fl">ÐÑÐ¿ÑÐ°Ð²Ð¸ÑÑ Ð¿Ð¾Ð´Ð¿Ð¸ÑÐ°Ð½Ð½ÑÐ¹ Ð´Ð¾Ð³Ð¾Ð²Ð¾Ñ Ð½Ð° email</label>
         <input type="email" id="signEmailTo" class="fi" placeholder="example@mail.ru" style="margin-bottom:10px;">
-        <button class="bd" onclick="sendSignedByEmail()" id="sendSignedBtn" style="background:var(--surf2);color:var(--acc);border:1px solid var(--acc);">✉️ Отправить договор на почту</button>
+        <button class="bd" onclick="sendSignedByEmail()" id="sendSignedBtn" style="background:var(--surf2);color:var(--acc);border:1px solid var(--acc);">âï¸ ÐÑÐ¿ÑÐ°Ð²Ð¸ÑÑ Ð´Ð¾Ð³Ð¾Ð²Ð¾Ñ Ð½Ð° Ð¿Ð¾ÑÑÑ</button>
       </div>
       <p id="signMsg" style="font-size:12px;text-align:center;margin-top:8px;min-height:14px;"></p>
     </div>
@@ -156,12 +156,12 @@
 
   <div id="analyticsPanel" style="display:none;margin-bottom:8px;">
     <div class="dc" style="padding:16px;margin-bottom:0">
-      <p style="font-size:12px;text-align:center;color:var(--mut);padding:10px">Загружаю данные...</p>
+      <p style="font-size:12px;text-align:center;color:var(--mut);padding:10px">ÐÐ°Ð³ÑÑÐ¶Ð°Ñ Ð´Ð°Ð½Ð½ÑÐµ...</p>
     </div>
   </div>
 
   <p id="driveMsg" class="drive-msg"></p>
-  <p class="hint">Нажми «Архив поездок» чтобы открыть Drive и заполнить данные автоматически.</p>
+  <p class="hint">ÐÐ°Ð¶Ð¼Ð¸ Â«ÐÑÑÐ¸Ð² Ð¿Ð¾ÐµÐ·Ð´Ð¾ÐºÂ» ÑÑÐ¾Ð±Ñ Ð¾ÑÐºÑÑÑÑ Drive Ð¸ Ð·Ð°Ð¿Ð¾Ð»Ð½Ð¸ÑÑ Ð´Ð°Ð½Ð½ÑÐµ Ð°Ð²ÑÐ¾Ð¼Ð°ÑÐ¸ÑÐµÑÐºÐ¸.</p>
 </div>
 
 <!-- Google overlay -->
@@ -189,8 +189,8 @@
       </defs>
     </svg>
   </div>
-  <div class="google-overlay-text">ПЕРЕХОД В GOOGLE</div>
-  <div class="google-overlay-sub">АВТОРИЗАЦИЯ...</div>
+  <div class="google-overlay-text">ÐÐÐ ÐÐ¥ÐÐ Ð GOOGLE</div>
+  <div class="google-overlay-sub">ÐÐÐ¢ÐÐ ÐÐÐÐ¦ÐÐ¯...</div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -203,6 +203,7 @@
 
 <!-- App modules -->
 <script src="fonts/liberation.js"></script>
+<script src="js/stamp.js"></script>
 <script src="js/config.js"></script>
 <script src="js/utils.js"></script>
 <script src="js/auth.js"></script>
