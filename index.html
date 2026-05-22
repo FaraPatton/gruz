@@ -1502,18 +1502,31 @@ initTelegramAuth();
 const SHEETS_ID = '1-HY2VvFDw6pqA7lUzAkmpi6DGi6vA6lSecNI_BNPgek';
 
 async function appendToSheet(d) {
-  // Request auth if needed
+  // Silent token refresh — no popup, works in PWA
   if(!gAccessToken) {
     try {
       await new Promise((res,rej) => {
-        gTokenClient = google.accounts.oauth2.initTokenClient({
+        const tc = google.accounts.oauth2.initTokenClient({
           client_id: GCLIENT_ID,
           scope: 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/spreadsheets',
-          callback: (r) => { if(r.error){rej(new Error(r.error));return;} gAccessToken=r.access_token; res(); }
+          callback: (r) => {
+            if(r.error){ rej(new Error(r.error)); return; }
+            gAccessToken = r.access_token;
+            const btnTxt = document.getElementById('loginBtnText');
+            const btn    = document.getElementById('loginBtn');
+            const status = document.getElementById('loginStatus');
+            if(btnTxt) btnTxt.textContent = 'Google';
+            if(btn){ btn.style.borderColor='var(--acc)'; btn.style.color='var(--acc)'; }
+            if(status){ status.textContent='АВТОРИЗОВАН'; status.style.color='var(--acc)'; }
+            res();
+          }
         });
-        gTokenClient.requestAccessToken({prompt: ''});
+        tc.requestAccessToken({prompt: ''});
       });
-    } catch(e) { console.warn('Auth for sheets failed:', e); return; }
+    } catch(e) {
+      console.warn('Silent auth skipped:', e);
+      return;
+    }
   }
   const date  = d.docDate || new Date().toLocaleDateString('ru-RU');
   const parts = date.split('.');
@@ -1526,7 +1539,7 @@ async function appendToSheet(d) {
   ];
   try {
     await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${SHEETS_ID}/values/A:I:append?valueInputOption=USER_ENTERED`,
+      `https://sheets.googleapis.com/v4/spreadsheets/${SHEETS_ID}/values/A1:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
       {
         method: 'POST',
         headers: { Authorization: 'Bearer '+gAccessToken, 'Content-Type': 'application/json' },
