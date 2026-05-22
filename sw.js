@@ -1,5 +1,5 @@
 // ══ Service Worker ═══════════════════════════════════════════════════
-const CACHE = 'gruz-v4';
+const CACHE = 'gruz-v5';
 const ASSETS = [
   '/gruz/', '/gruz/index.html', '/gruz/css/style.css',
   '/gruz/js/stamp.js',
@@ -7,8 +7,8 @@ const ASSETS = [
   '/gruz/js/pdf.js', '/gruz/js/drive.js', '/gruz/js/email.js',
   '/gruz/js/sign.js', '/gruz/js/analytics.js',
   '/gruz/fonts/liberation.js',
-  '/gruz/manifest.json', '/gruz/mark.png',
-  '/gruz/icon-192.png', '/gruz/icon-512.png'
+  '/gruz/manifest.json', '/gruz/img/mark.png',
+  '/gruz/img/icon-192.png', '/gruz/img/icon-512.png'
 ];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
