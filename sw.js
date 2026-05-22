@@ -1,5 +1,5 @@
 // ══ Service Worker ═══════════════════════════════════════════════════
-const CACHE = 'gruz-v5';
+const CACHE = 'gruz-v6';
 const ASSETS = [
   '/gruz/', '/gruz/index.html', '/gruz/css/style.css',
   '/gruz/js/stamp.js',
