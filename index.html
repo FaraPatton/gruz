@@ -1488,49 +1488,79 @@ async function initTelegramAuth() {
   const overlay = document.getElementById('authOverlay');
   const msg = document.getElementById('authMsg');
 
-  // Если открыто НЕ в Telegram — просто скрыть оверлей
-  // (работает в обычном браузере как раньше)
   if(!tg || !tg.initData) {
     overlay.style.display = 'none';
     return;
   }
 
-  // Настроить тему Telegram
   tg.expand();
   tg.setHeaderColor('#1a1a2e');
 
-  try {
-    msg.textContent = 'АВТОРИЗАЦИЯ...';
-    const resp = await fetch(BACKEND + '/api/verify', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({initData: tg.initData})
-    });
+  // Try up to 3 times — Render free tier cold start takes 30-50 sec
+  const MAX_TRIES = 3;
+  for(let attempt = 1; attempt <= MAX_TRIES; attempt++) {
+    try {
+      msg.textContent = attempt > 1
+        ? 'ПОВТОР ' + attempt + '/' + MAX_TRIES + '...'
+        : 'АВТОРИЗАЦИЯ...';
 
-    if(resp.ok) {
-      const data = await resp.json();
-      msg.textContent = 'ДОБРО ПОЖАЛОВАТЬ, ' + (data.user || 'СЕРГЕЙ').toUpperCase();
-      setTimeout(() => {
-        overlay.style.opacity = '0';
-        overlay.style.transition = 'opacity 0.4s';
-        setTimeout(() => overlay.style.display = 'none', 400);
-      }, 600);
-    } else {
-      // Нет доступа — показываем блокировку
-      overlay.innerHTML = `
-        <div style="font-size:48px">🔒</div>
-        <div style="font-family:monospace;font-size:14px;color:#e85a4a;letter-spacing:1px;text-align:center;padding:0 40px;">
-          ДОСТУП ЗАПРЕЩЁН<br>
-          <span style="font-size:11px;color:#666;margin-top:8px;display:block;">
-            Это приложение только для владельца
-          </span>
-        </div>`;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 20000); // 20s timeout
+
+      const resp = await fetch(BACKEND + '/api/verify', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({initData: tg.initData}),
+        signal: controller.signal
+      });
+      clearTimeout(timer);
+
+      if(resp.ok) {
+        const data = await resp.json();
+        msg.textContent = 'ДОБРО ПОЖАЛОВАТЬ, ' + (data.user || 'СЕРГЕЙ').toUpperCase();
+        setTimeout(() => {
+          overlay.style.opacity = '0';
+          overlay.style.transition = 'opacity 0.4s';
+          setTimeout(() => overlay.style.display = 'none', 400);
+        }, 600);
+        return;
+      }
+
+      if(resp.status === 403) {
+        // Definitive access denied — not a timeout issue
+        overlay.innerHTML = `
+          <div style="font-size:48px">🔒</div>
+          <div style="font-family:monospace;font-size:14px;color:#e85a4a;letter-spacing:1px;text-align:center;padding:0 40px;">
+            ДОСТУП ЗАПРЕЩЁН<br>
+            <span style="font-size:11px;color:#666;margin-top:8px;display:block;">
+              Это приложение только для владельца
+            </span>
+          </div>`;
+        return;
+      }
+
+      // Other error — retry
+      msg.textContent = 'СЕРВЕР ПРОСЫПАЕТСЯ...';
+      await new Promise(r => setTimeout(r, 3000));
+
+    } catch(e) {
+      if(e.name === 'AbortError') {
+        msg.textContent = 'СЕРВЕР ПРОСЫПАЕТСЯ... (' + attempt + '/' + MAX_TRIES + ')';
+        if(attempt < MAX_TRIES) {
+          await new Promise(r => setTimeout(r, 2000));
+          continue;
+        }
+      }
+      // Network error or max retries — allow access (backend sleeping)
+      console.warn('Auth failed, allowing access:', e.message);
+      overlay.style.display = 'none';
+      return;
     }
-  } catch(e) {
-    // Ошибка сети — разрешить доступ (бэкенд мог задремать)
-    console.warn('Auth check failed, allowing access:', e);
-    overlay.style.display = 'none';
   }
+
+  // Max retries exceeded — allow access (don't lock out the owner)
+  console.warn('Max retries, allowing access');
+  overlay.style.display = 'none';
 }
 
 // Запускаем проверку сразу
