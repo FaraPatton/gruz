@@ -1504,6 +1504,15 @@ async function initTelegramAuth() {
         ? 'ПОВТОР ' + attempt + '/' + MAX_TRIES + '...'
         : 'АВТОРИЗАЦИЯ...';
 
+      // Debug: send to /api/debug to inspect initData
+      if(attempt === 1) {
+        fetch(BACKEND + '/api/debug', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({initData: tg.initData})
+        }).then(r=>r.json()).then(d=>console.log('DEBUG:', JSON.stringify(d))).catch(()=>{});
+      }
+
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 20000); // 20s timeout
 
