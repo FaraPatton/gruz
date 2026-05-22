@@ -48,7 +48,7 @@ function drawServiceBlock(doc, d, y, ml, cw, colHeader) {
     tC(doc, h, tx[i] + tc[i] / 2, y + hdrH / 2 + 1.8);
   });
   doc.setTextColor(0, 0, 0); y += hdrH;
-  const descText = 'Трансп. услуги по перевозке груза по маршруту: ' +
+  const descText = 'Транспортные услуги по перевозке груза по маршруту: ' +
     d.route + ', ' + d.car + ', Карпов С.В., дата загрузки - ' +
     d.loadDate + ', дата выгрузки - ' + d.unloadDate + '.';
   sf(doc, 9.5, false);
