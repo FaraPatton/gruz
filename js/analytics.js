@@ -581,6 +581,48 @@ async function saveFormTripToRegistry(data, extra = {}) {
   return saveTripToRegistry(tripFromFormData(data, extra));
 }
 
+async function deleteTripFromRegistry(tripId) {
+  const currentTrips = (driveCache || []).map(normalizeTrip).filter(Boolean);
+  const trip = currentTrips.find(item => item.id === tripId);
+  const label = trip
+    ? '№' + (trip.docNum || '—') + ' от ' + formatIsoDate(trip.date) + ', ' + (trip.customerName || 'без заказчика')
+    : 'эту запись';
+
+  if (!confirm('Удалить рейс из trips.json?\n\n' + label + '\n\nPDF-файлы на Drive останутся на месте.')) {
+    return;
+  }
+
+  if (!gAccessToken) {
+    await new Promise((res, rej) => requestAuth('', res, rej));
+  }
+
+  const registry = await loadTripsRegistry();
+  const normalizedTrips = (registry.trips || []).map(normalizeTrip).filter(Boolean);
+  const trips = normalizedTrips.filter(item => item.id !== tripId);
+
+  if (trips.length === normalizedTrips.length) {
+    showToast('Запись уже не найдена');
+    return;
+  }
+
+  await saveTripsRegistry({
+    ...registry,
+    version: TRIPS_REGISTRY_VERSION,
+    updatedAt: new Date().toISOString(),
+    source: 'manual-delete',
+    trips
+  });
+
+  driveCache = trips;
+  showToast('Рейс удалён из trips.json');
+  renderDriveAnalytics(driveCache, analyticsYear, document.getElementById('analyticsPanel'));
+}
+
+function formatIsoDate(value) {
+  const m = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${m[3]}.${m[2]}.${m[1]}` : '—';
+}
+
 function renderRegistryEmpty(panel) {
   panel.innerHTML = analyticsShell(
     '<div style="--acc:' + ANALYTICS_GREEN + ';font-family:monospace;font-size:10px;letter-spacing:0;color:var(--acc);margin-bottom:10px;font-weight:700">АРХИВ DRIVE - АНАЛИТИКА</div>' +
@@ -622,7 +664,7 @@ function renderDriveAnalytics(entries, yr, panel) {
   const maxTopTrips = Math.max(...topByTrips.map(s => s.count), 1);
   const maxTopMoney = Math.max(...topByMoney.map(s => s.amount), 1);
   const maxRoutes = Math.max(...routeStats.map(s => s.count), 1);
-  if (!['overview', 'years', 'customers', 'routes'].includes(analyticsView)) analyticsView = 'overview';
+  if (!['overview', 'years', 'customers', 'routes', 'journal'].includes(analyticsView)) analyticsView = 'overview';
 
   const overviewHtml =
     '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:16px">' +
@@ -650,11 +692,14 @@ function renderDriveAnalytics(entries, yr, panel) {
     analyticsList('Популярные маршруты', routeStats, maxRoutes, row => row.count + ' рейсов') +
     (!routeStats.length ? emptyAnalyticsText('Маршруты пока не распознаны в выбранном периоде.') : '');
 
+  const journalHtml = analyticsJournal(filtered);
+
   const viewHtml = {
     overview: overviewHtml,
     years: yearsHtml,
     customers: customersHtml,
-    routes: routesHtml
+    routes: routesHtml,
+    journal: journalHtml
   }[analyticsView];
 
   panel.innerHTML =
@@ -667,11 +712,12 @@ function renderDriveAnalytics(entries, yr, panel) {
       '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px">' +
         [0, ...years].map(y => yearButton(y, selectedYear)).join('') +
       '</div>' +
-      '<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:16px">' +
+      '<div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:16px">' +
         viewButton('overview', 'Обзор') +
         viewButton('years', 'Годы') +
         viewButton('customers', 'Заказчики') +
         viewButton('routes', 'Маршруты') +
+        viewButton('journal', 'Журнал') +
       '</div>' +
       '<div style="animation:analyticsViewIn .22s ease">' + viewHtml + '</div>' +
       '<button class="bd" onclick="driveCache=null;loadDriveAnalytics(true)" style="margin-top:14px;font-size:13px;padding:11px;border-radius:8px;background:linear-gradient(180deg,var(--ana),var(--ana2));color:#08140f;border:0">Обновить из trips.json</button>' +
@@ -704,6 +750,39 @@ function viewButton(view, label) {
 
 function emptyAnalyticsText(text) {
   return '<div style="background:rgba(255,255,255,.035);border:1px solid rgba(137,104,190,.24);border-radius:8px;padding:12px;color:var(--ana-muted);font-size:12px;line-height:1.45">' + aEsc(text) + '</div>';
+}
+
+function analyticsJournal(rows) {
+  const sorted = rows.slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  if (!sorted.length) return emptyAnalyticsText('В выбранном периоде нет записей trips.json.');
+
+  return sectionTitle('Журнал trips.json') +
+    '<div style="display:grid;gap:8px">' +
+      sorted.map(trip => {
+        const title = '№' + (trip.docNum || '—') + ' · ' + formatIsoDate(trip.date) + ' · ' + money(trip.amount);
+        const customer = trip.customerName || 'Заказчик не указан';
+        const route = trip.route || 'Маршрут не указан';
+        const files = [
+          trip.invoiceFileId ? 'счёт PDF' : '',
+          trip.actFileId ? 'акт PDF' : ''
+        ].filter(Boolean).join(' · ') || 'PDF не привязаны';
+
+        return '<div style="background:rgba(255,255,255,.035);border:1px solid rgba(137,104,190,.24);border-radius:8px;padding:11px;display:grid;gap:8px">' +
+          '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">' +
+            '<div style="min-width:0">' +
+              '<div style="color:var(--ana-text);font-weight:750;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + aEsc(title) + '</div>' +
+              '<div style="color:var(--ana);font-size:12px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + aEsc(customer) + '">' + aEsc(customer) + '</div>' +
+            '</div>' +
+            '<button onclick="deleteTripFromRegistry(&quot;' + aEsc(trip.id) + '&quot;)" style="background:rgba(232,74,95,.12);color:#ff8d9d;border:1px solid rgba(232,74,95,.38);border-radius:8px;padding:6px 9px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">Удалить</button>' +
+          '</div>' +
+          '<div style="color:var(--ana-muted);font-size:11px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden" title="' + aEsc(route) + '">' + aEsc(route) + '</div>' +
+          '<div style="display:flex;justify-content:space-between;gap:10px;color:rgba(248,251,255,.62);font-size:10px;font-family:monospace;letter-spacing:0">' +
+            '<span>' + aEsc(files) + '</span>' +
+            '<span>' + aEsc(trip.id) + '</span>' +
+          '</div>' +
+        '</div>';
+      }).join('') +
+    '</div>';
 }
 
 function yearButton(year, selectedYear) {
@@ -767,6 +846,7 @@ window.rebuildTripsRegistry = rebuildTripsRegistry;
 window.renderDriveAnalytics = renderDriveAnalytics;
 window.setAnalyticsView = setAnalyticsView;
 window.saveFormTripToRegistry = saveFormTripToRegistry;
+window.deleteTripFromRegistry = deleteTripFromRegistry;
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', bindAnalyticsButton);
