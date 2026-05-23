@@ -526,6 +526,61 @@ function toIsoDate(value) {
   return m ? `${m[3]}-${m[2]}-${m[1]}` : '';
 }
 
+function tripFromFormData(data, extra = {}) {
+  const date = toIsoDate(data.docDate) || toIsoDate(data.loadDate) || today();
+  const year = parseInt(date.slice(0, 4), 10);
+  const month = parseInt(date.slice(5, 7), 10) || 1;
+  const day = parseInt(date.slice(8, 10), 10) || 1;
+
+  return normalizeTrip({
+    id: extra.id || '',
+    docNum: data.num,
+    docType: extra.docType || 'invoice',
+    date,
+    day,
+    month,
+    year,
+    amount: data.amount,
+    customerName: data.customerName,
+    customerInn: data.customerInn,
+    customerKpp: data.customerKpp,
+    route: data.route,
+    car: data.car,
+    loadDate: toIsoDate(data.loadDate),
+    unloadDate: toIsoDate(data.unloadDate),
+    invoiceFileId: extra.invoiceFileId || '',
+    actFileId: extra.actFileId || '',
+    sourceName: extra.sourceName || ('form_' + data.num + '_' + date)
+  });
+}
+
+async function saveTripToRegistry(trip) {
+  const cleanTrip = normalizeTrip(trip);
+  if (!cleanTrip) throw new Error('Не удалось подготовить рейс для trips.json');
+
+  const registry = await loadTripsRegistry();
+  const trips = mergeTrips([...(registry.trips || []), cleanTrip]).sort((a, b) => {
+    const da = a.date || String(a.year || '');
+    const db = b.date || String(b.year || '');
+    return db.localeCompare(da);
+  });
+
+  await saveTripsRegistry({
+    ...registry,
+    version: TRIPS_REGISTRY_VERSION,
+    updatedAt: new Date().toISOString(),
+    source: 'form-and-drive',
+    trips
+  });
+
+  driveCache = trips;
+  return cleanTrip;
+}
+
+async function saveFormTripToRegistry(data, extra = {}) {
+  return saveTripToRegistry(tripFromFormData(data, extra));
+}
+
 function renderRegistryEmpty(panel) {
   panel.innerHTML = analyticsShell(
     '<div style="--acc:' + ANALYTICS_GREEN + ';font-family:monospace;font-size:10px;letter-spacing:0;color:var(--acc);margin-bottom:10px;font-weight:700">АРХИВ DRIVE - АНАЛИТИКА</div>' +
@@ -711,6 +766,7 @@ window.loadDriveAnalytics = loadDriveAnalytics;
 window.rebuildTripsRegistry = rebuildTripsRegistry;
 window.renderDriveAnalytics = renderDriveAnalytics;
 window.setAnalyticsView = setAnalyticsView;
+window.saveFormTripToRegistry = saveFormTripToRegistry;
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', bindAnalyticsButton);

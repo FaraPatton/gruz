@@ -78,9 +78,28 @@ function drawServiceBlock(doc, d, y, ml, cw, colHeader) {
   return y;
 }
 
-async function genInvoice() {
+function pdfOptionsFromArgs(options, folderId) {
+  if (options === true) return { uploadFolderId: folderId, silent: true };
+  return options || {};
+}
+
+async function finishPdf(doc, fileName, options, successText) {
+  if (options.uploadFolderId) {
+    if (typeof uploadPdfToDrive !== 'function') {
+      throw new Error('Drive upload helper is not loaded');
+    }
+    const blob = doc.output('blob');
+    return uploadPdfToDrive(blob, fileName, options.uploadFolderId);
+  }
+  doc.save(fileName);
+  showToast(successText);
+  return null;
+}
+
+async function genInvoice(options, folderId) {
+  const pdfOptions = pdfOptionsFromArgs(options, folderId);
   const btn = document.querySelector('[onclick="genInvoice()"]');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳...'; }
+  if (btn && !pdfOptions.silent) { btn.disabled = true; btn.textContent = '⏳...'; }
   try {
     const d = getData(), doc = nDoc();
     const ml = 10, cw = 190; let y = 8;
@@ -128,15 +147,20 @@ async function genInvoice() {
     tC(doc,'(подпись)',(ss+se)/2,y+5);
     doc.setTextColor(0,0,0);sf(doc,10,true);doc.text('Карпов С.В.',se+3,y);
     if(stampUrl&&isStampEnabled()){try{doc.addImage(stampUrl,'PNG',(ss+se)/2-16,y-13,32,22,undefined,'FAST');}catch(e){}}
-    doc.save('schet_'+d.num+'_'+d.docDate.replace(/\./g,'-')+'.pdf');
-    showToast('✅ Счёт сохранён!');
+    return await finishPdf(
+      doc,
+      'schet_'+d.num+'_'+d.docDate.replace(/\./g,'-')+'.pdf',
+      pdfOptions,
+      '✅ Счёт сохранён!'
+    );
   } catch(e) { showToast('Ошибка: '+e.message); console.error(e); }
-  finally { if(btn){btn.disabled=false;btn.textContent='📄 Счёт';} }
+  finally { if(btn && !pdfOptions.silent){btn.disabled=false;btn.textContent='📄 Счёт';} }
 }
 
-async function genAct() {
+async function genAct(options, folderId) {
+  const pdfOptions = pdfOptionsFromArgs(options, folderId);
   const btn = document.querySelector('[onclick="genAct()"]');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳...'; }
+  if (btn && !pdfOptions.silent) { btn.disabled = true; btn.textContent = '⏳...'; }
   try {
     const d = getData(), doc = nDoc();
     const ml = 10, cw = 190; let y = 8;
@@ -193,8 +217,12 @@ async function genAct() {
     const rx=ml+cw/2+20;sf(doc,10,false);doc.setTextColor(0,0,0);doc.text('Заказчик',rx,y);
     doc.setLineWidth(0.3);doc.line(rx+22,y+1,ml+cw,y+1);sf(doc,9,false);doc.setTextColor(130,130,130);
     tC(doc,'(подпись)',(rx+22+ml+cw)/2,y+5);doc.setTextColor(0,0,0);
-    doc.save('akt_'+d.num+'_'+d.actDate.replace(/\./g,'-')+'.pdf');
-    showToast('✅ Акт сохранён!');
+    return await finishPdf(
+      doc,
+      'akt_'+d.num+'_'+d.actDate.replace(/\./g,'-')+'.pdf',
+      pdfOptions,
+      '✅ Акт сохранён!'
+    );
   } catch(e) { showToast('Ошибка: '+e.message); console.error(e); }
-  finally { if(btn){btn.disabled=false;btn.textContent='📋 Акт';} }
+  finally { if(btn && !pdfOptions.silent){btn.disabled=false;btn.textContent='📋 Акт';} }
 }
