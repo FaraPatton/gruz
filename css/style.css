@@ -152,93 +152,123 @@ body {
   font-weight: 800;
   color: #178447 !important;
 }
-.auth-lock-wrap {
-  width: 34px;
-  height: 38px;
+.auth-lamp-wrap {
+  width: 42px;
+  height: 42px;
   display: grid;
   place-items: center;
   flex: 0 0 auto;
 }
-.auth-lock-input {
+.auth-lamp-input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
 }
-.auth-lock {
-  width: 32px;
-  height: 34px;
+.auth-lamp {
+  width: 38px;
+  height: 40px;
   position: relative;
-  display: grid;
-  place-items: center;
+  display: block;
   cursor: default;
-  filter: drop-shadow(0 6px 10px rgba(0,0,0,.18));
+  filter: drop-shadow(0 8px 14px rgba(0,0,0,.24));
 }
-.auth-lock::before {
+.auth-lamp-cord {
+  width: 2px;
+  height: 9px;
+  position: absolute;
+  left: 18px;
+  top: 0;
+  border-radius: 2px;
+  background: #615a74;
+}
+.auth-lamp-head {
+  width: 29px;
+  height: 22px;
+  position: absolute;
+  left: 4px;
+  top: 8px;
+  border-radius: 16px 16px 10px 10px;
+  background: linear-gradient(180deg, #383346 0%, #17151f 100%);
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.12), 0 0 0 1px rgba(232,128,58,.16);
+  transition: border-color .3s ease, box-shadow .3s ease, transform .3s ease;
+  z-index: 2;
+}
+.auth-lamp-head::after {
   content: "";
+  width: 19px;
+  height: 4px;
   position: absolute;
-  inset: 4px 3px 1px;
-  border-radius: 10px;
-  background: transparent;
-  border: 1px solid rgba(232,128,58,.24);
-  transition: border-color .28s ease, background .28s ease, box-shadow .28s ease;
+  left: 4px;
+  bottom: -3px;
+  border-radius: 0 0 8px 8px;
+  background: linear-gradient(180deg, #d57f39, #71381c);
+  transition: background .3s ease, box-shadow .3s ease;
 }
-.auth-lock-shackle {
-  width: 15px;
-  height: 14px;
+.auth-lamp-bulb {
+  width: 8px;
+  height: 8px;
   position: absolute;
-  left: 8px;
+  left: 50%;
+  bottom: 1px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: #9f5a2c;
+  box-shadow: 0 0 8px rgba(232,128,58,.24);
+  transition: background .3s ease, box-shadow .3s ease;
+}
+.auth-lamp-handle {
+  width: 36px;
+  height: 26px;
+  position: absolute;
+  left: 1px;
   top: 7px;
   border: 2px solid #e8803a;
   border-bottom: 0;
-  border-radius: 14px 14px 0 0;
-  transform: translateX(4px) rotate(18deg);
-  transform-origin: 5px 13px;
-  transition: transform .38s cubic-bezier(.2,.85,.2,1), border-color .28s ease;
+  border-radius: 22px 22px 0 0;
+  opacity: .72;
+  transform: rotate(-8deg);
+  transition: border-color .3s ease, opacity .3s ease, transform .3s ease;
+  z-index: 1;
 }
-.auth-lock-body {
-  width: 19px;
-  height: 17px;
-  position: absolute;
-  left: 6px;
-  top: 17px;
-  border-radius: 6px;
-  background: linear-gradient(180deg, #f2a261, #d66c2f);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.38), 0 5px 10px rgba(232,128,58,.16);
-  transition: background .28s ease, box-shadow .28s ease, transform .28s ease;
-}
-.auth-lock-keyhole {
-  width: 4px;
-  height: 4px;
+.auth-lamp-beam {
+  width: 120px;
+  height: 176px;
   position: absolute;
   left: 50%;
-  top: 5px;
-  transform: translateX(-50%);
-  border-radius: 50%;
-  background: #2a1710;
+  top: 27px;
+  transform: translateX(-50%) scaleY(.82);
+  transform-origin: top center;
+  background: radial-gradient(ellipse at top, rgba(232,128,58,.26) 0%, rgba(232,128,58,.09) 36%, rgba(232,128,58,0) 72%);
+  clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%);
+  opacity: .12;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  transition: opacity .35s ease, background .35s ease, transform .35s ease;
+  z-index: 0;
 }
-.auth-lock-keyhole::after {
-  content: "";
-  width: 2px;
-  height: 5px;
-  position: absolute;
-  left: 1px;
-  top: 3px;
-  border-radius: 3px;
-  background: #2a1710;
-}
-.auth-lock-input:checked + .auth-lock::before {
-  background: transparent;
-  border-color: rgba(57,217,138,.28);
-  box-shadow: 0 0 14px rgba(57,217,138,.08);
-}
-.auth-lock-input:checked + .auth-lock .auth-lock-shackle {
-  border-color: #39d98a;
-  transform: translateX(0) rotate(0deg);
-}
-.auth-lock-input:checked + .auth-lock .auth-lock-body {
-  background: linear-gradient(180deg, #56ec9f, #1f9d63);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.38), 0 6px 12px rgba(57,217,138,.16);
+.auth-lamp-input:checked + .auth-lamp .auth-lamp-head {
+  border-color: rgba(74,232,160,.55);
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.18), 0 0 18px rgba(74,232,160,.22);
   transform: translateY(1px);
+}
+.auth-lamp-input:checked + .auth-lamp .auth-lamp-head::after {
+  background: linear-gradient(180deg, #75ffc0, #1f9d63);
+  box-shadow: 0 0 16px rgba(74,232,160,.38);
+}
+.auth-lamp-input:checked + .auth-lamp .auth-lamp-bulb {
+  background: #e9fff4;
+  box-shadow: 0 0 10px rgba(233,255,244,.9), 0 0 24px rgba(74,232,160,.75);
+}
+.auth-lamp-input:checked + .auth-lamp .auth-lamp-handle {
+  border-color: #4ae8a0;
+  opacity: .95;
+  transform: rotate(0deg);
+}
+.auth-lamp-input:checked + .auth-lamp .auth-lamp-beam {
+  opacity: .58;
+  transform: translateX(-50%) scaleY(1);
+  background: radial-gradient(ellipse at top, rgba(233,255,244,.7) 0%, rgba(74,232,160,.24) 38%, rgba(74,232,160,0) 76%);
 }
 #loginStatus {
   font-size: 10px;
@@ -393,8 +423,38 @@ input[type="date"].fi::-webkit-calendar-picker-indicator { filter: invert(0.5); 
   justify-content: center;
 }
 .doc-flight-btn .doc-flight-icon {
+  position: relative;
   width: 24px;
   height: 24px;
+  transition: transform .3s ease-in-out;
+}
+.doc-flight-btn .doc-flight-icon::before,
+.doc-flight-btn .doc-flight-icon::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .25s ease, transform .35s ease;
+}
+.doc-flight-btn .doc-flight-icon::before {
+  width: 16px;
+  height: 3px;
+  right: -7px;
+  bottom: 5px;
+  border-radius: 4px;
+  background: currentColor;
+  transform: rotate(-38deg) scaleX(.25);
+  transform-origin: left center;
+}
+.doc-flight-btn .doc-flight-icon::after {
+  width: 0;
+  height: 0;
+  right: 6px;
+  bottom: 8px;
+  border-top: 3px solid transparent;
+  border-bottom: 3px solid transparent;
+  border-left: 6px solid currentColor;
+  transform: rotate(-38deg) translateX(6px);
 }
 .doc-flight-btn svg {
   display: block;
@@ -413,11 +473,22 @@ input[type="date"].fi::-webkit-calendar-picker-indicator { filter: invert(0.5); 
   box-shadow: 0 18px 38px rgba(232,200,74,.26);
   transform: translateY(-1px);
 }
-.doc-flight-btn:hover .doc-flight-icon { animation: docFly .6s ease-in-out infinite alternate; }
-.doc-flight-btn:hover svg { transform: translateX(1.2em) rotate(45deg) scale(1.1); }
+.doc-flight-btn:hover .doc-flight-icon {
+  animation: docWrite .72s ease-in-out infinite alternate;
+  transform: translateY(-1px) scale(1.05);
+}
+.doc-flight-btn:hover .doc-flight-icon::before,
+.doc-flight-btn:hover .doc-flight-icon::after {
+  opacity: 1;
+  transform: rotate(-38deg) scaleX(1);
+}
+.doc-flight-btn:hover .doc-flight-icon::after {
+  transform: rotate(-38deg) translateX(0);
+}
+.doc-flight-btn:hover svg { transform: translateX(-.08em) rotate(0deg) scale(1.03); }
 .doc-flight-btn:hover .doc-flight-label {
-  transform: translateX(5em);
-  opacity: 0;
+  transform: translateX(.28em);
+  opacity: .98;
 }
 .doc-flight-btn:active { transform: scale(.95); }
 .doc-flight-btn:disabled {
@@ -425,7 +496,7 @@ input[type="date"].fi::-webkit-calendar-picker-indicator { filter: invert(0.5); 
   cursor: wait;
   transform: none;
 }
-.doc-flight-btn:disabled .doc-flight-icon { animation: docFly .6s ease-in-out infinite alternate; }
+.doc-flight-btn:disabled .doc-flight-icon { animation: docWrite .72s ease-in-out infinite alternate; }
 .doc-flight-btn:disabled .doc-flight-label {
   transform: none;
   opacity: 1;
@@ -437,9 +508,9 @@ input[type="date"].fi::-webkit-calendar-picker-indicator { filter: invert(0.5); 
 .doc-flight-act:hover {
   background: linear-gradient(135deg, #f5dc70 0%, #e1c044 100%);
 }
-@keyframes docFly {
-  from { transform: translateY(.1em); }
-  to { transform: translateY(-.1em); }
+@keyframes docWrite {
+  from { transform: translateY(0) scale(1.03); }
+  to { transform: translateY(-2px) scale(1.07); }
 }
 
 .send-flight-btn {
