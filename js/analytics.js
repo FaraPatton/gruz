@@ -723,6 +723,8 @@ function renderDriveAnalytics(entries, yr, panel) {
       '.journal-delete:hover{transform:translateY(-1px);background:linear-gradient(180deg,#33264a,#251934);box-shadow:inset 0 0 0 1px rgba(57,217,138,.42),0 12px 24px rgba(57,217,138,.1)}' +
       '.journal-delete:hover:after{transform:rotate(18deg) translateY(-1px)}' +
       '.journal-delete:active{transform:scale(.96)}' +
+      '.analytics-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:16px}' +
+      '@media(max-width:430px){.analytics-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-tabs button:first-child{grid-column:1 / -1}.journal-summary{grid-template-columns:1fr}.journal-stat{border-right:0;border-bottom:1px solid rgba(57,217,138,.18)}.journal-stat:last-child{border-bottom:0}}' +
     '</style>' +
     '<div class="dc" style="--acc:' + ANALYTICS_GREEN + ';--ana:' + ANALYTICS_GREEN + ';--ana2:' + ANALYTICS_GREEN_DARK + ';--ana-bg:#171022;--ana-card:#211733;--ana-card2:#2b2140;--ana-text:#f8fbff;--ana-muted:#a99bc8;padding:18px;margin-bottom:0;background:radial-gradient(circle at 12% 0%,rgba(57,217,138,.11),transparent 30%),linear-gradient(180deg,#1a1128,#130f1d);border-color:rgba(137,104,190,.28);box-shadow:0 22px 54px rgba(0,0,0,.24)">' +
       '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:14px">' +
@@ -732,7 +734,7 @@ function renderDriveAnalytics(entries, yr, panel) {
       '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px">' +
         [0, ...years].map(y => yearButton(y, selectedYear)).join('') +
       '</div>' +
-      '<div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:16px">' +
+      '<div class="analytics-tabs">' +
         viewButton('overview', 'Обзор') +
         viewButton('journal', 'Журнал') +
         viewButton('years', 'Годы') +
