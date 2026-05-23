@@ -97,6 +97,53 @@ body {
   gap: 8px;
 }
 #loginBtnIcon { display: none; }
+.google-auth-btn {
+  min-width: 158px;
+  min-height: 38px;
+  position: relative;
+  isolation: isolate;
+  justify-content: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f4f0e8 0%, #d7c9b0 100%) !important;
+  border: 0 !important;
+  color: #17130f !important;
+  border-radius: 10px !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 8px 22px rgba(232,128,58,.16);
+}
+.google-auth-btn::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.45);
+  pointer-events: none;
+}
+.google-auth-btn::after {
+  content: '';
+  position: absolute;
+  width: 44px;
+  height: 120%;
+  left: -58px;
+  top: -10%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.85), transparent);
+  transform: skewX(-22deg);
+  transition: left .55s ease;
+  z-index: -1;
+}
+.google-auth-btn:hover::after { left: calc(100% + 20px); }
+.google-auth-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 12px 28px rgba(232,128,58,.24);
+}
+.google-auth-btn:active { transform: translateY(0) scale(.98); }
+.google-auth-btn:disabled { opacity: .72; cursor: wait; }
+.google-auth-btn #loginBtnText { position: relative; z-index: 1; }
+.google-auth-btn #loginBtnIcon {
+  position: relative;
+  z-index: 1;
+  font-weight: 800;
+  color: #178447 !important;
+}
 #loginStatus {
   font-size: 10px;
   color: var(--mut);
@@ -222,6 +269,72 @@ input[type="date"].fi::-webkit-calendar-picker-indicator { filter: invert(0.5); 
 .bd:hover { background: var(--acc2); }
 .bd:active { transform: scale(0.97); }
 .bd:disabled { opacity: .4; cursor: not-allowed; }
+
+.send-flight-btn {
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #4f7cff 0%, #3163df 100%);
+  color: #fff;
+  padding: 13px 18px;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 10px 28px rgba(66,133,244,.24);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .16s ease, box-shadow .18s ease, background .18s ease;
+}
+.send-flight-btn .send-flight-label {
+  display: block;
+  transition: transform .28s ease, opacity .28s ease;
+}
+.send-flight-btn .send-flight-icon {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .28s ease;
+}
+.send-flight-btn svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transform-origin: center;
+  transition: transform .28s ease;
+}
+.send-flight-btn:hover {
+  background: linear-gradient(135deg, #5d8cff 0%, #3a6df0 100%);
+  box-shadow: 0 14px 34px rgba(66,133,244,.32);
+  transform: translateY(-1px);
+}
+.send-flight-btn:hover .send-flight-icon { animation: sendFloat .62s ease-in-out infinite alternate; }
+.send-flight-btn:hover svg { transform: translateX(13px) rotate(42deg) scale(1.08); }
+.send-flight-btn:hover .send-flight-label {
+  transform: translateX(72px);
+  opacity: 0;
+}
+.send-flight-btn:active { transform: scale(.97); }
+.send-flight-btn:disabled {
+  opacity: .65;
+  cursor: wait;
+  transform: none;
+}
+.send-flight-btn:disabled .send-flight-icon { animation: sendFloat .62s ease-in-out infinite alternate; }
+@keyframes sendFloat {
+  from { transform: translateY(1px); }
+  to { transform: translateY(-2px); }
+}
 
 .bh {
   background: transparent;
