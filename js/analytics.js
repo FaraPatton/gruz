@@ -709,22 +709,30 @@ function renderDriveAnalytics(entries, yr, panel) {
   panel.innerHTML =
     '<style>' +
       '@keyframes analyticsViewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}' +
-      '.journal-card{background:linear-gradient(180deg,rgba(43,33,64,.96),rgba(33,23,51,.98));border:1px solid rgba(137,104,190,.26);border-radius:8px;padding:11px;display:grid;gap:9px;box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}' +
-      '.journal-summary{position:relative;overflow:hidden;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;border:1px solid rgba(57,217,138,.34);border-radius:8px;background:linear-gradient(135deg,rgba(57,217,138,.16),rgba(248,251,255,.055));box-shadow:0 10px 24px rgba(57,217,138,.08),inset 0 1px 0 rgba(255,255,255,.06)}' +
-      '.journal-summary:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent,rgba(255,255,255,.1),transparent);transform:translateX(-120%);transition:transform .55s ease}' +
+      '.journal-card{position:relative;overflow:hidden;border-radius:18px;padding:1px;background:linear-gradient(135deg,rgba(57,217,138,.65),rgba(137,104,190,.35),rgba(255,255,255,.08));box-shadow:0 18px 34px rgba(0,0,0,.24),0 0 24px rgba(57,217,138,.06);transition:transform .22s ease,box-shadow .22s ease}' +
+      '.journal-card:hover{transform:translateY(-2px);box-shadow:0 24px 42px rgba(0,0,0,.3),0 0 30px rgba(57,217,138,.11)}' +
+      '.journal-card:before{content:"";position:absolute;width:110px;height:110px;right:-48px;top:-46px;background:radial-gradient(circle,rgba(57,217,138,.28),transparent 62%);transition:transform .35s ease,opacity .35s ease;opacity:.74}' +
+      '.journal-card:hover:before{transform:scale(1.25);opacity:1}' +
+      '.journal-card-inner{position:relative;z-index:1;border-radius:17px;padding:13px;display:grid;gap:10px;background:linear-gradient(145deg,#241837 0%,#171023 56%,#110d19 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}' +
+      '.journal-summary{position:relative;overflow:hidden;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;border:1px solid rgba(57,217,138,.35);border-radius:14px;background:linear-gradient(135deg,rgba(57,217,138,.18),rgba(248,251,255,.065));box-shadow:0 12px 26px rgba(57,217,138,.09),inset 0 1px 0 rgba(255,255,255,.07)}' +
+      '.journal-summary:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent,rgba(255,255,255,.13),transparent);transform:translateX(-120%);transition:transform .55s ease}' +
       '.journal-card:hover .journal-summary:before{transform:translateX(120%)}' +
-      '.journal-stat{position:relative;z-index:1;min-width:0;padding:8px 9px;border-right:1px solid rgba(57,217,138,.18)}' +
+      '.journal-stat{position:relative;z-index:1;min-width:0;padding:10px 10px;border-right:1px solid rgba(57,217,138,.18)}' +
       '.journal-stat:last-child{border-right:0}' +
-      '.journal-stat span{display:block;color:var(--ana-muted);font-size:9px;font-family:monospace;letter-spacing:0;margin-bottom:3px}' +
-      '.journal-stat b{display:block;color:var(--ana-text);font-size:12px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
-      '.journal-delete{width:36px;height:36px;position:relative;border:0;border-radius:9px;background:linear-gradient(180deg,#2d213f,#211733);box-shadow:inset 0 0 0 1px rgba(137,104,190,.34),0 8px 18px rgba(0,0,0,.24);cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,background .18s ease;flex:0 0 auto}' +
-      '.journal-delete:before{content:"";position:absolute;left:12px;top:15px;width:12px;height:12px;border:2px solid var(--ana);border-top:0;border-radius:0 0 3px 3px;transition:transform .18s ease,border-color .18s ease}' +
-      '.journal-delete:after{content:"";position:absolute;left:11px;top:10px;width:14px;height:3px;background:var(--ana);border-radius:3px;box-shadow:4px -3px 0 -1px var(--ana);transform-origin:right center;transition:transform .2s ease,background .18s ease,box-shadow .18s ease}' +
-      '.journal-delete:hover{transform:translateY(-1px);background:linear-gradient(180deg,#33264a,#251934);box-shadow:inset 0 0 0 1px rgba(57,217,138,.42),0 12px 24px rgba(57,217,138,.1)}' +
-      '.journal-delete:hover:after{transform:rotate(18deg) translateY(-1px)}' +
-      '.journal-delete:active{transform:scale(.96)}' +
+      '.journal-stat span{display:block;color:var(--ana-muted);font-size:9px;font-family:monospace;letter-spacing:0;margin-bottom:4px}' +
+      '.journal-stat b{display:block;color:var(--ana-text);font-size:12px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 0 14px rgba(57,217,138,.12)}' +
+      '.journal-delete{width:45px;height:45px;border-radius:50%;border:2px solid rgb(255,201,201);background:rgb(255,95,95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;box-shadow:0 10px 20px rgba(255,95,95,.18);transition:background .22s ease,transform .18s ease,box-shadow .22s ease;flex:0 0 auto}' +
+      '.journal-delete-top{width:17px;height:4px;background:#fff;border-radius:5px;transform-origin:right;transition:transform .25s ease}' +
+      '.journal-delete-cap{width:10px;height:3px;background:#fff;border-radius:5px;margin-bottom:-1px}' +
+      '.journal-delete-bottom{width:15px;height:17px;background:#fff;border-radius:2px 2px 4px 4px;position:relative}' +
+      '.journal-delete-bottom:before,.journal-delete-bottom:after{content:"";position:absolute;top:3px;width:2px;height:10px;background:rgb(255,95,95);border-radius:2px;transition:background .22s ease}' +
+      '.journal-delete-bottom:before{left:4px}.journal-delete-bottom:after{right:4px}' +
+      '.journal-delete:hover{background:rgb(255,38,38);transform:translateY(-1px);box-shadow:0 14px 26px rgba(255,38,38,.28)}' +
+      '.journal-delete:hover .journal-delete-top{transform:rotate(32deg) translate(2px,-2px)}' +
+      '.journal-delete:hover .journal-delete-bottom:before,.journal-delete:hover .journal-delete-bottom:after{background:rgb(255,38,38)}' +
+      '.journal-delete:active{transform:scale(.95)}' +
       '.analytics-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:16px}' +
-      '@media(max-width:430px){.analytics-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-tabs button:first-child{grid-column:1 / -1}.journal-summary{grid-template-columns:1fr}.journal-stat{border-right:0;border-bottom:1px solid rgba(57,217,138,.18)}.journal-stat:last-child{border-bottom:0}}' +
+      '@media(max-width:430px){.analytics-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-tabs button:first-child{grid-column:1 / -1}.journal-card-inner{padding:12px}.journal-summary{grid-template-columns:1fr}.journal-stat{border-right:0;border-bottom:1px solid rgba(57,217,138,.18)}.journal-stat:last-child{border-bottom:0}.journal-delete{width:42px;height:42px}}' +
     '</style>' +
     '<div class="dc" style="--acc:' + ANALYTICS_GREEN + ';--ana:' + ANALYTICS_GREEN + ';--ana2:' + ANALYTICS_GREEN_DARK + ';--ana-bg:#171022;--ana-card:#211733;--ana-card2:#2b2140;--ana-text:#f8fbff;--ana-muted:#a99bc8;padding:18px;margin-bottom:0;background:radial-gradient(circle at 12% 0%,rgba(57,217,138,.11),transparent 30%),linear-gradient(180deg,#1a1128,#130f1d);border-color:rgba(137,104,190,.28);box-shadow:0 22px 54px rgba(0,0,0,.24)">' +
       '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:14px">' +
@@ -791,20 +799,23 @@ function analyticsJournal(rows) {
           trip.actFileId ? 'акт PDF' : ''
         ].filter(Boolean).join(' · ') || 'PDF не привязаны';
 
-        return '<div class="journal-card">' +
+        return '<div class="journal-card"><div class="journal-card-inner">' +
           '<div class="journal-summary">' +
             '<div class="journal-stat"><span>Номер</span><b>№' + aEsc(num) + '</b></div>' +
             '<div class="journal-stat"><span>Дата</span><b>' + aEsc(date) + '</b></div>' +
             '<div class="journal-stat"><span>Сумма</span><b>' + aEsc(amount) + '</b></div>' +
           '</div>' +
-          '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">' +
-            '<div style="min-width:0">' +
-              '<div style="color:var(--ana);font-size:12px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + aEsc(customer) + '">' + aEsc(customer) + '</div>' +
+          '<div style="display:flex;justify-content:space-between;gap:12px;align-items:center">' +
+            '<div style="min-width:0;display:grid;gap:5px">' +
+              '<div style="color:var(--ana);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + aEsc(customer) + '">' + aEsc(customer) + '</div>' +
+              '<div style="color:var(--ana-muted);font-size:11px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden" title="' + aEsc(route) + '">' + aEsc(route) + '</div>' +
+              '<div style="color:rgba(248,251,255,.58);font-size:10px;font-family:monospace;letter-spacing:0">' + aEsc(files) + '</div>' +
             '</div>' +
-            '<button class="journal-delete" title="Удалить рейс" aria-label="Удалить рейс" onclick="deleteTripFromRegistryEncoded(&quot;' + encodeURIComponent(trip.id) + '&quot;)"></button>' +
+            '<button class="journal-delete" title="Удалить рейс" aria-label="Удалить рейс" onclick="deleteTripFromRegistryEncoded(&quot;' + encodeURIComponent(trip.id) + '&quot;)">' +
+              '<span class="journal-delete-cap"></span><span class="journal-delete-top"></span><span class="journal-delete-bottom"></span>' +
+            '</button>' +
           '</div>' +
-          '<div style="color:var(--ana-muted);font-size:11px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden" title="' + aEsc(route) + '">' + aEsc(route) + '</div>' +
-          '<div style="color:rgba(248,251,255,.58);font-size:10px;font-family:monospace;letter-spacing:0">' + aEsc(files) + '</div>' +
+        '</div>' +
         '</div>';
       }).join('') +
     '</div>';
