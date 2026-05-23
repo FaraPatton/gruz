@@ -1,7 +1,7 @@
 // ══ Service Worker ═══════════════════════════════════════════════════
-const CACHE = 'gruz-v11';
+const CACHE = 'gruz-v12';
 const ASSETS = [
-  '/gruz/', '/gruz/index.html', '/gruz/css/style.css?v=11',
+  '/gruz/', '/gruz/index.html', '/gruz/css/style.css?v=12',
   '/gruz/js/stamp.js',
   '/gruz/js/config.js', '/gruz/js/utils.js', '/gruz/js/auth.js',
   '/gruz/js/pdf.js', '/gruz/js/drive.js', '/gruz/js/email.js',
