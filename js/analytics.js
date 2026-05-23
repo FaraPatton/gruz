@@ -7,6 +7,7 @@ const ANALYTICS_GREEN = '#39d98a';
 const ANALYTICS_GREEN_DARK = '#1f9d63';
 
 let analyticsRegistryFileId = null;
+let analyticsView = 'overview';
 
 function toggleAnalytics() {
   const panel = document.getElementById('analyticsPanel');
@@ -566,31 +567,59 @@ function renderDriveAnalytics(entries, yr, panel) {
   const maxTopTrips = Math.max(...topByTrips.map(s => s.count), 1);
   const maxTopMoney = Math.max(...topByMoney.map(s => s.amount), 1);
   const maxRoutes = Math.max(...routeStats.map(s => s.count), 1);
+  if (!['overview', 'years', 'customers', 'routes'].includes(analyticsView)) analyticsView = 'overview';
+
+  const overviewHtml =
+    '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:16px">' +
+      statCard(totalRides, 'Рейсов') +
+      statCard(money(totalAmt), 'Выручка') +
+      statCard(money(avgAmt), 'Средний чек') +
+    '</div>' +
+    sectionTitle('Рейсы по месяцам') +
+    '<div style="display:flex;align-items:flex-end;gap:5px;height:76px;margin-bottom:20px;padding:6px 2px 0;border-bottom:1px solid rgba(255,255,255,.08)">' +
+      monthly.map((v, i) => monthBar(v, maxM, monthNames[i])).join('') +
+    '</div>' +
+    sectionTitle('Кратко по годам') +
+    yearStats.slice(0, 4).map(row => metricRow(row.name, row.count + ' рейсов · ' + money(row.amount), pct(row.count, maxYearCount))).join('');
+
+  const yearsHtml =
+    sectionTitle('Динамика по годам') +
+    yearStats.map(row => metricRow(row.name, row.count + ' рейсов · ' + money(row.amount), pct(row.count, maxYearCount))).join('');
+
+  const customersHtml =
+    analyticsList('Топ заказчиков по рейсам', topByTrips, maxTopTrips, row => row.count + ' рейсов') +
+    analyticsList('Топ заказчиков по выручке', topByMoney, maxTopMoney, row => money(row.amount), true) +
+    (!topByTrips.length && !topByMoney.length ? emptyAnalyticsText('Не нашёл заказчиков в формате ООО, ИП или ФИО. Попробуй пересобрать реестр после обновления.') : '');
+
+  const routesHtml =
+    analyticsList('Популярные маршруты', routeStats, maxRoutes, row => row.count + ' рейсов') +
+    (!routeStats.length ? emptyAnalyticsText('Маршруты пока не распознаны в выбранном периоде.') : '');
+
+  const viewHtml = {
+    overview: overviewHtml,
+    years: yearsHtml,
+    customers: customersHtml,
+    routes: routesHtml
+  }[analyticsView];
 
   panel.innerHTML =
-    '<div class="dc" style="--acc:' + ANALYTICS_GREEN + ';--ana:' + ANALYTICS_GREEN + ';--ana2:' + ANALYTICS_GREEN_DARK + ';padding:18px;margin-bottom:0;background:linear-gradient(180deg,rgba(57,217,138,.075),rgba(255,255,255,.018));border-color:rgba(57,217,138,.2);box-shadow:0 18px 46px rgba(0,0,0,.18)">' +
+    '<style>@keyframes analyticsViewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}</style>' +
+    '<div class="dc" style="--acc:' + ANALYTICS_GREEN + ';--ana:' + ANALYTICS_GREEN + ';--ana2:' + ANALYTICS_GREEN_DARK + ';--ana-bg:#171022;--ana-card:#211733;--ana-card2:#2b2140;--ana-text:#f8fbff;--ana-muted:#a99bc8;padding:18px;margin-bottom:0;background:radial-gradient(circle at 12% 0%,rgba(57,217,138,.11),transparent 30%),linear-gradient(180deg,#1a1128,#130f1d);border-color:rgba(137,104,190,.28);box-shadow:0 22px 54px rgba(0,0,0,.24)">' +
       '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:14px">' +
-        '<div style="font-family:monospace;font-size:10px;letter-spacing:0;color:var(--acc);font-weight:700">АРХИВ DRIVE - АНАЛИТИКА</div>' +
-        '<button onclick="rebuildTripsRegistry()" style="background:rgba(255,255,255,.035);color:var(--mut);border:1px solid rgba(57,217,138,.24);border-radius:8px;padding:5px 10px;font-size:10px;font-family:monospace;letter-spacing:0;cursor:pointer;transition:.18s ease">ПЕРЕСОБРАТЬ</button>' +
+        '<div style="font-family:monospace;font-size:10px;letter-spacing:0;color:var(--ana);font-weight:700">АРХИВ DRIVE - АНАЛИТИКА</div>' +
+        '<button onclick="rebuildTripsRegistry()" style="background:rgba(255,255,255,.045);color:var(--ana-muted);border:1px solid rgba(137,104,190,.35);border-radius:8px;padding:5px 10px;font-size:10px;font-family:monospace;letter-spacing:0;cursor:pointer;transition:.18s ease">ПЕРЕСОБРАТЬ</button>' +
       '</div>' +
       '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px">' +
         [0, ...years].map(y => yearButton(y, selectedYear)).join('') +
       '</div>' +
-      '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:16px">' +
-        statCard(totalRides, 'Рейсов') +
-        statCard(money(totalAmt), 'Выручка') +
-        statCard(money(avgAmt), 'Средний чек') +
+      '<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:16px">' +
+        viewButton('overview', 'Обзор') +
+        viewButton('years', 'Годы') +
+        viewButton('customers', 'Заказчики') +
+        viewButton('routes', 'Маршруты') +
       '</div>' +
-      sectionTitle('РЕЙСЫ ПО МЕСЯЦАМ') +
-      '<div style="display:flex;align-items:flex-end;gap:5px;height:76px;margin-bottom:20px;padding:6px 2px 0;border-bottom:1px solid rgba(255,255,255,.06)">' +
-        monthly.map((v, i) => monthBar(v, maxM, monthNames[i])).join('') +
-      '</div>' +
-      sectionTitle('ПО ГОДАМ') +
-      yearStats.map(row => metricRow(row.name, row.count + ' рейсов · ' + money(row.amount), pct(row.count, maxYearCount))).join('') +
-      analyticsList('ТОП ЗАКАЗЧИКОВ ПО РЕЙСАМ', topByTrips, maxTopTrips, row => row.count + ' рейсов') +
-      analyticsList('ТОП ЗАКАЗЧИКОВ ПО ВЫРУЧКЕ', topByMoney, maxTopMoney, row => money(row.amount), true) +
-      analyticsList('ПОПУЛЯРНЫЕ МАРШРУТЫ', routeStats, maxRoutes, row => row.count + ' рейсов') +
-      '<button class="bd" onclick="driveCache=null;loadDriveAnalytics(true)" style="margin-top:14px;font-size:13px;padding:11px;border-radius:8px">Обновить из trips.json</button>' +
+      '<div style="animation:analyticsViewIn .22s ease">' + viewHtml + '</div>' +
+      '<button class="bd" onclick="driveCache=null;loadDriveAnalytics(true)" style="margin-top:14px;font-size:13px;padding:11px;border-radius:8px;background:linear-gradient(180deg,var(--ana),var(--ana2));color:#08140f;border:0">Обновить из trips.json</button>' +
     '</div>';
 }
 
@@ -606,23 +635,39 @@ function groupStats(rows, getName) {
   return [...map.values()];
 }
 
+function setAnalyticsView(view) {
+  analyticsView = view;
+  renderDriveAnalytics(driveCache || [], analyticsYear, document.getElementById('analyticsPanel'));
+}
+
+function viewButton(view, label) {
+  const active = analyticsView === view;
+  return '<button onclick="setAnalyticsView(&quot;' + view + '&quot;)" ' +
+    'style="min-width:0;background:' + (active ? 'linear-gradient(180deg,rgba(57,217,138,.18),rgba(57,217,138,.08))' : 'rgba(255,255,255,.035)') + ';color:' + (active ? 'var(--ana)' : 'var(--ana-muted)') + ';border:1px solid ' + (active ? 'rgba(57,217,138,.42)' : 'rgba(137,104,190,.24)') + ';border-radius:8px;padding:8px 6px;font-size:11px;font-weight:650;cursor:pointer;transition:.18s ease;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' +
+    label + '</button>';
+}
+
+function emptyAnalyticsText(text) {
+  return '<div style="background:rgba(255,255,255,.035);border:1px solid rgba(137,104,190,.24);border-radius:8px;padding:12px;color:var(--ana-muted);font-size:12px;line-height:1.45">' + aEsc(text) + '</div>';
+}
+
 function yearButton(year, selectedYear) {
   const active = year === selectedYear;
   const label = year === 0 ? 'Все' : year;
   return '<button onclick="analyticsYear=' + year + ';renderDriveAnalytics(driveCache,' + year + ',document.getElementById(&quot;analyticsPanel&quot;))" ' +
-    'style="background:' + (active ? 'linear-gradient(180deg,var(--ana),var(--ana2))' : 'rgba(255,255,255,.025)') + ';color:' + (active ? '#07140d' : 'var(--mut)') + ';border:1px solid ' + (active ? 'rgba(57,217,138,.78)' : 'rgba(255,255,255,.09)') + ';border-radius:14px;padding:4px 11px;font-size:11px;font-family:monospace;letter-spacing:0;cursor:pointer;box-shadow:' + (active ? '0 8px 22px rgba(57,217,138,.14)' : 'none') + ';transition:.18s ease">' +
+    'style="background:' + (active ? 'linear-gradient(180deg,var(--ana),var(--ana2))' : 'rgba(255,255,255,.035)') + ';color:' + (active ? '#07140d' : 'var(--ana-muted)') + ';border:1px solid ' + (active ? 'rgba(57,217,138,.78)' : 'rgba(137,104,190,.24)') + ';border-radius:14px;padding:4px 11px;font-size:11px;font-family:monospace;letter-spacing:0;cursor:pointer;box-shadow:' + (active ? '0 8px 22px rgba(57,217,138,.14)' : 'none') + ';transition:.18s ease">' +
     label + '</button>';
 }
 
 function statCard(value, label) {
-  return '<div style="background:linear-gradient(180deg,rgba(255,255,255,.048),rgba(255,255,255,.022));border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px 10px;text-align:center;min-width:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)">' +
-    '<div style="font-size:16px;font-weight:750;color:var(--acc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + value + '</div>' +
-    '<div style="font-size:10px;color:var(--mut);margin-top:4px">' + label + '</div>' +
+  return '<div style="background:linear-gradient(180deg,var(--ana-card2),var(--ana-card));border:1px solid rgba(137,104,190,.24);border-radius:8px;padding:12px 10px;text-align:center;min-width:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)">' +
+    '<div style="font-size:16px;font-weight:750;color:var(--ana-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + value + '</div>' +
+    '<div style="font-size:10px;color:var(--ana-muted);margin-top:4px">' + label + '</div>' +
   '</div>';
 }
 
 function sectionTitle(text) {
-  return '<div style="font-family:monospace;font-size:10px;letter-spacing:0;color:var(--mut);margin:16px 0 9px">' + text + '</div>';
+  return '<div style="font-family:monospace;font-size:10px;letter-spacing:0;color:var(--ana-muted);margin:16px 0 9px">' + text + '</div>';
 }
 
 function monthBar(value, max, label) {
@@ -644,8 +689,8 @@ function analyticsList(title, rows, max, formatValue, amountWidth) {
 function metricRow(name, value, width) {
   return '<div style="margin-bottom:8px;padding:7px 0">' +
     '<div style="display:flex;justify-content:space-between;gap:10px;font-size:12px;margin-bottom:6px;align-items:baseline">' +
-      '<span style="color:var(--txt2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + aEsc(name) + '">' + aEsc(name) + '</span>' +
-      '<span style="color:var(--acc);font-weight:600;white-space:nowrap">' + aEsc(value) + '</span>' +
+      '<span style="color:var(--ana-text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + aEsc(name) + '">' + aEsc(name) + '</span>' +
+      '<span style="color:var(--ana);font-weight:650;white-space:nowrap">' + aEsc(value) + '</span>' +
     '</div>' +
     '<div style="height:6px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden"><div style="height:100%;width:' + width + '%;background:linear-gradient(90deg,var(--ana),var(--ana2));border-radius:999px;box-shadow:0 0 16px rgba(57,217,138,.16);transition:width .28s ease"></div></div>' +
   '</div>';
@@ -665,6 +710,7 @@ window.toggleAnalytics = toggleAnalytics;
 window.loadDriveAnalytics = loadDriveAnalytics;
 window.rebuildTripsRegistry = rebuildTripsRegistry;
 window.renderDriveAnalytics = renderDriveAnalytics;
+window.setAnalyticsView = setAnalyticsView;
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', bindAnalyticsButton);
