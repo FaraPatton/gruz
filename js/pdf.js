@@ -83,6 +83,14 @@ function pdfOptionsFromArgs(options, folderId) {
   return options || {};
 }
 
+function setDocButtonBusy(btn, isBusy) {
+  if (!btn) return;
+  const label = btn.querySelector('.doc-flight-label');
+  btn.disabled = isBusy;
+  btn.classList.toggle('is-loading', isBusy);
+  if (label) label.textContent = isBusy ? (btn.dataset.loadingText || '...') : (btn.dataset.label || label.textContent);
+}
+
 async function finishPdf(doc, fileName, options, successText) {
   if (options.uploadFolderId) {
     if (typeof uploadPdfToDrive !== 'function') {
@@ -99,7 +107,7 @@ async function finishPdf(doc, fileName, options, successText) {
 async function genInvoice(options, folderId) {
   const pdfOptions = pdfOptionsFromArgs(options, folderId);
   const btn = document.querySelector('[onclick="genInvoice()"]');
-  if (btn && !pdfOptions.silent) { btn.disabled = true; btn.textContent = '⏳...'; }
+  if (btn && !pdfOptions.silent) setDocButtonBusy(btn, true);
   try {
     const d = getData(), doc = nDoc();
     const ml = 10, cw = 190; let y = 8;
@@ -154,13 +162,13 @@ async function genInvoice(options, folderId) {
       '✅ Счёт сохранён!'
     );
   } catch(e) { showToast('Ошибка: '+e.message); console.error(e); }
-  finally { if(btn && !pdfOptions.silent){btn.disabled=false;btn.textContent='📄 Счёт';} }
+  finally { if(btn && !pdfOptions.silent) setDocButtonBusy(btn, false); }
 }
 
 async function genAct(options, folderId) {
   const pdfOptions = pdfOptionsFromArgs(options, folderId);
   const btn = document.querySelector('[onclick="genAct()"]');
-  if (btn && !pdfOptions.silent) { btn.disabled = true; btn.textContent = '⏳...'; }
+  if (btn && !pdfOptions.silent) setDocButtonBusy(btn, true);
   try {
     const d = getData(), doc = nDoc();
     const ml = 10, cw = 190; let y = 8;
@@ -224,5 +232,5 @@ async function genAct(options, folderId) {
       '✅ Акт сохранён!'
     );
   } catch(e) { showToast('Ошибка: '+e.message); console.error(e); }
-  finally { if(btn && !pdfOptions.silent){btn.disabled=false;btn.textContent='📋 Акт';} }
+  finally { if(btn && !pdfOptions.silent) setDocButtonBusy(btn, false); }
 }

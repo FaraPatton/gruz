@@ -366,6 +366,82 @@ input[type="date"].fi::-webkit-calendar-picker-indicator { filter: invert(0.5); 
 .bd:active { transform: scale(0.97); }
 .bd:disabled { opacity: .4; cursor: not-allowed; }
 
+.doc-flight-btn {
+  font-family: inherit;
+  background: linear-gradient(135deg, #f2d14c 0%, #e3bd32 100%);
+  color: #101014;
+  border-radius: 16px;
+  font-size: 19px;
+  min-height: 62px;
+  padding: .7em 1em .7em .9em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 14px 30px rgba(232,200,74,.18);
+  transition: background .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+.doc-flight-btn .doc-flight-label {
+  display: block;
+  margin-left: .3em;
+  transition: transform .3s ease-in-out, opacity .3s ease-in-out;
+}
+.doc-flight-btn .doc-flight-icon-wrap,
+.doc-flight-btn .doc-flight-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.doc-flight-btn .doc-flight-icon {
+  width: 24px;
+  height: 24px;
+}
+.doc-flight-btn svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transform-origin: center center;
+  transition: transform .3s ease-in-out;
+}
+.doc-flight-btn:hover {
+  background: linear-gradient(135deg, #f7d957 0%, #e7c43e 100%);
+  box-shadow: 0 18px 38px rgba(232,200,74,.26);
+  transform: translateY(-1px);
+}
+.doc-flight-btn:hover .doc-flight-icon { animation: docFly .6s ease-in-out infinite alternate; }
+.doc-flight-btn:hover svg { transform: translateX(1.2em) rotate(45deg) scale(1.1); }
+.doc-flight-btn:hover .doc-flight-label {
+  transform: translateX(5em);
+  opacity: 0;
+}
+.doc-flight-btn:active { transform: scale(.95); }
+.doc-flight-btn:disabled {
+  opacity: .68;
+  cursor: wait;
+  transform: none;
+}
+.doc-flight-btn:disabled .doc-flight-icon { animation: docFly .6s ease-in-out infinite alternate; }
+.doc-flight-btn:disabled .doc-flight-label {
+  transform: none;
+  opacity: 1;
+}
+.doc-flight-btn:disabled svg { transform: none; }
+.doc-flight-act {
+  background: linear-gradient(135deg, #edd060 0%, #dcb936 100%);
+}
+.doc-flight-act:hover {
+  background: linear-gradient(135deg, #f5dc70 0%, #e1c044 100%);
+}
+@keyframes docFly {
+  from { transform: translateY(.1em); }
+  to { transform: translateY(-.1em); }
+}
+
 .send-flight-btn {
   width: 100%;
   border: 0;
@@ -722,4 +798,5 @@ input[type="date"].fi::-webkit-calendar-picker-indicator { filter: invert(0.5); 
   .main { padding: 14px 12px 0; }
   .dc { padding: 16px 14px; }
   .bd { font-size: 15px; padding: 14px; }
+  .doc-flight-btn { font-size: 16px; min-height: 58px; padding: .7em .8em .7em .75em; }
 }
