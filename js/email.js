@@ -25,7 +25,7 @@ async function sendEmail() {
   const btn = document.getElementById('sendEmailBtn');
   const btnLabel = btn?.querySelector('.send-flight-label');
   btn.disabled = true;
-  if (btnLabel) btnLabel.textContent = 'Sending...';
+  if (btnLabel) btnLabel.textContent = 'Отправляю...';
   document.getElementById('emailMsg').textContent = '';
   try {
     if (!gAccessToken) await new Promise((res, rej) => requestAuth('consent', res, rej));
@@ -54,6 +54,6 @@ async function sendEmail() {
     document.getElementById('emailMsg').style.color = 'var(--dan)';
   } finally {
     btn.disabled = false;
-    if (btnLabel) btnLabel.textContent = 'Send';
+    if (btnLabel) btnLabel.textContent = 'Отправить';
   }
 }
