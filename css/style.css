@@ -437,24 +437,26 @@ input[type="date"].fi::-webkit-calendar-picker-indicator { filter: invert(0.5); 
   transition: opacity .25s ease, transform .35s ease;
 }
 .doc-flight-btn .doc-flight-icon::before {
-  width: 16px;
-  height: 3px;
-  right: -7px;
-  bottom: 5px;
-  border-radius: 4px;
-  background: currentColor;
-  transform: rotate(-38deg) scaleX(.25);
-  transform-origin: left center;
+  width: 13px;
+  height: 10px;
+  right: -5px;
+  bottom: 2px;
+  border-radius: 8px 8px 7px 3px;
+  background: linear-gradient(135deg, #ffd5a5 0%, #e99b61 100%);
+  box-shadow: inset -2px -2px 0 rgba(121,62,25,.16), -5px -1px 0 -3px #ffd5a5;
+  transform: translate(8px, 7px) rotate(-18deg) scale(.72);
+  transform-origin: 40% 70%;
 }
 .doc-flight-btn .doc-flight-icon::after {
-  width: 0;
-  height: 0;
-  right: 6px;
-  bottom: 8px;
-  border-top: 3px solid transparent;
-  border-bottom: 3px solid transparent;
-  border-left: 6px solid currentColor;
-  transform: rotate(-38deg) translateX(6px);
+  width: 18px;
+  height: 3px;
+  right: -9px;
+  bottom: 5px;
+  border-radius: 4px 1px 1px 4px;
+  background: linear-gradient(90deg, #2b2430 0 72%, #f7f1df 72% 84%, #1b1820 84% 100%);
+  box-shadow: 0 1px 0 rgba(0,0,0,.25);
+  transform: translate(10px, 5px) rotate(-35deg) scaleX(.55);
+  transform-origin: left center;
 }
 .doc-flight-btn svg {
   display: block;
@@ -474,16 +476,17 @@ input[type="date"].fi::-webkit-calendar-picker-indicator { filter: invert(0.5); 
   transform: translateY(-1px);
 }
 .doc-flight-btn:hover .doc-flight-icon {
-  animation: docWrite .72s ease-in-out infinite alternate;
   transform: translateY(-1px) scale(1.05);
 }
-.doc-flight-btn:hover .doc-flight-icon::before,
-.doc-flight-btn:hover .doc-flight-icon::after {
+.doc-flight-btn:hover .doc-flight-icon::before {
   opacity: 1;
-  transform: rotate(-38deg) scaleX(1);
+  transform: translate(0, 0) rotate(-18deg) scale(1);
+  animation: signHand .82s ease-in-out infinite alternate;
 }
 .doc-flight-btn:hover .doc-flight-icon::after {
-  transform: rotate(-38deg) translateX(0);
+  opacity: 1;
+  transform: translate(0, 0) rotate(-35deg) scaleX(1);
+  animation: signPen .82s ease-in-out infinite alternate;
 }
 .doc-flight-btn:hover svg { transform: translateX(-.08em) rotate(0deg) scale(1.03); }
 .doc-flight-btn:hover .doc-flight-label {
@@ -496,7 +499,16 @@ input[type="date"].fi::-webkit-calendar-picker-indicator { filter: invert(0.5); 
   cursor: wait;
   transform: none;
 }
-.doc-flight-btn:disabled .doc-flight-icon { animation: docWrite .72s ease-in-out infinite alternate; }
+.doc-flight-btn:disabled .doc-flight-icon::before {
+  opacity: 1;
+  transform: translate(0, 0) rotate(-18deg) scale(1);
+  animation: signHand .82s ease-in-out infinite alternate;
+}
+.doc-flight-btn:disabled .doc-flight-icon::after {
+  opacity: 1;
+  transform: translate(0, 0) rotate(-35deg) scaleX(1);
+  animation: signPen .82s ease-in-out infinite alternate;
+}
 .doc-flight-btn:disabled .doc-flight-label {
   transform: none;
   opacity: 1;
@@ -508,9 +520,13 @@ input[type="date"].fi::-webkit-calendar-picker-indicator { filter: invert(0.5); 
 .doc-flight-act:hover {
   background: linear-gradient(135deg, #f5dc70 0%, #e1c044 100%);
 }
-@keyframes docWrite {
-  from { transform: translateY(0) scale(1.03); }
-  to { transform: translateY(-2px) scale(1.07); }
+@keyframes signHand {
+  from { transform: translate(-1px, 1px) rotate(-20deg) scale(1); }
+  to { transform: translate(2px, -1px) rotate(-12deg) scale(1.02); }
+}
+@keyframes signPen {
+  from { transform: translate(-1px, 1px) rotate(-37deg) scaleX(1); }
+  to { transform: translate(3px, -1px) rotate(-28deg) scaleX(1); }
 }
 
 .send-flight-btn {
