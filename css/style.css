@@ -433,30 +433,71 @@ input[type="date"].fi::-webkit-calendar-picker-indicator { filter: invert(0.5); 
 }
 
 .bh {
+  position: relative;
+  overflow: hidden;
   background: transparent;
   color: var(--txt2);
   border: 1px solid var(--brd);
   border-radius: 10px;
   font-size: 15px;
   font-weight: 500;
+  min-height: 56px;
   padding: 14px;
   width: 100%;
   cursor: pointer;
-  transition: border-color .15s, color .15s, background .15s;
+  transform: translateZ(0);
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    border-color .18s ease,
+    color .18s ease,
+    background .18s ease,
+    box-shadow .2s ease,
+    transform .2s ease;
 }
-.bh:hover { border-color: #5a9aff; color: #5a9aff; }
+.bh::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity .2s ease;
+  pointer-events: none;
+}
+.bh:hover,
+.bh:focus-visible {
+  border-color: currentColor;
+  transform: translateY(-2px) scale(1.015);
+  box-shadow: 0 12px 28px rgba(0,0,0,.22), 0 0 22px color-mix(in srgb, currentColor 28%, transparent);
+}
+.bh:hover::before,
+.bh:focus-visible::before {
+  opacity: .075;
+}
+.bh:active {
+  transform: translateY(0) scale(1.035);
+  box-shadow: 0 8px 22px rgba(0,0,0,.25), 0 0 18px color-mix(in srgb, currentColor 34%, transparent);
+}
+.bh:active::before { opacity: .12; }
+.bh:focus-visible { outline: none; }
 
 .bh-drive    { border-color: #4285f4; color: #4285f4; }
 .bh-drive:hover    { border-color: #4285f4; background: rgba(66,133,244,.08); }
 .bh-archive  { border-color: #e8c84a; color: #e8c84a; }
 .bh-archive:hover  { border-color: #e8c84a; background: rgba(232,200,74,.08); }
-.bh-archive:disabled { opacity: .5; cursor: not-allowed; }
+.bh-archive:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
 .bh-email    { border-color: #ea4335; color: #ea4335; }
 .bh-email:hover    { border-color: #ea4335; background: rgba(234,67,53,.08); }
 .bh-sign     { border-color: #9c27b0; color: #9c27b0; }
 .bh-sign:hover     { border-color: #9c27b0; background: rgba(156,39,176,.08); }
 .bh-analytics{ border-color: #34a853; color: #34a853; }
 .bh-analytics:hover{ border-color: #34a853; background: rgba(52,168,83,.08); }
+
+@media (hover: none) {
+  .bh { min-height: 60px; }
+  .bh:active {
+    transform: scale(1.025);
+  }
+}
 
 /* ── Toggle Switch ─────────────────────────────────────────────────── */
 .toggle-switch {
