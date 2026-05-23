@@ -2,7 +2,7 @@
 
 function toggleEmail() {
   const panel = document.getElementById('emailPanel');
-  const open  = panel.style.display === 'none';
+  const open  = getComputedStyle(panel).display === 'none';
   panel.style.display = open ? 'block' : 'none';
   if (open) {
     document.getElementById('emailTo').value = '';
@@ -23,8 +23,9 @@ async function sendEmail() {
     return;
   }
   const btn = document.getElementById('sendEmailBtn');
+  const btnLabel = btn?.querySelector('.send-flight-label');
   btn.disabled = true;
-  btn.textContent = '⏳ Отправляю...';
+  if (btnLabel) btnLabel.textContent = 'Sending...';
   document.getElementById('emailMsg').textContent = '';
   try {
     if (!gAccessToken) await new Promise((res, rej) => requestAuth('consent', res, rej));
@@ -53,6 +54,6 @@ async function sendEmail() {
     document.getElementById('emailMsg').style.color = 'var(--dan)';
   } finally {
     btn.disabled = false;
-    btn.textContent = '✉️ Отправить письмо';
+    if (btnLabel) btnLabel.textContent = 'Send';
   }
 }
