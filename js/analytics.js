@@ -618,6 +618,10 @@ async function deleteTripFromRegistry(tripId) {
   renderDriveAnalytics(driveCache, analyticsYear, document.getElementById('analyticsPanel'));
 }
 
+function deleteTripFromRegistryEncoded(encodedTripId) {
+  deleteTripFromRegistry(decodeURIComponent(encodedTripId));
+}
+
 function formatIsoDate(value) {
   const m = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
   return m ? `${m[3]}.${m[2]}.${m[1]}` : '—';
@@ -714,10 +718,10 @@ function renderDriveAnalytics(entries, yr, panel) {
       '</div>' +
       '<div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:16px">' +
         viewButton('overview', 'Обзор') +
+        viewButton('journal', 'Журнал') +
         viewButton('years', 'Годы') +
         viewButton('customers', 'Заказчики') +
         viewButton('routes', 'Маршруты') +
-        viewButton('journal', 'Журнал') +
       '</div>' +
       '<div style="animation:analyticsViewIn .22s ease">' + viewHtml + '</div>' +
       '<button class="bd" onclick="driveCache=null;loadDriveAnalytics(true)" style="margin-top:14px;font-size:13px;padding:11px;border-radius:8px;background:linear-gradient(180deg,var(--ana),var(--ana2));color:#08140f;border:0">Обновить из trips.json</button>' +
@@ -767,16 +771,16 @@ function analyticsJournal(rows) {
           trip.actFileId ? 'акт PDF' : ''
         ].filter(Boolean).join(' · ') || 'PDF не привязаны';
 
-        return '<div style="background:rgba(255,255,255,.035);border:1px solid rgba(137,104,190,.24);border-radius:8px;padding:11px;display:grid;gap:8px">' +
+        return '<div style="background:linear-gradient(180deg,rgba(43,33,64,.96),rgba(33,23,51,.98));border:1px solid rgba(137,104,190,.26);border-radius:8px;padding:11px;display:grid;gap:8px;box-shadow:inset 0 1px 0 rgba(255,255,255,.035)">' +
           '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">' +
             '<div style="min-width:0">' +
               '<div style="color:var(--ana-text);font-weight:750;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + aEsc(title) + '</div>' +
               '<div style="color:var(--ana);font-size:12px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + aEsc(customer) + '">' + aEsc(customer) + '</div>' +
             '</div>' +
-            '<button onclick="deleteTripFromRegistry(&quot;' + aEsc(trip.id) + '&quot;)" style="background:rgba(232,74,95,.12);color:#ff8d9d;border:1px solid rgba(232,74,95,.38);border-radius:8px;padding:6px 9px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">Удалить</button>' +
+            '<button onclick="deleteTripFromRegistryEncoded(&quot;' + encodeURIComponent(trip.id) + '&quot;)" style="background:rgba(57,217,138,.08);color:var(--ana);border:1px solid rgba(57,217,138,.34);border-radius:8px;padding:6px 9px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">Удалить</button>' +
           '</div>' +
           '<div style="color:var(--ana-muted);font-size:11px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden" title="' + aEsc(route) + '">' + aEsc(route) + '</div>' +
-          '<div style="display:flex;justify-content:space-between;gap:10px;color:rgba(248,251,255,.62);font-size:10px;font-family:monospace;letter-spacing:0">' +
+          '<div style="display:flex;justify-content:space-between;gap:10px;color:rgba(248,251,255,.58);font-size:10px;font-family:monospace;letter-spacing:0">' +
             '<span>' + aEsc(files) + '</span>' +
             '<span>' + aEsc(trip.id) + '</span>' +
           '</div>' +
@@ -847,6 +851,7 @@ window.renderDriveAnalytics = renderDriveAnalytics;
 window.setAnalyticsView = setAnalyticsView;
 window.saveFormTripToRegistry = saveFormTripToRegistry;
 window.deleteTripFromRegistry = deleteTripFromRegistry;
+window.deleteTripFromRegistryEncoded = deleteTripFromRegistryEncoded;
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', bindAnalyticsButton);
