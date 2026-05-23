@@ -1,4 +1,4 @@
-// ══ Service Worker ═══════════════════════════════════════════════════
+// Service Worker
 const CACHE = 'gruz-v12';
 const ASSETS = [
   '/gruz/', '/gruz/index.html', '/gruz/css/style.css?v=12',
