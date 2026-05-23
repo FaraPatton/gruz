@@ -447,6 +447,98 @@ input[type="date"].fi::-webkit-calendar-picker-indicator { filter: invert(0.5); 
 
 .bh-drive    { border-color: #4285f4; color: #4285f4; }
 .bh-drive:hover    { border-color: #4285f4; background: rgba(66,133,244,.08); }
+.archive-pick-btn {
+  position: relative;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  overflow: hidden;
+  border: 0;
+  color: #07140d;
+  background: linear-gradient(180deg, #4ee89a, #1f9d63);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 12px 26px rgba(57,217,138,.18);
+  font-size: 15px;
+  font-weight: 800;
+}
+.archive-pick-btn::before {
+  content: "";
+  position: absolute;
+  width: 48px;
+  height: 140%;
+  left: -62px;
+  top: -20%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.62), transparent);
+  transform: skewX(-22deg);
+  transition: left .55s ease;
+}
+.archive-pick-btn:hover {
+  color: #07140d;
+  background: linear-gradient(180deg, #63f0a8, #25ad70);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.42), 0 16px 32px rgba(57,217,138,.24);
+  transform: translateY(-1px);
+}
+.archive-pick-btn:hover::before { left: calc(100% + 22px); }
+.archive-pick-btn:active { transform: scale(.98); }
+.archive-pick-icon {
+  position: relative;
+  z-index: 1;
+  width: 25px;
+  height: 24px;
+  flex: 0 0 auto;
+}
+.archive-pick-box {
+  position: absolute;
+  left: 3px;
+  bottom: 2px;
+  width: 19px;
+  height: 14px;
+  border: 2px solid #07140d;
+  border-radius: 4px;
+}
+.archive-pick-box::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: -6px;
+  width: 9px;
+  height: 5px;
+  border: 2px solid #07140d;
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
+}
+.archive-pick-arrow {
+  position: absolute;
+  left: 10px;
+  top: 1px;
+  width: 2px;
+  height: 12px;
+  background: #07140d;
+  border-radius: 2px;
+  transition: transform .24s ease;
+}
+.archive-pick-arrow::before,
+.archive-pick-arrow::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  width: 8px;
+  height: 2px;
+  background: #07140d;
+  border-radius: 2px;
+}
+.archive-pick-arrow::before { right: -1px; transform: rotate(-45deg); transform-origin: right center; }
+.archive-pick-arrow::after { left: -1px; transform: rotate(45deg); transform-origin: left center; }
+.archive-pick-btn:hover .archive-pick-arrow { transform: translateY(3px); }
+.archive-pick-text {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .bh-archive  { border-color: #e8c84a; color: #e8c84a; }
 .bh-archive:hover  { border-color: #e8c84a; background: rgba(232,200,74,.08); }
 .bh-archive:disabled { opacity: .5; cursor: not-allowed; }
