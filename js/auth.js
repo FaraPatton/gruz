@@ -16,6 +16,7 @@ function getTokenClient() {
         const btnIcon = document.getElementById('loginBtnIcon');
         const btn     = document.getElementById('loginBtn');
         const status  = document.getElementById('loginStatus');
+        setAuthLockState(true);
         if (btnTxt)  { btnTxt.textContent = 'Google'; }
         if (btnIcon) { btnIcon.textContent = '✓'; btnIcon.style.color = 'var(--acc)'; btnIcon.style.display = 'inline'; }
         if (btn)     { btn.style.borderColor = 'var(--acc)'; btn.style.color = 'var(--acc)'; btn.style.boxShadow = '0 0 10px rgba(232,200,74,.2)'; btn.disabled = false; }
@@ -28,6 +29,11 @@ function getTokenClient() {
     });
   }
   return gTokenClient;
+}
+
+function setAuthLockState(locked) {
+  const lock = document.getElementById('authLockToggle');
+  if (lock) lock.checked = !!locked;
 }
 
 function requestAuth(prompt, resolve, reject) {
@@ -45,18 +51,21 @@ async function googleLogin() {
   const overlay = document.getElementById('googleOverlay');
 
   if (gAccessToken) {
+    setAuthLockState(true);
     status.textContent = 'УЖЕ АВТОРИЗОВАН';
     status.style.color = 'var(--acc)';
     return;
   }
   overlay.style.display = 'flex';
   btn.disabled = true;
+  setAuthLockState(false);
   status.textContent = '';
   try {
     await new Promise((res, rej) => requestAuth('', res, rej));
   } catch(e) {
     overlay.style.display = 'none';
     btn.disabled = false;
+    setAuthLockState(false);
     status.textContent = 'ОШИБКА';
     status.style.color = 'var(--dan)';
     console.error('Login:', e);
