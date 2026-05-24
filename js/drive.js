@@ -83,8 +83,8 @@ function parsePDF(t) {
   const m2 = t.match(/Заказчик:\s*((?:ООО|ИП|АО|ЗАО|ПАО|НКО).+?),\s*ИНН/);
   if (m2) { let nm = m2[1].trim().replace(/^"+|"+$/g,'').trim(); if (nm.startsWith('ООО ') && !nm.includes('"')) nm = 'ООО "' + nm.slice(4).trim() + '"'; d.customerName = nm; }
   const minn = t.match(/Заказчик:.+?ИНН\s+(\d{10,12})/);  if (minn) d.customerInn = minn[1];
-  const mkpp = t.match(/Заказчик:.+?КПП\s+(\d{9})/);       if (mkpp) d.customerKpp = mkpp[1];
-  const maddr = t.match(/Заказчик:.+?КПП\s+\d{9},\s*(.+?)(?:\s+Плательщик:|\s+Транспортные|\s+маршруту:|$)/);
+  const mkpp = t.match(/Заказчик:.+?КПП\s*(\d{9})?/);       if (mkpp) d.customerKpp = mkpp[1] || '';
+  const maddr = t.match(/Заказчик:.+?КПП\s*(?:\d{9})?\s*,\s*(.+?)(?:\s+Плательщик:|\s+Транспортные|\s+маршруту:|$)/);
   if (maddr) d.customerAddr = maddr[1].trim().replace(/,\s*$/, '');
   const mrt  = t.match(/маршруту:\s*(.+?),\s*(?:MAN|КАМАЗ|ГАЗ|Volvo|Scania|DAF|Mercedes|Iveco|Ford)/i);
   if (mrt) {

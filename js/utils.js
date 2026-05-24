@@ -35,10 +35,8 @@ function loadTpl() {
 function getData() {
     const amount  = parseFloat(document.getElementById('amount').value) || 0;
     const fromA   = document.getElementById('from_a').value.trim();
-    const fromB   = document.getElementById('from_b').value.trim();
     const toA     = document.getElementById('to_a').value.trim();
-    const toB     = document.getElementById('to_b').value.trim();
-    const route   = fromA + (fromB ? ', ' + fromB : '') + ' - ' + toA + (toB ? ' - ' + toB : '');
+    const route   = fromA + ' - ' + toA;
     return {
           num:          document.getElementById('doc_num').value,
           docDate:      fmt(document.getElementById('doc_date').value),
