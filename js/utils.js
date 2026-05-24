@@ -18,6 +18,12 @@ function isStampEnabled() {
     return document.getElementById('stampToggle').checked;
 }
 
+function normalizeCarNumber(value) {
+    const car = String(value || '').trim().replace(/\s+\(/g, '(');
+    if (/^MAN,\s*[МM]563[УY][СC](?:\(?799\)?)?$/i.test(car)) return 'MAN, М563УС(799)';
+    return car;
+}
+
 // ── Template save/load (localStorage) ──
 function loadTpl() {
     try {
@@ -47,7 +53,7 @@ function getData() {
           customerInn:  document.getElementById('customer_inn').value.trim(),
           customerKpp:  document.getElementById('customer_kpp').value.trim(),
           customerAddr: document.getElementById('customer_addr').value.trim(),
-          car:          document.getElementById('car').value.trim(),
+          car:          normalizeCarNumber(document.getElementById('car').value),
           route, amount,
           amountFmt:    amount.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2}),
           amountWords:  amountToWords(amount),

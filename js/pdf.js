@@ -78,6 +78,15 @@ function drawServiceBlock(doc, d, y, ml, cw, colHeader) {
   return y;
 }
 
+function formatCustomerDetails(d) {
+  return [
+    d.customerName,
+    d.customerInn ? 'ИНН ' + d.customerInn : '',
+    d.customerKpp ? 'КПП ' + d.customerKpp : '',
+    d.customerAddr
+  ].filter(Boolean).join(', ');
+}
+
 function pdfOptionsFromArgs(options, folderId) {
   if (options === true) return { uploadFolderId: folderId, silent: true };
   return options || {};
@@ -137,7 +146,7 @@ async function genInvoice(options, folderId) {
     sf(doc,13,true);doc.text('Счёт на оплату №'+d.num+' от '+d.docDate,ml,y);
     y+=2;doc.setLineWidth(1);doc.line(ml,y+1,ml+cw,y+1);y+=8;
     ['Заказчик:','Плательщик:'].forEach(lbl=>{
-      const cf=d.customerName+', ИНН '+d.customerInn+', КПП '+d.customerKpp+', '+d.customerAddr;
+      const cf=formatCustomerDetails(d);
       sf(doc,10,false);const cl=doc.splitTextToSize(cf,cw-32);const rH=cl.length*4+5;
       doc.rect(ml,y,cw,rH);doc.line(ml+28,y,ml+28,y+rH);
       sf(doc,10,true);doc.setTextColor(50,50,50);doc.text(lbl,ml+2,y+rH/2+1.8);

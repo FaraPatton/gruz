@@ -84,7 +84,7 @@ function parsePDF(t) {
   if (m2) { let nm = m2[1].trim().replace(/^"+|"+$/g,'').trim(); if (nm.startsWith('ООО ') && !nm.includes('"')) nm = 'ООО "' + nm.slice(4).trim() + '"'; d.customerName = nm; }
   const minn = t.match(/Заказчик:.+?ИНН\s+(\d{10,12})/);  if (minn) d.customerInn = minn[1];
   const mkpp = t.match(/Заказчик:.+?КПП\s*(\d{9})?/);       if (mkpp) d.customerKpp = mkpp[1] || '';
-  const maddr = t.match(/Заказчик:.+?КПП\s*(?:\d{9})?\s*,\s*(.+?)(?:\s+Плательщик:|\s+Транспортные|\s+маршруту:|$)/);
+  const maddr = t.match(/Заказчик:.+?ИНН\s+\d{10,12}\s*,\s*(?:КПП\s*(?:\d{9})?\s*,\s*)?(.+?)(?:\s+Плательщик:|\s+Транспортные|\s+маршруту:|$)/);
   if (maddr) d.customerAddr = maddr[1].trim().replace(/,\s*$/, '');
   const mrt  = t.match(/маршруту:\s*(.+?),\s*(?:MAN|КАМАЗ|ГАЗ|Volvo|Scania|DAF|Mercedes|Iveco|Ford)/i);
   if (mrt) {
@@ -92,8 +92,8 @@ function parsePDF(t) {
     if (legs.length >= 2) { d.from_a = legs[0]; d.to_a = legs[1]; d.from_b = ''; d.to_b = legs[2] || ''; }
     else { d.from_a = legs[0] || ''; d.from_b = ''; d.to_a = ''; d.to_b = ''; }
   }
-  const mcar = t.match(/((?:MAN|КАМАЗ|ГАЗ|Volvo|Scania|DAF|Mercedes|Iveco|Ford),\s*[А-Я\d]+(?:\(\d+\))?)/);
-  if (mcar) d.car = mcar[1];
+  const mcar = t.match(/((?:MAN|КАМАЗ|ГАЗ|Volvo|Scania|DAF|Mercedes|Iveco|Ford),\s*[А-ЯA-Z0-9]+(?:\s*\(\d+\))?)/i);
+  if (mcar) d.car = normalizeCarNumber(mcar[1]);
   const mld = t.match(/дата загрузки\s*-\s*(\d{2}\.\d{2}\.\d{4})/i);  if (mld) d.loadDate = mld[1];
   const mud = t.match(/дата выгрузки\s*-\s*(\d{2}\.\d{2}\.\d{4})/i);   if (mud) d.unloadDate = mud[1];
   const mamt = t.match(/на сумму\s+(\d+)\s+руб/i);                         if (mamt) d.amount = mamt[1];
@@ -104,6 +104,7 @@ function showParsed(d, fileName) {
   const rows = [
     ['Файл', fileName], ['Номер', d.num||'—'], ['Дата', d.docDate||'—'],
     ['Заказчик', d.customerName||'—'], ['ИНН', d.customerInn||'—'], ['КПП', d.customerKpp||'—'],
+    ['Адрес', d.customerAddr||'—'],
     ['Откуда', d.from_a||'—'], ['Куда', d.to_a||'—'], ['Авто', d.car||'—'],
     ['Загрузка', d.loadDate||'—'], ['Выгрузка', d.unloadDate||'—'],
     ['Сумма', d.amount ? d.amount + ' руб' : '—']
