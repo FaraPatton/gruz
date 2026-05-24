@@ -85,7 +85,13 @@ function parsePDF(t) {
   const minn = t.match(/Заказчик:.+?ИНН\s+(\d{10,12})/);  if (minn) d.customerInn = minn[1];
   const mkpp = t.match(/Заказчик:.+?КПП\s*(\d{9})?/);       if (mkpp) d.customerKpp = mkpp[1] || '';
   const maddr = t.match(/Заказчик:.+?ИНН\s+\d{10,12}\s*,\s*(?:КПП\s*(?:\d{9})?\s*,\s*)?(.+?)(?:\s+Плательщик:|\s+Транспортные|\s+маршруту:|$)/);
-  if (maddr) d.customerAddr = maddr[1].trim().replace(/,\s*$/, '');
+  if (maddr) {
+    const customerBlock = (t.match(/Заказчик:(.+?)(?:\s+Плательщик:|\s+Транспортные|\s+маршруту:|$)/) || [])[1] || '';
+    const addrIndex = (customerBlock.match(/\b\d{6}\b/) || [])[0] || '';
+    let addr = maddr[1].trim().replace(/,\s*$/, '');
+    if (addrIndex && !addr.startsWith(addrIndex)) addr = addrIndex + ', ' + addr.replace(/^,?\s*/, '');
+    d.customerAddr = addr;
+  }
   const mrt  = t.match(/маршруту:\s*(.+?),\s*(?:MAN|КАМАЗ|ГАЗ|Volvo|Scania|DAF|Mercedes|Iveco|Ford)/i);
   if (mrt) {
     const legs = mrt[1].trim().split(/\s+-\s+/).map(l => l.trim().replace(/,\s*$/,''));
