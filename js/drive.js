@@ -84,6 +84,8 @@ function parsePDF(t) {
   if (m2) { let nm = m2[1].trim().replace(/^"+|"+$/g,'').trim(); if (nm.startsWith('ООО ') && !nm.includes('"')) nm = 'ООО "' + nm.slice(4).trim() + '"'; d.customerName = nm; }
   const minn = t.match(/Заказчик:.+?ИНН\s+(\d{10,12})/);  if (minn) d.customerInn = minn[1];
   const mkpp = t.match(/Заказчик:.+?КПП\s+(\d{9})/);       if (mkpp) d.customerKpp = mkpp[1];
+  const maddr = t.match(/Заказчик:.+?КПП\s+\d{9},\s*(.+?)(?:\s+Плательщик:|\s+Транспортные|\s+маршруту:|$)/);
+  if (maddr) d.customerAddr = maddr[1].trim().replace(/,\s*$/, '');
   const mrt  = t.match(/маршруту:\s*(.+?),\s*(?:MAN|КАМАЗ|ГАЗ|Volvo|Scania|DAF|Mercedes|Iveco|Ford)/i);
   if (mrt) {
     const legs = mrt[1].trim().split(/\s+-\s+/).map(l => l.trim().replace(/,\s*$/,''));
@@ -125,7 +127,7 @@ function closeParsed() {
 function applyParsed() {
   if (!gParsed) return;
   const d = gParsed;
-  const set = (id, v) => { const el = document.getElementById(id); if (el && v !== undefined && v !== '') el.value = v; };
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v == null ? '' : v; };
   set('doc_num',       d.num);
   set('doc_date',      toInput(d.docDate));
   set('act_date',      toInput(d.actDate));
@@ -140,7 +142,8 @@ function applyParsed() {
   set('car',           d.car);
   set('load_date',     toInput(d.loadDate));
   set('unload_date',   toInput(d.unloadDate));
-  if (d.amount) { set('amount', d.amount); document.getElementById('amount_words').value = amountToWords(d.amount); }
+  set('amount',        d.amount);
+  document.getElementById('amount_words').value = amountToWords(d.amount || 0);
   closeParsed();
   showToast('✅ Данные из Drive заполнены!');
 }
