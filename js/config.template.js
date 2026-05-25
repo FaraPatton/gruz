@@ -11,6 +11,7 @@ const ARCHIVE_ROOT = '';
 // Email defaults
 const EMAIL_SUBJECT = '';
 const EMAIL_BODY = ``;
+const EMAIL_DRIVE_FOLDER_ID = '';
 
 // Global auth state
 let gTokenClient = null;

@@ -15,6 +15,39 @@ function closeEmail() {
   document.getElementById('emailPanel').style.display = 'none';
 }
 
+function getEmailDriveFolderId() {
+  const explicit = typeof EMAIL_DRIVE_FOLDER_ID !== 'undefined' ? String(EMAIL_DRIVE_FOLDER_ID || '').trim() : '';
+  if (explicit) return explicit;
+  const match = String(EMAIL_BODY || '').match(/drive\.google\.com\/drive\/folders\/([A-Za-z0-9_-]+)/);
+  return match ? match[1] : '';
+}
+
+async function grantEmailFolderAccess(email) {
+  const folderId = getEmailDriveFolderId();
+  if (!folderId) throw new Error('Не указан ID папки документов для доступа');
+
+  const resp = await fetch(
+    'https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(folderId) +
+      '/permissions?sendNotificationEmail=false&supportsAllDrives=true',
+    {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + gAccessToken, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'user',
+        role: 'reader',
+        emailAddress: email
+      })
+    }
+  );
+
+  if (resp.ok) return true;
+
+  const data = await resp.json().catch(() => ({}));
+  const message = data.error?.message || '';
+  if (resp.status === 409 || /already exists|already has access/i.test(message)) return false;
+  throw new Error(message || 'Не удалось открыть доступ к папке документов');
+}
+
 async function sendEmail() {
   const to = document.getElementById('emailTo').value.trim();
   if (!to || !to.includes('@')) {
@@ -29,6 +62,11 @@ async function sendEmail() {
   document.getElementById('emailMsg').textContent = '';
   try {
     if (!gAccessToken) await new Promise((res, rej) => requestAuth('consent', res, rej));
+    if (btnLabel) btnLabel.textContent = 'Открываю доступ...';
+    document.getElementById('emailMsg').textContent = 'Открываю доступ к папке для ' + to + '...';
+    document.getElementById('emailMsg').style.color = 'var(--txt2)';
+    await grantEmailFolderAccess(to);
+    if (btnLabel) btnLabel.textContent = 'Отправляю...';
     const lines = [
       'To: ' + to,
       'Subject: =?UTF-8?B?' + btoa(unescape(encodeURIComponent(EMAIL_SUBJECT))) + '?=',
