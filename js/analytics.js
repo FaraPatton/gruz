@@ -674,7 +674,12 @@ function renderRouteMapModal(trip, stateText, errorText) {
     '<div class="route-map-route">' + aEsc(route || 'Маршрут не указан') + '</div>' +
     '<div class="route-map-meta">' + aEsc(routeMapMeta(trip) || 'Детали маршрута появятся после построения') + '</div>' +
     '<div class="route-map-actions">' +
-      (mapsUrl ? '<a href="' + aEsc(mapsUrl) + '" target="_blank" rel="noopener">Открыть в Яндекс Картах</a>' : '') +
+      (mapsUrl ? '<a class="route-map-yandex-btn" href="' + aEsc(mapsUrl) + '" target="_blank" rel="noopener">' +
+        'Открыть в Яндекс Картах' +
+        '<span class="route-map-yandex-icon">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 4l1.41 1.41L8.83 10H20v2H8.83l4.58 4.59L12 18l-7-7 7-7z" transform="rotate(180 12 11)"/></svg>' +
+        '</span>' +
+      '</a>' : '') +
     '</div>';
   modal.classList.add('is-open');
 }
@@ -854,7 +859,12 @@ function renderDriveAnalytics(entries, yr, panel) {
       '.route-map-large{border-radius:8px;overflow:hidden;border:1px solid rgba(57,217,138,.22);background:rgba(255,255,255,.04);min-height:360px}.route-map-large iframe{width:100%;height:360px;border:0;display:block}.route-map-state{height:100%;min-height:220px;display:flex;align-items:center;justify-content:center;color:var(--ana);font-size:13px;font-weight:800}' +
       '.route-map-error{margin-top:10px;border:1px solid rgba(255,95,95,.32);border-radius:8px;padding:10px;color:#ffb9b9;background:rgba(255,95,95,.08);font-size:12px;line-height:1.45}' +
       '.route-map-customer{margin-top:12px;color:var(--ana);font-size:13px;font-weight:750}.route-map-route{margin-top:5px;color:var(--ana-text);font-size:12px;line-height:1.45}.route-map-meta{margin-top:7px;color:var(--ana-muted);font-size:11px;font-family:monospace;letter-spacing:0}' +
-      '.route-map-actions{margin-top:14px;display:flex;justify-content:flex-end}.route-map-actions a{border:1px solid rgba(57,217,138,.42);border-radius:8px;background:linear-gradient(180deg,var(--ana),var(--ana2));color:#07140d;text-decoration:none;font-size:12px;font-weight:800;padding:9px 12px}' +
+      '.route-map-actions{margin-top:14px;display:flex;justify-content:flex-end}' +
+      '.route-map-yandex-btn{background:var(--ana);color:#07140d;font-family:inherit;padding:.35em;padding-left:1.2em;font-size:14px;font-weight:800;border-radius:.9em;border:0;letter-spacing:0;display:inline-flex;align-items:center;box-shadow:inset 0 0 1.6em -.6em var(--ana2),0 10px 24px rgba(57,217,138,.16);overflow:hidden;position:relative;height:2.8em;padding-right:3.3em;text-decoration:none;min-width:220px;justify-content:flex-start;transition:transform .18s ease,box-shadow .22s ease}' +
+      '.route-map-yandex-btn .route-map-yandex-icon{background:#f8fbff;margin-left:1em;position:absolute;display:flex;align-items:center;justify-content:center;height:2.2em;width:2.2em;border-radius:.7em;box-shadow:.1em .1em .6em .2em rgba(31,157,99,.35);right:.3em;transition:all .3s}' +
+      '.route-map-yandex-btn .route-map-yandex-icon svg{width:1.15em;height:1.15em;transition:transform .3s;color:var(--ana2)}' +
+      '.route-map-yandex-btn:hover{transform:translateY(-1px);box-shadow:inset 0 0 1.6em -.6em var(--ana2),0 16px 30px rgba(57,217,138,.24)}' +
+      '.route-map-yandex-btn:hover .route-map-yandex-icon{width:calc(100% - .6em)}.route-map-yandex-btn:hover .route-map-yandex-icon svg{transform:translateX(.1em)}.route-map-yandex-btn:active .route-map-yandex-icon{transform:scale(.95)}' +
       '.analytics-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:16px}' +
       '@media(max-width:430px){.analytics-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-tabs button:first-child{grid-column:1 / -1}.journal-card-inner{padding:12px}.journal-summary{grid-template-columns:1fr}.journal-stat{border-right:0;border-bottom:1px solid rgba(57,217,138,.18)}.journal-stat:last-child{border-bottom:0}.journal-delete{width:42px;height:42px}.route-map-dialog{padding:13px}.route-map-head{display:block}.route-map-sum{margin-top:6px}.route-map-large{min-height:280px}.route-map-large iframe{height:280px}.route-map-state{min-height:170px}}' +
     '</style>' +
