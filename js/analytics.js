@@ -603,92 +603,52 @@ async function saveFormTripToRegistry(data, extra = {}) {
   return saveTripToRegistry(tripFromFormData(data, extra));
 }
 
-function routeGoogleMapsUrl(trip) {
+let yandexMapsLoadPromise = null;
+
+function routeYandexMapsUrl(trip) {
   const origin = trip.routeOrigin || routeEndpointParts(trip.route).origin;
   const destination = trip.routeDestination || routeEndpointParts(trip.route).destination;
   if (!origin || !destination) return '';
-  return 'https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=' +
-    encodeURIComponent(origin) + '&destination=' + encodeURIComponent(destination);
+  return 'https://yandex.ru/maps/?rtext=' + encodeURIComponent(origin) + '~' +
+    encodeURIComponent(destination) + '&rtt=auto';
 }
 
-function routeEmbedMapUrl(trip) {
-  const origin = trip.routeOrigin || routeEndpointParts(trip.route).origin;
-  const destination = trip.routeDestination || routeEndpointParts(trip.route).destination;
-  if (!origin || !destination) return '';
-  return 'https://www.google.com/maps/embed/v1/directions?key=' + encodeURIComponent(GAPI_KEY) +
-    '&origin=' + encodeURIComponent(origin) +
-    '&destination=' + encodeURIComponent(destination) +
-    '&mode=driving&language=ru&region=ru';
+function loadYandexMapsApi() {
+  if (window.ymaps) return Promise.resolve(window.ymaps);
+  if (yandexMapsLoadPromise) return yandexMapsLoadPromise;
+  const key = String(typeof YANDEX_MAPS_API_KEY !== 'undefined' ? YANDEX_MAPS_API_KEY : '').trim();
+  if (!key) return Promise.reject(new Error('Добавьте ключ Яндекс.Карт в YANDEX_MAPS_API_KEY'));
+
+  yandexMapsLoadPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://api-maps.yandex.ru/2.1/?apikey=' + encodeURIComponent(key) + '&lang=ru_RU';
+    script.async = true;
+    script.onload = () => window.ymaps.ready(() => resolve(window.ymaps));
+    script.onerror = () => reject(new Error('Не удалось загрузить API Яндекс.Карт'));
+    document.head.appendChild(script);
+  });
+  return yandexMapsLoadPromise;
 }
 
-async function fetchRouteMapData(trip) {
+async function renderYandexRouteMap(trip) {
   const origin = trip.routeOrigin || routeEndpointParts(trip.route).origin;
   const destination = trip.routeDestination || routeEndpointParts(trip.route).destination;
   if (!origin || !destination) throw new Error('Не хватает адресов начала и конца маршрута');
+  const container = document.getElementById('routeMapCanvas');
+  if (!container) return;
 
-  const resp = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Goog-Api-Key': GAPI_KEY,
-      'X-Goog-FieldMask': 'routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline'
-    },
-    body: JSON.stringify({
-      origin: { address: origin },
-      destination: { address: destination },
-      travelMode: 'DRIVE',
-      routingPreference: 'TRAFFIC_UNAWARE',
-      polylineQuality: 'HIGH_QUALITY',
-      polylineEncoding: 'ENCODED_POLYLINE',
-      languageCode: 'ru-RU',
-      regionCode: 'RU'
-    })
+  const ymapsApi = await loadYandexMapsApi();
+  container.innerHTML = '';
+  const map = new ymapsApi.Map(container, {
+    center: [55.76, 37.64],
+    zoom: 8,
+    controls: ['zoomControl', 'fullscreenControl']
   });
-
-  if (!resp.ok) {
-    const text = await resp.text().catch(() => '');
-    throw new Error('Routes API HTTP ' + resp.status + (text ? ': ' + text.slice(0, 160) : ''));
-  }
-
-  const data = await resp.json();
-  const route = data.routes?.[0];
-  const polyline = route?.polyline?.encodedPolyline || '';
-  if (!polyline) throw new Error('Google не вернул линию маршрута');
-  return {
-    routeOrigin: origin,
-    routeDestination: destination,
-    routePolyline: polyline,
-    routeDistanceMeters: route.distanceMeters || 0,
-    routeDuration: route.duration || '',
-    routeMapUpdatedAt: new Date().toISOString()
-  };
-}
-
-async function saveTripRouteMap(tripId, mapData) {
-  const registry = await loadTripsRegistry();
-  const trips = (registry.trips || []).map(normalizeTrip).filter(Boolean).map(trip => (
-    trip.id === tripId ? normalizeTrip({ ...trip, ...mapData }) : trip
-  ));
-  await saveTripsRegistry({
-    ...registry,
-    version: TRIPS_REGISTRY_VERSION,
-    updatedAt: new Date().toISOString(),
-    source: 'form-drive-and-maps',
-    trips
+  const route = await ymapsApi.route([origin, destination], {
+    mapStateAutoApply: true,
+    routingMode: 'auto'
   });
-  driveCache = trips;
-  return trips.find(trip => trip.id === tripId) || null;
-}
-
-async function ensureTripRouteMap(tripId) {
-  let trip = (driveCache || []).map(normalizeTrip).filter(Boolean).find(item => item.id === tripId);
-  if (!trip) throw new Error('Рейс не найден в журнале');
-  if (trip.routePolyline) return trip;
-  const mapData = await fetchRouteMapData(trip);
-  trip = await saveTripRouteMap(trip.id, mapData);
-  const panel = document.getElementById('analyticsPanel');
-  if (panel && driveCache) renderDriveAnalytics(driveCache, analyticsYear, panel);
-  return trip;
+  map.geoObjects.add(route);
 }
 
 function routeMapMeta(trip) {
@@ -720,8 +680,7 @@ function closeRouteMapModal() {
 function renderRouteMapModal(trip, stateText, errorText) {
   const modal = ensureRouteMapModal();
   const content = document.getElementById('routeMapContent');
-  const embedUrl = routeEmbedMapUrl(trip);
-  const mapsUrl = routeGoogleMapsUrl(trip);
+  const mapsUrl = routeYandexMapsUrl(trip);
   const route = trip.route || [trip.routeOrigin, trip.routeDestination].filter(Boolean).join(' - ');
   content.innerHTML =
     '<div class="route-map-head">' +
@@ -729,14 +688,14 @@ function renderRouteMapModal(trip, stateText, errorText) {
       '<div class="route-map-sum">' + aEsc(money(trip.amount)) + '</div>' +
     '</div>' +
     '<div class="route-map-large">' +
-      (embedUrl ? '<iframe src="' + aEsc(embedUrl) + '" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>' : '<div class="route-map-state">' + aEsc(stateText || 'Строю маршрут...') + '</div>') +
+      '<div id="routeMapCanvas" class="route-map-canvas"><div class="route-map-state">' + aEsc(stateText || 'Загружаю Яндекс.Карты...') + '</div></div>' +
     '</div>' +
     (errorText ? '<div class="route-map-error">' + aEsc(errorText) + '</div>' : '') +
     '<div class="route-map-customer">' + aEsc(trip.customerName || 'Заказчик не указан') + '</div>' +
     '<div class="route-map-route">' + aEsc(route || 'Маршрут не указан') + '</div>' +
     '<div class="route-map-meta">' + aEsc(routeMapMeta(trip) || 'Детали маршрута появятся после построения') + '</div>' +
     '<div class="route-map-actions">' +
-      (mapsUrl ? '<a href="' + aEsc(mapsUrl) + '" target="_blank" rel="noopener">Открыть в Google Maps</a>' : '') +
+      (mapsUrl ? '<a href="' + aEsc(mapsUrl) + '" target="_blank" rel="noopener">Открыть в Яндекс Картах</a>' : '') +
     '</div>';
   modal.classList.add('is-open');
 }
@@ -745,12 +704,10 @@ async function openRouteMapModal(tripId) {
   const trip = (driveCache || []).map(normalizeTrip).filter(Boolean).find(item => item.id === tripId);
   if (!trip) return;
   renderRouteMapModal(trip);
-  if (trip.routePolyline) return;
   try {
-    const readyTrip = await ensureTripRouteMap(trip.id);
-    renderRouteMapModal(readyTrip);
+    await renderYandexRouteMap(trip);
   } catch(e) {
-    renderRouteMapModal(trip, '', 'Карта открыта через Google Embed. Детали маршрута не сохранились: ' + e.message);
+    renderRouteMapModal(trip, '', e.message);
   }
 }
 
@@ -920,12 +877,12 @@ function renderDriveAnalytics(entries, yr, panel) {
       '.route-map-close{position:absolute;right:10px;top:10px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:#fff;font-size:24px;line-height:1;cursor:pointer}' +
       '.route-map-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin:0 38px 12px 0}' +
       '.route-map-kicker{font-family:monospace;font-size:10px;letter-spacing:0;color:var(--ana)}.route-map-title{font-size:16px;font-weight:800;color:var(--ana-text);margin-top:3px}.route-map-sum{color:var(--ana);font-size:14px;font-weight:800;white-space:nowrap}' +
-      '.route-map-large{border-radius:8px;overflow:hidden;border:1px solid rgba(57,217,138,.22);background:rgba(255,255,255,.04);min-height:320px}.route-map-large iframe{width:100%;height:320px;border:0;display:block}.route-map-state{min-height:220px;display:flex;align-items:center;justify-content:center;color:var(--ana);font-size:13px;font-weight:800}' +
+      '.route-map-large{border-radius:8px;overflow:hidden;border:1px solid rgba(57,217,138,.22);background:rgba(255,255,255,.04);min-height:320px}.route-map-canvas{width:100%;height:320px;display:block}.route-map-state{height:100%;min-height:220px;display:flex;align-items:center;justify-content:center;color:var(--ana);font-size:13px;font-weight:800}' +
       '.route-map-error{margin-top:10px;border:1px solid rgba(255,95,95,.32);border-radius:8px;padding:10px;color:#ffb9b9;background:rgba(255,95,95,.08);font-size:12px;line-height:1.45}' +
       '.route-map-customer{margin-top:12px;color:var(--ana);font-size:13px;font-weight:750}.route-map-route{margin-top:5px;color:var(--ana-text);font-size:12px;line-height:1.45}.route-map-meta{margin-top:7px;color:var(--ana-muted);font-size:11px;font-family:monospace;letter-spacing:0}' +
       '.route-map-actions{margin-top:14px;display:flex;justify-content:flex-end}.route-map-actions a{border:1px solid rgba(57,217,138,.42);border-radius:8px;background:linear-gradient(180deg,var(--ana),var(--ana2));color:#07140d;text-decoration:none;font-size:12px;font-weight:800;padding:9px 12px}' +
       '.analytics-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:16px}' +
-      '@media(max-width:430px){.analytics-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-tabs button:first-child{grid-column:1 / -1}.journal-card-inner{padding:12px}.journal-summary{grid-template-columns:1fr}.journal-stat{border-right:0;border-bottom:1px solid rgba(57,217,138,.18)}.journal-stat:last-child{border-bottom:0}.journal-delete{width:42px;height:42px}.route-map-dialog{padding:13px}.route-map-head{display:block}.route-map-sum{margin-top:6px}.route-map-large{min-height:260px}.route-map-large iframe{height:260px}.route-map-state{min-height:170px}}' +
+      '@media(max-width:430px){.analytics-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-tabs button:first-child{grid-column:1 / -1}.journal-card-inner{padding:12px}.journal-summary{grid-template-columns:1fr}.journal-stat{border-right:0;border-bottom:1px solid rgba(57,217,138,.18)}.journal-stat:last-child{border-bottom:0}.journal-delete{width:42px;height:42px}.route-map-dialog{padding:13px}.route-map-head{display:block}.route-map-sum{margin-top:6px}.route-map-large{min-height:260px}.route-map-canvas{height:260px}.route-map-state{min-height:170px}}' +
     '</style>' +
     '<div class="dc" style="--acc:' + ANALYTICS_GREEN + ';--ana:' + ANALYTICS_GREEN + ';--ana2:' + ANALYTICS_GREEN_DARK + ';--ana-bg:#171022;--ana-card:#211733;--ana-card2:#2b2140;--ana-text:#f8fbff;--ana-muted:#a99bc8;padding:18px;margin-bottom:0;background:radial-gradient(circle at 12% 0%,rgba(57,217,138,.11),transparent 30%),linear-gradient(180deg,#1a1128,#130f1d);border-color:rgba(137,104,190,.28);box-shadow:0 22px 54px rgba(0,0,0,.24)">' +
       '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:14px">' +
@@ -991,7 +948,7 @@ function analyticsJournal(rows) {
           '<span class="journal-map-point journal-map-point-a">A</span>' +
           '<span class="journal-map-point journal-map-point-b">B</span>' +
           '<div class="journal-map-empty">Показать карту маршрута</div>' +
-          '<div class="journal-map-pill">' + aEsc(routeMapMeta(trip) || 'Google Embed') + '</div>' +
+          '<div class="journal-map-pill">' + aEsc(routeMapMeta(trip) || 'Яндекс маршрут') + '</div>' +
         '</div>';
         const files = [
           trip.invoiceFileId ? 'счёт PDF' : '',
