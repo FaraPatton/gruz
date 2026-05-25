@@ -15,7 +15,17 @@ function showToast(msg) {
 
 // ── Stamp helpers ──
 function isStampEnabled() {
-    return document.getElementById('stampToggle').checked;
+    return !!gAccessToken && document.getElementById('stampToggle').checked;
+}
+
+function syncStampAuthState() {
+    const toggle = document.getElementById('stampToggle');
+    const zone = document.getElementById('stampZone');
+    if (!toggle || !zone) return;
+    const authorized = !!gAccessToken;
+    toggle.disabled = !authorized;
+    toggle.checked = authorized;
+    zone.classList.toggle('stamp-zone-disabled', !authorized || !toggle.checked);
 }
 
 function normalizeCarNumber(value) {
@@ -153,7 +163,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
                             // Stamp toggle
-                            document.getElementById('stampToggle').addEventListener('change', function() {
-                                  document.getElementById('stampZone').classList.toggle('stamp-zone-disabled', !this.checked);
-                            });
+                            document.getElementById('stampToggle').addEventListener('change', syncStampAuthState);
+                            syncStampAuthState();
 });

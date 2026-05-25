@@ -728,6 +728,17 @@ input[type="date"].fi::-webkit-calendar-picker-indicator { filter: invert(0.5); 
   transform: translateX(33px);
   background: linear-gradient(180deg, #f9fff9, #d9f3e4);
 }
+.toggle-switch input:disabled + .toggle-slider {
+  cursor: not-allowed;
+  background: #242631;
+  border-color: rgba(255,255,255,.05);
+  box-shadow: none;
+  opacity: .72;
+}
+.toggle-switch input:disabled + .toggle-slider::before {
+  background: linear-gradient(180deg, #7d8190, #4b4e5b);
+  box-shadow: 0 3px 8px rgba(0,0,0,.28);
+}
 
 /* ── Parse Box ─────────────────────────────────────────────────────── */
 .parse-box {
