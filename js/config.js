@@ -3,7 +3,7 @@
 // Google OAuth
 const GCLIENT_ID = '1065862583210-pc1ulr62167km969n4kaqc5f79hre1j7.apps.googleusercontent.com';
 const GAPI_KEY   = 'AIzaSyD-miNligFmgCvFWlYj6j2Hz0hq0EsfxLU';
-const YANDEX_MAPS_API_KEY = '';
+const YANDEX_MAPS_API_KEY = '64035d59-42e6-4d21-9382-1fcf5215fbf7';
 
 // Google Drive — архивная папка
 const ARCHIVE_ROOT = '1ywctaRSj0XWrY6MHjkWsvDCULxrNLSVd';
