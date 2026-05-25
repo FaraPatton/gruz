@@ -28,6 +28,20 @@ function syncStampAuthState() {
     zone.classList.toggle('stamp-zone-disabled', !authorized || !toggle.checked);
 }
 
+function syncContractAuthState() {
+    const input = document.getElementById('contractFile');
+    const zone = document.getElementById('contractUploadZone');
+    if (!input || !zone) return;
+    const authorized = !!gAccessToken;
+    input.disabled = !authorized;
+    zone.classList.toggle('stamp-zone-disabled', !authorized);
+}
+
+function syncAuthDependentUi() {
+    syncStampAuthState();
+    syncContractAuthState();
+}
+
 function normalizeCarNumber(value) {
     const car = String(value || '').trim().replace(/\s+\(/g, '(');
     if (/^MAN,\s*[МM]563[УY][СC](?:\(?799\)?)?$/i.test(car)) return 'MAN, М563УС(799)';
@@ -164,5 +178,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
                             // Stamp toggle
                             document.getElementById('stampToggle').addEventListener('change', syncStampAuthState);
-                            syncStampAuthState();
+                            syncAuthDependentUi();
 });

@@ -23,6 +23,10 @@ function toggleSign() {
 
 document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('contractFile').addEventListener('change', async function (e) {
+    if (!gAccessToken) {
+      e.target.value = '';
+      return;
+    }
     const file = e.target.files[0];
     if (!file) return;
     document.getElementById('contractPh').style.display = 'none';

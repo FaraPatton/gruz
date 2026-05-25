@@ -17,7 +17,7 @@ function getTokenClient() {
         const btn     = document.getElementById('loginBtn');
         const status  = document.getElementById('loginStatus');
         setAuthLockState(true);
-        if (typeof syncStampAuthState === 'function') syncStampAuthState();
+        if (typeof syncAuthDependentUi === 'function') syncAuthDependentUi();
         if (btnTxt)  { btnTxt.textContent = 'Google'; }
         if (btnIcon) { btnIcon.textContent = '✓'; btnIcon.style.color = 'var(--acc)'; btnIcon.style.display = 'inline'; }
         if (btn)     { btn.style.borderColor = 'var(--acc)'; btn.style.color = 'var(--acc)'; btn.style.boxShadow = '0 0 10px rgba(232,200,74,.2)'; btn.disabled = false; }
@@ -53,7 +53,7 @@ async function googleLogin() {
 
   if (gAccessToken) {
     setAuthLockState(true);
-    if (typeof syncStampAuthState === 'function') syncStampAuthState();
+    if (typeof syncAuthDependentUi === 'function') syncAuthDependentUi();
     status.textContent = 'УЖЕ АВТОРИЗОВАН';
     status.style.color = 'var(--acc)';
     return;
@@ -68,7 +68,7 @@ async function googleLogin() {
     overlay.style.display = 'none';
     btn.disabled = false;
     setAuthLockState(false);
-    if (typeof syncStampAuthState === 'function') syncStampAuthState();
+    if (typeof syncAuthDependentUi === 'function') syncAuthDependentUi();
     status.textContent = 'ОШИБКА';
     status.style.color = 'var(--dan)';
     console.error('Login:', e);
