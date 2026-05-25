@@ -624,14 +624,6 @@ function routeMapMeta(trip) {
   return [km, trip.car].filter(Boolean).join(' · ');
 }
 
-function routeThumbStyle(trip) {
-  let hash = 0;
-  String(trip.id || trip.route || '').split('').forEach(ch => { hash = (hash * 31 + ch.charCodeAt(0)) >>> 0; });
-  const x = 28 + (hash % 45);
-  const y = 22 + ((hash >> 8) % 45);
-  return '--map-x:' + x + '%;--map-y:' + y + '%';
-}
-
 function ensureRouteMapModal() {
   let modal = document.getElementById('routeMapModal');
   if (modal) return modal;
@@ -844,12 +836,8 @@ function renderDriveAnalytics(entries, yr, panel) {
       '.journal-delete:hover .journal-delete-top{transform:rotate(32deg) translate(2px,-2px)}' +
       '.journal-delete:hover .journal-delete-bottom:before,.journal-delete:hover .journal-delete-bottom:after{background:rgb(255,38,38)}' +
       '.journal-delete:active{transform:scale(.95)}' +
-      '.journal-map-thumb{position:relative;min-height:96px;border:1px solid rgba(57,217,138,.22);border-radius:8px;overflow:hidden;background-image:linear-gradient(90deg,rgba(13,10,24,.78),rgba(13,10,24,.18) 45%,rgba(13,10,24,.84)),url("https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Moscow_Russia_street_map.svg/488px-Moscow_Russia_street_map.svg.png");background-size:cover,185%;background-position:center,var(--map-x,50%) var(--map-y,50%);cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}' +
-      '.journal-map-thumb:before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 0 18%,rgba(57,217,138,.14) 18% 20%,transparent 20% 36%,rgba(255,255,255,.1) 36% 38%,transparent 38% 58%,rgba(137,104,190,.2) 58% 60%,transparent 60%);opacity:.92}' +
-      '.journal-map-thumb:after{content:"";position:absolute;left:12%;right:12%;top:54%;height:4px;border-radius:999px;background:linear-gradient(90deg,var(--ana),#f8fbff,var(--ana));box-shadow:0 0 18px rgba(57,217,138,.48);transform:rotate(-8deg)}' +
-      '.journal-map-point{position:absolute;top:44%;width:19px;height:19px;border-radius:50%;display:grid;place-items:center;background:var(--ana);color:#07140d;font-size:10px;font-weight:900;box-shadow:0 0 0 3px rgba(57,217,138,.14),0 8px 18px rgba(0,0,0,.25);z-index:1}.journal-map-point-a{left:9%}.journal-map-point-b{right:9%;background:#ff5f5f;color:#fff;box-shadow:0 0 0 3px rgba(255,95,95,.16),0 8px 18px rgba(0,0,0,.25)}' +
-      '.journal-map-empty{position:relative;z-index:1;min-height:86px;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;color:var(--ana);font-size:11px;font-weight:700}' +
-      '.journal-map-pill{position:absolute;left:8px;bottom:7px;border:1px solid rgba(0,0,0,.18);border-radius:999px;background:rgba(12,18,15,.78);color:#f8fbff;font-size:9px;font-family:monospace;letter-spacing:0;padding:4px 7px;backdrop-filter:blur(8px)}' +
+      '.journal-map-thumb{position:relative;min-height:104px;border:1px solid rgba(57,217,138,.26);border-radius:8px;overflow:hidden;background:#080b12 url("img/route-card-map.png") center/cover no-repeat;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 10px 26px rgba(0,0,0,.18);transition:transform .18s ease,border-color .2s ease,box-shadow .2s ease}' +
+      '.journal-map-thumb:hover{transform:translateY(-1px);border-color:rgba(57,217,138,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 16px 34px rgba(0,0,0,.24),0 0 24px rgba(57,217,138,.1)}' +
       '.route-map-modal{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(4,6,10,.72);backdrop-filter:blur(10px)}' +
       '.route-map-modal.is-open{display:flex}' +
       '.route-map-dialog{position:relative;width:min(760px,100%);border:1px solid rgba(57,217,138,.32);border-radius:12px;background:linear-gradient(180deg,#1b1428,#100d18);box-shadow:0 30px 80px rgba(0,0,0,.55);padding:16px}' +
@@ -928,12 +916,7 @@ function analyticsJournal(rows) {
         const amount = money(trip.amount);
         const customer = trip.customerName || 'Заказчик не указан';
         const route = trip.route || 'Маршрут не указан';
-        const mapHtml = '<div class="journal-map-thumb" style="' + routeThumbStyle(trip) + '" role="button" tabindex="0" onclick="openRouteMapModalEncoded(&quot;' + routeMapId(trip.id) + '&quot;)" title="Открыть маршрут">' +
-          '<span class="journal-map-point journal-map-point-a">A</span>' +
-          '<span class="journal-map-point journal-map-point-b">B</span>' +
-          '<div class="journal-map-empty">Показать карту маршрута</div>' +
-          '<div class="journal-map-pill">' + aEsc(routeMapMeta(trip) || 'Яндекс маршрут') + '</div>' +
-        '</div>';
+        const mapHtml = '<div class="journal-map-thumb" role="button" tabindex="0" onclick="openRouteMapModalEncoded(&quot;' + routeMapId(trip.id) + '&quot;)" title="Открыть маршрут"></div>';
         const files = [
           trip.invoiceFileId ? 'счёт PDF' : '',
           trip.actFileId ? 'акт PDF' : ''

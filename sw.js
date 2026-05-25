@@ -1,13 +1,13 @@
 // Service Worker
-const CACHE = 'gruz-v37';
+const CACHE = 'gruz-v38';
 const ASSETS = [
   '/gruz/', '/gruz/index.html', '/gruz/css/style.css?v=20',
   '/gruz/js/stamp.js',
   '/gruz/js/config.js?v=3', '/gruz/js/utils.js?v=4', '/gruz/js/auth.js?v=2',
   '/gruz/js/pdf.js?v=4', '/gruz/js/drive.js?v=5', '/gruz/js/email.js?v=11',
-  '/gruz/js/sign.js', '/gruz/js/analytics.js?v=22',
+  '/gruz/js/sign.js', '/gruz/js/analytics.js?v=23',
   '/gruz/fonts/liberation.js',
-  '/gruz/manifest.json', '/gruz/img/mark.png',
+  '/gruz/manifest.json', '/gruz/img/mark.png', '/gruz/img/route-card-map.png',
   '/gruz/img/icon-192.png', '/gruz/img/icon-512.png'
 ];
 self.addEventListener('install', e => {
