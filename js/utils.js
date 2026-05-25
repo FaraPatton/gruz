@@ -54,6 +54,8 @@ function getData() {
           customerKpp:  document.getElementById('customer_kpp').value.trim(),
           customerAddr: document.getElementById('customer_addr').value.trim(),
           car:          normalizeCarNumber(document.getElementById('car').value),
+          routeOrigin:   fromA,
+          routeDestination: toA,
           route, amount,
           amountFmt:    amount.toLocaleString('ru-RU', {minimumFractionDigits:2, maximumFractionDigits:2}),
           amountWords:  amountToWords(amount),

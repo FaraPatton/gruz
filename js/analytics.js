@@ -1,13 +1,25 @@
 // Analytics: fast Drive registry + one-time PDF archive scan
 
 const TRIPS_REGISTRY_NAME = 'trips.json';
-const TRIPS_REGISTRY_VERSION = 3;
+const TRIPS_REGISTRY_VERSION = 4;
 const EXECUTOR_MARKERS = ['Карпов', '771313296859', '40802810438000085714', 'Керамический', 'СБЕРБАНК'];
 const ANALYTICS_GREEN = '#39d98a';
 const ANALYTICS_GREEN_DARK = '#1f9d63';
 
 let analyticsRegistryFileId = null;
 let analyticsView = 'overview';
+
+function routeEndpointParts(route) {
+  const parts = String(route || '').split(/\s+-\s+/).map(cleanText).filter(Boolean);
+  return {
+    origin: parts[0] || '',
+    destination: parts.slice(1).join(' - ') || ''
+  };
+}
+
+function routeMapId(value) {
+  return encodeURIComponent(String(value || ''));
+}
 
 function toggleAnalytics() {
   const panel = document.getElementById('analyticsPanel');
@@ -356,6 +368,8 @@ function normalizeTrip(trip) {
   const day = parseInt(trip.day || date.slice(8, 10), 10) || 1;
   const customerName = customerDisplayName(trip.customerName || trip.customer || '');
   const docNum = String(trip.docNum || '').trim();
+  const route = cleanText(trip.route || '');
+  const routeParts = routeEndpointParts(route);
 
   const normalized = {
     id: trip.id || '',
@@ -369,7 +383,13 @@ function normalizeTrip(trip) {
     customerName,
     customerInn: String(trip.customerInn || '').trim(),
     customerKpp: String(trip.customerKpp || '').trim(),
-    route: cleanText(trip.route || ''),
+    route,
+    routeOrigin: cleanText(trip.routeOrigin || routeParts.origin),
+    routeDestination: cleanText(trip.routeDestination || routeParts.destination),
+    routePolyline: String(trip.routePolyline || '').trim(),
+    routeDistanceMeters: Math.round(Number(trip.routeDistanceMeters) || 0),
+    routeDuration: String(trip.routeDuration || '').trim(),
+    routeMapUpdatedAt: trip.routeMapUpdatedAt || '',
     car: cleanText(trip.car || ''),
     loadDate: trip.loadDate || '',
     unloadDate: trip.unloadDate || '',
@@ -545,6 +565,8 @@ function tripFromFormData(data, extra = {}) {
     customerInn: data.customerInn,
     customerKpp: data.customerKpp,
     route: data.route,
+    routeOrigin: data.routeOrigin,
+    routeDestination: data.routeDestination,
     car: data.car,
     loadDate: toIsoDate(data.loadDate),
     unloadDate: toIsoDate(data.unloadDate),
@@ -579,6 +601,164 @@ async function saveTripToRegistry(trip) {
 
 async function saveFormTripToRegistry(data, extra = {}) {
   return saveTripToRegistry(tripFromFormData(data, extra));
+}
+
+function routeGoogleMapsUrl(trip) {
+  const origin = trip.routeOrigin || routeEndpointParts(trip.route).origin;
+  const destination = trip.routeDestination || routeEndpointParts(trip.route).destination;
+  if (!origin || !destination) return '';
+  return 'https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=' +
+    encodeURIComponent(origin) + '&destination=' + encodeURIComponent(destination);
+}
+
+function routeStaticMapUrl(trip, size) {
+  if (!trip.routePolyline) return '';
+  const origin = trip.routeOrigin || routeEndpointParts(trip.route).origin;
+  const destination = trip.routeDestination || routeEndpointParts(trip.route).destination;
+  const mapSize = size || '320x150';
+  return 'https://maps.googleapis.com/maps/api/staticmap?size=' + mapSize +
+    '&scale=2&maptype=roadmap&language=ru&region=ru' +
+    '&path=weight:5%7Ccolor:0x39d98aff%7Cenc:' + encodeURIComponent(trip.routePolyline) +
+    (origin ? '&markers=size:tiny%7Ccolor:green%7Clabel:A%7C' + encodeURIComponent(origin) : '') +
+    (destination ? '&markers=size:tiny%7Ccolor:red%7Clabel:B%7C' + encodeURIComponent(destination) : '') +
+    '&key=' + encodeURIComponent(GAPI_KEY);
+}
+
+async function fetchRouteMapData(trip) {
+  const origin = trip.routeOrigin || routeEndpointParts(trip.route).origin;
+  const destination = trip.routeDestination || routeEndpointParts(trip.route).destination;
+  if (!origin || !destination) throw new Error('Не хватает адресов начала и конца маршрута');
+
+  const resp = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': GAPI_KEY,
+      'X-Goog-FieldMask': 'routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline'
+    },
+    body: JSON.stringify({
+      origin: { address: origin },
+      destination: { address: destination },
+      travelMode: 'DRIVE',
+      routingPreference: 'TRAFFIC_UNAWARE',
+      polylineQuality: 'HIGH_QUALITY',
+      polylineEncoding: 'ENCODED_POLYLINE',
+      languageCode: 'ru-RU',
+      regionCode: 'RU'
+    })
+  });
+
+  if (!resp.ok) {
+    const text = await resp.text().catch(() => '');
+    throw new Error('Routes API HTTP ' + resp.status + (text ? ': ' + text.slice(0, 160) : ''));
+  }
+
+  const data = await resp.json();
+  const route = data.routes?.[0];
+  const polyline = route?.polyline?.encodedPolyline || '';
+  if (!polyline) throw new Error('Google не вернул линию маршрута');
+  return {
+    routeOrigin: origin,
+    routeDestination: destination,
+    routePolyline: polyline,
+    routeDistanceMeters: route.distanceMeters || 0,
+    routeDuration: route.duration || '',
+    routeMapUpdatedAt: new Date().toISOString()
+  };
+}
+
+async function saveTripRouteMap(tripId, mapData) {
+  const registry = await loadTripsRegistry();
+  const trips = (registry.trips || []).map(normalizeTrip).filter(Boolean).map(trip => (
+    trip.id === tripId ? normalizeTrip({ ...trip, ...mapData }) : trip
+  ));
+  await saveTripsRegistry({
+    ...registry,
+    version: TRIPS_REGISTRY_VERSION,
+    updatedAt: new Date().toISOString(),
+    source: 'form-drive-and-maps',
+    trips
+  });
+  driveCache = trips;
+  return trips.find(trip => trip.id === tripId) || null;
+}
+
+async function ensureTripRouteMap(tripId) {
+  let trip = (driveCache || []).map(normalizeTrip).filter(Boolean).find(item => item.id === tripId);
+  if (!trip) throw new Error('Рейс не найден в журнале');
+  if (trip.routePolyline) return trip;
+  const mapData = await fetchRouteMapData(trip);
+  trip = await saveTripRouteMap(trip.id, mapData);
+  const panel = document.getElementById('analyticsPanel');
+  if (panel && driveCache) renderDriveAnalytics(driveCache, analyticsYear, panel);
+  return trip;
+}
+
+function routeMapMeta(trip) {
+  const km = trip.routeDistanceMeters ? Math.round(trip.routeDistanceMeters / 1000) + ' км' : '';
+  return [km, trip.car].filter(Boolean).join(' · ');
+}
+
+function ensureRouteMapModal() {
+  let modal = document.getElementById('routeMapModal');
+  if (modal) return modal;
+  modal = document.createElement('div');
+  modal.id = 'routeMapModal';
+  modal.className = 'route-map-modal';
+  modal.innerHTML =
+    '<div class="route-map-dialog">' +
+      '<button class="route-map-close" onclick="closeRouteMapModal()" aria-label="Закрыть">×</button>' +
+      '<div id="routeMapContent"></div>' +
+    '</div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeRouteMapModal(); });
+  return modal;
+}
+
+function closeRouteMapModal() {
+  const modal = document.getElementById('routeMapModal');
+  if (modal) modal.classList.remove('is-open');
+}
+
+function renderRouteMapModal(trip, stateText, errorText) {
+  const modal = ensureRouteMapModal();
+  const content = document.getElementById('routeMapContent');
+  const mapUrl = routeStaticMapUrl(trip, '640x320');
+  const mapsUrl = routeGoogleMapsUrl(trip);
+  const route = trip.route || [trip.routeOrigin, trip.routeDestination].filter(Boolean).join(' - ');
+  content.innerHTML =
+    '<div class="route-map-head">' +
+      '<div><div class="route-map-kicker">Маршрут</div><div class="route-map-title">№' + aEsc(trip.docNum || '—') + ' от ' + aEsc(formatIsoDate(trip.date)) + '</div></div>' +
+      '<div class="route-map-sum">' + aEsc(money(trip.amount)) + '</div>' +
+    '</div>' +
+    '<div class="route-map-large">' +
+      (mapUrl ? '<img src="' + aEsc(mapUrl) + '" alt="Карта маршрута">' : '<div class="route-map-state">' + aEsc(stateText || 'Строю маршрут...') + '</div>') +
+    '</div>' +
+    (errorText ? '<div class="route-map-error">' + aEsc(errorText) + '</div>' : '') +
+    '<div class="route-map-customer">' + aEsc(trip.customerName || 'Заказчик не указан') + '</div>' +
+    '<div class="route-map-route">' + aEsc(route || 'Маршрут не указан') + '</div>' +
+    '<div class="route-map-meta">' + aEsc(routeMapMeta(trip) || 'Детали маршрута появятся после построения') + '</div>' +
+    '<div class="route-map-actions">' +
+      (mapsUrl ? '<a href="' + aEsc(mapsUrl) + '" target="_blank" rel="noopener">Открыть в Google Maps</a>' : '') +
+    '</div>';
+  modal.classList.add('is-open');
+}
+
+async function openRouteMapModal(tripId) {
+  const trip = (driveCache || []).map(normalizeTrip).filter(Boolean).find(item => item.id === tripId);
+  if (!trip) return;
+  renderRouteMapModal(trip, trip.routePolyline ? '' : 'Строю физический маршрут...');
+  if (trip.routePolyline) return;
+  try {
+    const readyTrip = await ensureTripRouteMap(trip.id);
+    renderRouteMapModal(readyTrip);
+  } catch(e) {
+    renderRouteMapModal(trip, '', e.message);
+  }
+}
+
+function openRouteMapModalEncoded(encodedTripId) {
+  openRouteMapModal(decodeURIComponent(encodedTripId));
 }
 
 async function deleteTripFromRegistry(tripId) {
@@ -731,8 +911,22 @@ function renderDriveAnalytics(entries, yr, panel) {
       '.journal-delete:hover .journal-delete-top{transform:rotate(32deg) translate(2px,-2px)}' +
       '.journal-delete:hover .journal-delete-bottom:before,.journal-delete:hover .journal-delete-bottom:after{background:rgb(255,38,38)}' +
       '.journal-delete:active{transform:scale(.95)}' +
+      '.journal-map-thumb{position:relative;min-height:86px;border:1px solid rgba(57,217,138,.22);border-radius:8px;overflow:hidden;background:linear-gradient(135deg,rgba(57,217,138,.08),rgba(137,104,190,.12));cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}' +
+      '.journal-map-thumb img{width:100%;height:100%;min-height:86px;object-fit:cover;display:block;filter:saturate(1.05) contrast(1.02)}' +
+      '.journal-map-empty{min-height:86px;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;color:var(--ana);font-size:11px;font-weight:700}' +
+      '.journal-map-pill{position:absolute;left:8px;bottom:7px;border:1px solid rgba(0,0,0,.18);border-radius:999px;background:rgba(12,18,15,.78);color:#f8fbff;font-size:9px;font-family:monospace;letter-spacing:0;padding:4px 7px;backdrop-filter:blur(8px)}' +
+      '.route-map-modal{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(4,6,10,.72);backdrop-filter:blur(10px)}' +
+      '.route-map-modal.is-open{display:flex}' +
+      '.route-map-dialog{position:relative;width:min(760px,100%);border:1px solid rgba(57,217,138,.32);border-radius:12px;background:linear-gradient(180deg,#1b1428,#100d18);box-shadow:0 30px 80px rgba(0,0,0,.55);padding:16px}' +
+      '.route-map-close{position:absolute;right:10px;top:10px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:#fff;font-size:24px;line-height:1;cursor:pointer}' +
+      '.route-map-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin:0 38px 12px 0}' +
+      '.route-map-kicker{font-family:monospace;font-size:10px;letter-spacing:0;color:var(--ana)}.route-map-title{font-size:16px;font-weight:800;color:var(--ana-text);margin-top:3px}.route-map-sum{color:var(--ana);font-size:14px;font-weight:800;white-space:nowrap}' +
+      '.route-map-large{border-radius:8px;overflow:hidden;border:1px solid rgba(57,217,138,.22);background:rgba(255,255,255,.04);min-height:220px}.route-map-large img{width:100%;height:auto;display:block}.route-map-state{min-height:220px;display:flex;align-items:center;justify-content:center;color:var(--ana);font-size:13px;font-weight:800}' +
+      '.route-map-error{margin-top:10px;border:1px solid rgba(255,95,95,.32);border-radius:8px;padding:10px;color:#ffb9b9;background:rgba(255,95,95,.08);font-size:12px;line-height:1.45}' +
+      '.route-map-customer{margin-top:12px;color:var(--ana);font-size:13px;font-weight:750}.route-map-route{margin-top:5px;color:var(--ana-text);font-size:12px;line-height:1.45}.route-map-meta{margin-top:7px;color:var(--ana-muted);font-size:11px;font-family:monospace;letter-spacing:0}' +
+      '.route-map-actions{margin-top:14px;display:flex;justify-content:flex-end}.route-map-actions a{border:1px solid rgba(57,217,138,.42);border-radius:8px;background:linear-gradient(180deg,var(--ana),var(--ana2));color:#07140d;text-decoration:none;font-size:12px;font-weight:800;padding:9px 12px}' +
       '.analytics-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:16px}' +
-      '@media(max-width:430px){.analytics-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-tabs button:first-child{grid-column:1 / -1}.journal-card-inner{padding:12px}.journal-summary{grid-template-columns:1fr}.journal-stat{border-right:0;border-bottom:1px solid rgba(57,217,138,.18)}.journal-stat:last-child{border-bottom:0}.journal-delete{width:42px;height:42px}}' +
+      '@media(max-width:430px){.analytics-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-tabs button:first-child{grid-column:1 / -1}.journal-card-inner{padding:12px}.journal-summary{grid-template-columns:1fr}.journal-stat{border-right:0;border-bottom:1px solid rgba(57,217,138,.18)}.journal-stat:last-child{border-bottom:0}.journal-delete{width:42px;height:42px}.route-map-dialog{padding:13px}.route-map-head{display:block}.route-map-sum{margin-top:6px}.route-map-large,.route-map-state{min-height:170px}}' +
     '</style>' +
     '<div class="dc" style="--acc:' + ANALYTICS_GREEN + ';--ana:' + ANALYTICS_GREEN + ';--ana2:' + ANALYTICS_GREEN_DARK + ';--ana-bg:#171022;--ana-card:#211733;--ana-card2:#2b2140;--ana-text:#f8fbff;--ana-muted:#a99bc8;padding:18px;margin-bottom:0;background:radial-gradient(circle at 12% 0%,rgba(57,217,138,.11),transparent 30%),linear-gradient(180deg,#1a1128,#130f1d);border-color:rgba(137,104,190,.28);box-shadow:0 22px 54px rgba(0,0,0,.24)">' +
       '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:14px">' +
@@ -794,6 +988,13 @@ function analyticsJournal(rows) {
         const amount = money(trip.amount);
         const customer = trip.customerName || 'Заказчик не указан';
         const route = trip.route || 'Маршрут не указан';
+        const thumbUrl = routeStaticMapUrl(trip, '320x150');
+        const mapHtml = '<div class="journal-map-thumb" role="button" tabindex="0" onclick="openRouteMapModalEncoded(&quot;' + routeMapId(trip.id) + '&quot;)" title="Открыть маршрут">' +
+          (thumbUrl
+            ? '<img src="' + aEsc(thumbUrl) + '" alt="Карта маршрута">'
+            : '<div class="journal-map-empty">Построить карту маршрута</div>') +
+          '<div class="journal-map-pill">' + aEsc(trip.routePolyline ? 'Google route' : 'Нажмите для построения') + '</div>' +
+        '</div>';
         const files = [
           trip.invoiceFileId ? 'счёт PDF' : '',
           trip.actFileId ? 'акт PDF' : ''
@@ -805,6 +1006,7 @@ function analyticsJournal(rows) {
             '<div class="journal-stat"><span>Дата</span><b>' + aEsc(date) + '</b></div>' +
             '<div class="journal-stat"><span>Сумма</span><b>' + aEsc(amount) + '</b></div>' +
           '</div>' +
+          mapHtml +
           '<div style="display:flex;justify-content:space-between;gap:12px;align-items:center">' +
             '<div style="min-width:0;display:grid;gap:5px">' +
               '<div style="color:var(--ana);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + aEsc(customer) + '">' + aEsc(customer) + '</div>' +
