@@ -667,10 +667,10 @@ function renderRouteMapModal(trip, stateText, errorText) {
     '<div class="route-map-meta">' + aEsc(routeMapMeta(trip) || 'Детали маршрута появятся после построения') + '</div>' +
     '<div class="route-map-actions">' +
       (mapsUrl ? '<a class="route-map-yandex-btn" href="' + aEsc(mapsUrl) + '" target="_blank" rel="noopener">' +
-        'Открыть в Яндекс Картах' +
         '<span class="route-map-yandex-icon">' +
-          '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 4l1.41 1.41L8.83 10H20v2H8.83l4.58 4.59L12 18l-7-7 7-7z" transform="rotate(180 12 11)"/></svg>' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2 11 13"></path><path d="m22 2-7 20-4-9-9-4Z"></path></svg>' +
         '</span>' +
+        '<span class="route-map-yandex-label">Открыть в Яндекс Картах</span>' +
       '</a>' : '') +
     '</div>';
   modal.classList.add('is-open');
@@ -836,7 +836,7 @@ function renderDriveAnalytics(entries, yr, panel) {
       '.journal-delete:hover .journal-delete-top{transform:rotate(32deg) translate(2px,-2px)}' +
       '.journal-delete:hover .journal-delete-bottom:before,.journal-delete:hover .journal-delete-bottom:after{background:rgb(255,38,38)}' +
       '.journal-delete:active{transform:scale(.95)}' +
-      '.journal-map-thumb{position:relative;min-height:104px;border:1px solid rgba(57,217,138,.26);border-radius:8px;overflow:hidden;background:#080b12 url("img/route-card-map.png") center/cover no-repeat;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 10px 26px rgba(0,0,0,.18);transition:transform .18s ease,border-color .2s ease,box-shadow .2s ease}' +
+      '.journal-map-thumb{position:relative;width:100%;aspect-ratio:3.52/1;border:1px solid rgba(57,217,138,.26);border-radius:8px;overflow:hidden;background:#080b12 url("img/route-card-map.png") center/100% 100% no-repeat;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 10px 26px rgba(0,0,0,.18);transition:transform .18s ease,border-color .2s ease,box-shadow .2s ease}' +
       '.journal-map-thumb:hover{transform:translateY(-1px);border-color:rgba(57,217,138,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 16px 34px rgba(0,0,0,.24),0 0 24px rgba(57,217,138,.1)}' +
       '.route-map-modal{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(4,6,10,.72);backdrop-filter:blur(10px)}' +
       '.route-map-modal.is-open{display:flex}' +
@@ -848,11 +848,9 @@ function renderDriveAnalytics(entries, yr, panel) {
       '.route-map-error{margin-top:10px;border:1px solid rgba(255,95,95,.32);border-radius:8px;padding:10px;color:#ffb9b9;background:rgba(255,95,95,.08);font-size:12px;line-height:1.45}' +
       '.route-map-customer{margin-top:12px;color:var(--ana);font-size:13px;font-weight:750}.route-map-route{margin-top:5px;color:var(--ana-text);font-size:12px;line-height:1.45}.route-map-meta{margin-top:7px;color:var(--ana-muted);font-size:11px;font-family:monospace;letter-spacing:0}' +
       '.route-map-actions{margin-top:14px;display:flex;justify-content:flex-end}' +
-      '.route-map-yandex-btn{background:var(--ana);color:#07140d;font-family:inherit;padding:.35em;padding-left:1.2em;font-size:14px;font-weight:800;border-radius:.9em;border:0;letter-spacing:0;display:inline-flex;align-items:center;box-shadow:inset 0 0 1.6em -.6em var(--ana2),0 10px 24px rgba(57,217,138,.16);overflow:hidden;position:relative;height:2.8em;padding-right:3.3em;text-decoration:none;min-width:220px;justify-content:flex-start;transition:transform .18s ease,box-shadow .22s ease}' +
-      '.route-map-yandex-btn .route-map-yandex-icon{background:#f8fbff;margin-left:1em;position:absolute;display:flex;align-items:center;justify-content:center;height:2.2em;width:2.2em;border-radius:.7em;box-shadow:.1em .1em .6em .2em rgba(31,157,99,.35);right:.3em;transition:all .3s}' +
-      '.route-map-yandex-btn .route-map-yandex-icon svg{width:1.15em;height:1.15em;transition:transform .3s;color:var(--ana2)}' +
-      '.route-map-yandex-btn:hover{transform:translateY(-1px);box-shadow:inset 0 0 1.6em -.6em var(--ana2),0 16px 30px rgba(57,217,138,.24)}' +
-      '.route-map-yandex-btn:hover .route-map-yandex-icon{width:calc(100% - .6em)}.route-map-yandex-btn:hover .route-map-yandex-icon svg{transform:translateX(.1em)}.route-map-yandex-btn:active .route-map-yandex-icon{transform:scale(.95)}' +
+      '.route-map-yandex-btn{border:0;border-radius:10px;background:linear-gradient(135deg,#4f7cff 0%,#3163df 100%);color:#fff;padding:13px 18px;min-height:50px;min-width:250px;display:inline-flex;align-items:center;justify-content:center;gap:10px;font-size:17px;font-weight:700;cursor:pointer;overflow:hidden;box-shadow:0 10px 28px rgba(66,133,244,.24);text-decoration:none;-webkit-tap-highlight-color:transparent;transition:transform .16s ease,box-shadow .18s ease,background .18s ease}' +
+      '.route-map-yandex-btn .route-map-yandex-label{display:block;transition:transform .28s ease,opacity .28s ease}.route-map-yandex-btn .route-map-yandex-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;transition:transform .28s ease}.route-map-yandex-btn svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transform-origin:center;transition:transform .28s ease}' +
+      '.route-map-yandex-btn:hover{background:linear-gradient(135deg,#5d8cff 0%,#3a6df0 100%);box-shadow:0 14px 34px rgba(66,133,244,.32);transform:translateY(-1px)}.route-map-yandex-btn:hover .route-map-yandex-icon{animation:sendFloat .62s ease-in-out infinite alternate}.route-map-yandex-btn:hover svg{transform:translateX(13px) rotate(42deg) scale(1.08)}.route-map-yandex-btn:hover .route-map-yandex-label{transform:translateX(72px);opacity:0}.route-map-yandex-btn:active{transform:scale(.97)}' +
       '.analytics-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:16px}' +
       '@media(max-width:430px){.analytics-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-tabs button:first-child{grid-column:1 / -1}.journal-card-inner{padding:12px}.journal-summary{grid-template-columns:1fr}.journal-stat{border-right:0;border-bottom:1px solid rgba(57,217,138,.18)}.journal-stat:last-child{border-bottom:0}.journal-delete{width:42px;height:42px}.route-map-dialog{padding:13px}.route-map-head{display:block}.route-map-sum{margin-top:6px}.route-map-large{min-height:280px}.route-map-large iframe{height:280px}.route-map-state{min-height:170px}}' +
     '</style>' +
