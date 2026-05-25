@@ -611,17 +611,14 @@ function routeGoogleMapsUrl(trip) {
     encodeURIComponent(origin) + '&destination=' + encodeURIComponent(destination);
 }
 
-function routeStaticMapUrl(trip, size) {
-  if (!trip.routePolyline) return '';
+function routeEmbedMapUrl(trip) {
   const origin = trip.routeOrigin || routeEndpointParts(trip.route).origin;
   const destination = trip.routeDestination || routeEndpointParts(trip.route).destination;
-  const mapSize = size || '320x150';
-  return 'https://maps.googleapis.com/maps/api/staticmap?size=' + mapSize +
-    '&scale=2&maptype=roadmap&language=ru&region=ru' +
-    '&path=weight:5%7Ccolor:0x39d98aff%7Cenc:' + encodeURIComponent(trip.routePolyline) +
-    (origin ? '&markers=size:tiny%7Ccolor:green%7Clabel:A%7C' + encodeURIComponent(origin) : '') +
-    (destination ? '&markers=size:tiny%7Ccolor:red%7Clabel:B%7C' + encodeURIComponent(destination) : '') +
-    '&key=' + encodeURIComponent(GAPI_KEY);
+  if (!origin || !destination) return '';
+  return 'https://www.google.com/maps/embed/v1/directions?key=' + encodeURIComponent(GAPI_KEY) +
+    '&origin=' + encodeURIComponent(origin) +
+    '&destination=' + encodeURIComponent(destination) +
+    '&mode=driving&language=ru&region=ru';
 }
 
 async function fetchRouteMapData(trip) {
@@ -723,7 +720,7 @@ function closeRouteMapModal() {
 function renderRouteMapModal(trip, stateText, errorText) {
   const modal = ensureRouteMapModal();
   const content = document.getElementById('routeMapContent');
-  const mapUrl = routeStaticMapUrl(trip, '640x320');
+  const embedUrl = routeEmbedMapUrl(trip);
   const mapsUrl = routeGoogleMapsUrl(trip);
   const route = trip.route || [trip.routeOrigin, trip.routeDestination].filter(Boolean).join(' - ');
   content.innerHTML =
@@ -732,7 +729,7 @@ function renderRouteMapModal(trip, stateText, errorText) {
       '<div class="route-map-sum">' + aEsc(money(trip.amount)) + '</div>' +
     '</div>' +
     '<div class="route-map-large">' +
-      (mapUrl ? '<img src="' + aEsc(mapUrl) + '" alt="Карта маршрута">' : '<div class="route-map-state">' + aEsc(stateText || 'Строю маршрут...') + '</div>') +
+      (embedUrl ? '<iframe src="' + aEsc(embedUrl) + '" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>' : '<div class="route-map-state">' + aEsc(stateText || 'Строю маршрут...') + '</div>') +
     '</div>' +
     (errorText ? '<div class="route-map-error">' + aEsc(errorText) + '</div>' : '') +
     '<div class="route-map-customer">' + aEsc(trip.customerName || 'Заказчик не указан') + '</div>' +
@@ -747,13 +744,13 @@ function renderRouteMapModal(trip, stateText, errorText) {
 async function openRouteMapModal(tripId) {
   const trip = (driveCache || []).map(normalizeTrip).filter(Boolean).find(item => item.id === tripId);
   if (!trip) return;
-  renderRouteMapModal(trip, trip.routePolyline ? '' : 'Строю физический маршрут...');
+  renderRouteMapModal(trip);
   if (trip.routePolyline) return;
   try {
     const readyTrip = await ensureTripRouteMap(trip.id);
     renderRouteMapModal(readyTrip);
   } catch(e) {
-    renderRouteMapModal(trip, '', e.message);
+    renderRouteMapModal(trip, '', 'Карта открыта через Google Embed. Детали маршрута не сохранились: ' + e.message);
   }
 }
 
@@ -912,8 +909,10 @@ function renderDriveAnalytics(entries, yr, panel) {
       '.journal-delete:hover .journal-delete-bottom:before,.journal-delete:hover .journal-delete-bottom:after{background:rgb(255,38,38)}' +
       '.journal-delete:active{transform:scale(.95)}' +
       '.journal-map-thumb{position:relative;min-height:86px;border:1px solid rgba(57,217,138,.22);border-radius:8px;overflow:hidden;background:linear-gradient(135deg,rgba(57,217,138,.08),rgba(137,104,190,.12));cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}' +
-      '.journal-map-thumb img{width:100%;height:100%;min-height:86px;object-fit:cover;display:block;filter:saturate(1.05) contrast(1.02)}' +
-      '.journal-map-empty{min-height:86px;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;color:var(--ana);font-size:11px;font-weight:700}' +
+      '.journal-map-thumb:before{content:"";position:absolute;inset:-20%;background:linear-gradient(115deg,transparent 0 18%,rgba(57,217,138,.12) 18% 20%,transparent 20% 36%,rgba(255,255,255,.08) 36% 38%,transparent 38% 58%,rgba(137,104,190,.18) 58% 60%,transparent 60%),linear-gradient(25deg,transparent 0 28%,rgba(255,255,255,.06) 28% 30%,transparent 30% 70%,rgba(57,217,138,.12) 70% 72%,transparent 72%);opacity:.92}' +
+      '.journal-map-thumb:after{content:"";position:absolute;left:13%;right:13%;top:50%;height:3px;border-radius:999px;background:linear-gradient(90deg,var(--ana),#f8fbff,var(--ana));box-shadow:0 0 18px rgba(57,217,138,.38);transform:rotate(-8deg)}' +
+      '.journal-map-point{position:absolute;top:44%;width:19px;height:19px;border-radius:50%;display:grid;place-items:center;background:var(--ana);color:#07140d;font-size:10px;font-weight:900;box-shadow:0 0 0 3px rgba(57,217,138,.14),0 8px 18px rgba(0,0,0,.25);z-index:1}.journal-map-point-a{left:9%}.journal-map-point-b{right:9%;background:#ff5f5f;color:#fff;box-shadow:0 0 0 3px rgba(255,95,95,.16),0 8px 18px rgba(0,0,0,.25)}' +
+      '.journal-map-empty{position:relative;z-index:1;min-height:86px;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;color:var(--ana);font-size:11px;font-weight:700}' +
       '.journal-map-pill{position:absolute;left:8px;bottom:7px;border:1px solid rgba(0,0,0,.18);border-radius:999px;background:rgba(12,18,15,.78);color:#f8fbff;font-size:9px;font-family:monospace;letter-spacing:0;padding:4px 7px;backdrop-filter:blur(8px)}' +
       '.route-map-modal{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(4,6,10,.72);backdrop-filter:blur(10px)}' +
       '.route-map-modal.is-open{display:flex}' +
@@ -921,12 +920,12 @@ function renderDriveAnalytics(entries, yr, panel) {
       '.route-map-close{position:absolute;right:10px;top:10px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:#fff;font-size:24px;line-height:1;cursor:pointer}' +
       '.route-map-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin:0 38px 12px 0}' +
       '.route-map-kicker{font-family:monospace;font-size:10px;letter-spacing:0;color:var(--ana)}.route-map-title{font-size:16px;font-weight:800;color:var(--ana-text);margin-top:3px}.route-map-sum{color:var(--ana);font-size:14px;font-weight:800;white-space:nowrap}' +
-      '.route-map-large{border-radius:8px;overflow:hidden;border:1px solid rgba(57,217,138,.22);background:rgba(255,255,255,.04);min-height:220px}.route-map-large img{width:100%;height:auto;display:block}.route-map-state{min-height:220px;display:flex;align-items:center;justify-content:center;color:var(--ana);font-size:13px;font-weight:800}' +
+      '.route-map-large{border-radius:8px;overflow:hidden;border:1px solid rgba(57,217,138,.22);background:rgba(255,255,255,.04);min-height:320px}.route-map-large iframe{width:100%;height:320px;border:0;display:block}.route-map-state{min-height:220px;display:flex;align-items:center;justify-content:center;color:var(--ana);font-size:13px;font-weight:800}' +
       '.route-map-error{margin-top:10px;border:1px solid rgba(255,95,95,.32);border-radius:8px;padding:10px;color:#ffb9b9;background:rgba(255,95,95,.08);font-size:12px;line-height:1.45}' +
       '.route-map-customer{margin-top:12px;color:var(--ana);font-size:13px;font-weight:750}.route-map-route{margin-top:5px;color:var(--ana-text);font-size:12px;line-height:1.45}.route-map-meta{margin-top:7px;color:var(--ana-muted);font-size:11px;font-family:monospace;letter-spacing:0}' +
       '.route-map-actions{margin-top:14px;display:flex;justify-content:flex-end}.route-map-actions a{border:1px solid rgba(57,217,138,.42);border-radius:8px;background:linear-gradient(180deg,var(--ana),var(--ana2));color:#07140d;text-decoration:none;font-size:12px;font-weight:800;padding:9px 12px}' +
       '.analytics-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:16px}' +
-      '@media(max-width:430px){.analytics-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-tabs button:first-child{grid-column:1 / -1}.journal-card-inner{padding:12px}.journal-summary{grid-template-columns:1fr}.journal-stat{border-right:0;border-bottom:1px solid rgba(57,217,138,.18)}.journal-stat:last-child{border-bottom:0}.journal-delete{width:42px;height:42px}.route-map-dialog{padding:13px}.route-map-head{display:block}.route-map-sum{margin-top:6px}.route-map-large,.route-map-state{min-height:170px}}' +
+      '@media(max-width:430px){.analytics-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-tabs button:first-child{grid-column:1 / -1}.journal-card-inner{padding:12px}.journal-summary{grid-template-columns:1fr}.journal-stat{border-right:0;border-bottom:1px solid rgba(57,217,138,.18)}.journal-stat:last-child{border-bottom:0}.journal-delete{width:42px;height:42px}.route-map-dialog{padding:13px}.route-map-head{display:block}.route-map-sum{margin-top:6px}.route-map-large{min-height:260px}.route-map-large iframe{height:260px}.route-map-state{min-height:170px}}' +
     '</style>' +
     '<div class="dc" style="--acc:' + ANALYTICS_GREEN + ';--ana:' + ANALYTICS_GREEN + ';--ana2:' + ANALYTICS_GREEN_DARK + ';--ana-bg:#171022;--ana-card:#211733;--ana-card2:#2b2140;--ana-text:#f8fbff;--ana-muted:#a99bc8;padding:18px;margin-bottom:0;background:radial-gradient(circle at 12% 0%,rgba(57,217,138,.11),transparent 30%),linear-gradient(180deg,#1a1128,#130f1d);border-color:rgba(137,104,190,.28);box-shadow:0 22px 54px rgba(0,0,0,.24)">' +
       '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:14px">' +
@@ -988,12 +987,11 @@ function analyticsJournal(rows) {
         const amount = money(trip.amount);
         const customer = trip.customerName || 'Заказчик не указан';
         const route = trip.route || 'Маршрут не указан';
-        const thumbUrl = routeStaticMapUrl(trip, '320x150');
         const mapHtml = '<div class="journal-map-thumb" role="button" tabindex="0" onclick="openRouteMapModalEncoded(&quot;' + routeMapId(trip.id) + '&quot;)" title="Открыть маршрут">' +
-          (thumbUrl
-            ? '<img src="' + aEsc(thumbUrl) + '" alt="Карта маршрута">'
-            : '<div class="journal-map-empty">Построить карту маршрута</div>') +
-          '<div class="journal-map-pill">' + aEsc(trip.routePolyline ? 'Google route' : 'Нажмите для построения') + '</div>' +
+          '<span class="journal-map-point journal-map-point-a">A</span>' +
+          '<span class="journal-map-point journal-map-point-b">B</span>' +
+          '<div class="journal-map-empty">Показать карту маршрута</div>' +
+          '<div class="journal-map-pill">' + aEsc(routeMapMeta(trip) || 'Google Embed') + '</div>' +
         '</div>';
         const files = [
           trip.invoiceFileId ? 'счёт PDF' : '',
