@@ -24,7 +24,13 @@ function syncStampAuthState() {
     if (!toggle || !zone) return;
     const authorized = !!gAccessToken;
     toggle.disabled = !authorized;
-    toggle.checked = authorized;
+    if (!authorized) {
+        toggle.checked = false;
+        delete toggle.dataset.authReady;
+    } else if (!toggle.dataset.authReady) {
+        toggle.checked = true;
+        toggle.dataset.authReady = '1';
+    }
     zone.classList.toggle('stamp-zone-disabled', !authorized || !toggle.checked);
 }
 
