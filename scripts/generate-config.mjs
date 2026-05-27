@@ -1,6 +1,7 @@
 import { writeFileSync } from 'node:fs';
 
 const read = (name) => process.env[name] || '';
+const readTrim = (name) => read(name).trim();
 const jsString = (value) => JSON.stringify(String(value));
 
 const config = `// App Config. Generated at deploy time.
@@ -11,13 +12,13 @@ const GAPI_KEY = ${jsString(read('GAPI_KEY'))};
 const YANDEX_MAPS_API_KEY = ${jsString(read('YANDEX_MAPS_API_KEY'))};
 
 // Google Drive archive root folder
-const ARCHIVE_ROOT = ${jsString(read('ARCHIVE_ROOT'))};
+const ARCHIVE_ROOT = ${jsString(readTrim('ARCHIVE_ROOT'))};
 
 // Email defaults
 const EMAIL_SUBJECT = ${jsString(read('EMAIL_SUBJECT'))};
 const EMAIL_BODY = ${jsString(read('EMAIL_BODY'))};
-const EMAIL_DRIVE_FOLDER_ID = ${jsString(read('EMAIL_DRIVE_FOLDER_ID'))};
-const STAMP_FILE_ID = ${jsString(read('STAMP_FILE_ID'))};
+const EMAIL_DRIVE_FOLDER_ID = ${jsString(readTrim('EMAIL_DRIVE_FOLDER_ID'))};
+const STAMP_FILE_ID = ${jsString(readTrim('STAMP_FILE_ID'))};
 
 // Global auth state
 let gTokenClient = null;

@@ -24,8 +24,21 @@
     });
   }
 
+  function normalizeDriveFileId(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+
+    const fileMatch = raw.match(/\/file\/d\/([A-Za-z0-9_-]+)/);
+    if (fileMatch) return fileMatch[1];
+
+    const queryMatch = raw.match(/[?&]id=([A-Za-z0-9_-]+)/);
+    if (queryMatch) return queryMatch[1];
+
+    return raw;
+  }
+
   async function loadDriveStamp() {
-    const fileId = typeof STAMP_FILE_ID !== 'undefined' ? STAMP_FILE_ID : '';
+    const fileId = normalizeDriveFileId(typeof STAMP_FILE_ID !== 'undefined' ? STAMP_FILE_ID : '');
     const token = typeof gAccessToken !== 'undefined' ? gAccessToken : '';
     if (!fileId || !token) return null;
 
