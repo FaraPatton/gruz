@@ -33,6 +33,7 @@ jobs:
           EMAIL_SUBJECT: ${{ secrets.EMAIL_SUBJECT }}
           EMAIL_BODY: ${{ secrets.EMAIL_BODY }}
           EMAIL_DRIVE_FOLDER_ID: ${{ secrets.EMAIL_DRIVE_FOLDER_ID }}
+          STAMP_FILE_ID: ${{ secrets.STAMP_FILE_ID }}
         run: |
           node scripts/generate-config.mjs
 

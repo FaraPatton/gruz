@@ -12,6 +12,7 @@ const ARCHIVE_ROOT = '';
 const EMAIL_SUBJECT = '';
 const EMAIL_BODY = ``;
 const EMAIL_DRIVE_FOLDER_ID = '';
+const STAMP_FILE_ID = '';
 
 // Global auth state
 let gTokenClient = null;
@@ -22,5 +23,5 @@ let gParsed = null;
 let driveCache = null;
 let analyticsYear = 0;
 
-// Default stamp image loaded from fonts/liberation.js
+// Private stamp image is loaded from Google Drive after authorization.
 let stampUrl = typeof STAMP_DEFAULT !== 'undefined' ? STAMP_DEFAULT : null;

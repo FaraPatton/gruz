@@ -18,6 +18,7 @@ function getTokenClient() {
         const status  = document.getElementById('loginStatus');
         setAuthLockState(true);
         if (typeof syncAuthDependentUi === 'function') syncAuthDependentUi();
+        if (typeof loadDriveStamp === 'function') loadDriveStamp();
         if (btnTxt)  { btnTxt.textContent = 'Google'; }
         if (btnIcon) { btnIcon.textContent = '✓'; btnIcon.style.color = 'var(--acc)'; btnIcon.style.display = 'inline'; }
         if (btn)     { btn.style.borderColor = 'var(--acc)'; btn.style.color = 'var(--acc)'; btn.style.boxShadow = '0 0 10px rgba(232,200,74,.2)'; btn.disabled = false; }
@@ -54,6 +55,7 @@ async function googleLogin() {
   if (gAccessToken) {
     setAuthLockState(true);
     if (typeof syncAuthDependentUi === 'function') syncAuthDependentUi();
+    if (typeof loadDriveStamp === 'function') loadDriveStamp();
     status.textContent = 'УЖЕ АВТОРИЗОВАН';
     status.style.color = 'var(--acc)';
     return;
