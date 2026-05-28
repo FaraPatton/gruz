@@ -1,13 +1,14 @@
 // Analytics: fast Drive registry + one-time PDF archive scan
 
 const TRIPS_REGISTRY_NAME = 'trips.json';
-const TRIPS_REGISTRY_VERSION = 4;
+const TRIPS_REGISTRY_VERSION = 5;
 const EXECUTOR_MARKERS = ['Карпов', '771313296859', '40802810438000085714', 'Керамический', 'СБЕРБАНК'];
 const ANALYTICS_GREEN = '#39d98a';
 const ANALYTICS_GREEN_DARK = '#1f9d63';
 
 let analyticsRegistryFileId = null;
 let analyticsView = 'overview';
+let yandexMapsLoadPromise = null;
 
 function routeEndpointParts(route) {
   const parts = String(route || '').split(/\s+-\s+/).map(cleanText).filter(Boolean);
@@ -19,6 +20,31 @@ function routeEndpointParts(route) {
 
 function routeMapId(value) {
   return encodeURIComponent(String(value || ''));
+}
+
+function routeBaseAddress() {
+  return typeof ROUTE_BASE_ADDRESS !== 'undefined' ? cleanText(ROUTE_BASE_ADDRESS) : '';
+}
+
+function routePoints(trip, includeBase = true) {
+  const origin = trip.routeOrigin || routeEndpointParts(trip.route).origin;
+  const destination = trip.routeDestination || routeEndpointParts(trip.route).destination;
+  const base = includeBase ? routeBaseAddress() : '';
+  return [base, origin, destination, base].filter(Boolean);
+}
+
+function routeRtext(points) {
+  return points.map(point => encodeURIComponent(point)).join('~');
+}
+
+function formatKm(meters) {
+  const value = Math.round(Number(meters) || 0);
+  return value ? Math.round(value / 1000).toLocaleString('ru-RU') + ' км' : '';
+}
+
+function grossPerKm(trip) {
+  const km = (Number(trip.totalDistanceMeters) || 0) / 1000;
+  return km && trip.amount ? Math.round(trip.amount / km) : 0;
 }
 
 function toggleAnalytics() {
@@ -370,6 +396,8 @@ function normalizeTrip(trip) {
   const docNum = String(trip.docNum || '').trim();
   const route = cleanText(trip.route || '');
   const routeParts = routeEndpointParts(route);
+  const cargoDistanceMeters = Math.round(Number(trip.cargoDistanceMeters || trip.routeDistanceMeters) || 0);
+  const totalDistanceMeters = Math.round(Number(trip.totalDistanceMeters) || 0);
 
   const normalized = {
     id: trip.id || '',
@@ -387,9 +415,12 @@ function normalizeTrip(trip) {
     routeOrigin: cleanText(trip.routeOrigin || routeParts.origin),
     routeDestination: cleanText(trip.routeDestination || routeParts.destination),
     routePolyline: String(trip.routePolyline || '').trim(),
-    routeDistanceMeters: Math.round(Number(trip.routeDistanceMeters) || 0),
+    routeDistanceMeters: cargoDistanceMeters,
+    cargoDistanceMeters,
+    totalDistanceMeters,
     routeDuration: String(trip.routeDuration || '').trim(),
     routeMapUpdatedAt: trip.routeMapUpdatedAt || '',
+    totalRouteUpdatedAt: trip.totalRouteUpdatedAt || '',
     car: cleanText(trip.car || ''),
     loadDate: trip.loadDate || '',
     unloadDate: trip.unloadDate || '',
@@ -577,7 +608,7 @@ function tripFromFormData(data, extra = {}) {
 }
 
 async function saveTripToRegistry(trip) {
-  const cleanTrip = normalizeTrip(trip);
+  const cleanTrip = await enrichTripRouteMetrics(normalizeTrip(trip));
   if (!cleanTrip) throw new Error('Не удалось подготовить рейс для trips.json');
 
   const registry = await loadTripsRegistry();
@@ -603,25 +634,84 @@ async function saveFormTripToRegistry(data, extra = {}) {
   return saveTripToRegistry(tripFromFormData(data, extra));
 }
 
+function loadYandexMapsApi() {
+  if (typeof ymaps !== 'undefined') {
+    return new Promise(resolve => ymaps.ready(resolve));
+  }
+  if (yandexMapsLoadPromise) return yandexMapsLoadPromise;
+
+  yandexMapsLoadPromise = new Promise((resolve, reject) => {
+    const key = typeof YANDEX_MAPS_API_KEY !== 'undefined' ? String(YANDEX_MAPS_API_KEY || '').trim() : '';
+    if (!key) {
+      reject(new Error('YANDEX_MAPS_API_KEY is empty'));
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://api-maps.yandex.ru/2.1/?apikey=' + encodeURIComponent(key) + '&lang=ru_RU';
+    script.async = true;
+    script.onload = () => ymaps.ready(resolve);
+    script.onerror = () => reject(new Error('Yandex Maps API load failed'));
+    document.head.appendChild(script);
+  });
+
+  return yandexMapsLoadPromise;
+}
+
+async function calculateYandexRouteMeters(points) {
+  const cleanPoints = (points || []).map(cleanText).filter(Boolean);
+  if (cleanPoints.length < 2) return 0;
+  await loadYandexMapsApi();
+  const route = await ymaps.route(cleanPoints, { routingMode: 'auto' });
+  return Math.round(route.getLength() || 0);
+}
+
+async function enrichTripRouteMetrics(trip) {
+  const cleanTrip = normalizeTrip(trip);
+  if (!cleanTrip) return null;
+  if (!routeBaseAddress() || !cleanTrip.routeOrigin || !cleanTrip.routeDestination) return cleanTrip;
+  if (cleanTrip.cargoDistanceMeters && cleanTrip.totalDistanceMeters) return cleanTrip;
+
+  try {
+    const cargoPoints = routePoints(cleanTrip, false);
+    const totalPoints = routePoints(cleanTrip, true);
+    if (!cleanTrip.cargoDistanceMeters) {
+      cleanTrip.cargoDistanceMeters = await calculateYandexRouteMeters(cargoPoints);
+      cleanTrip.routeDistanceMeters = cleanTrip.cargoDistanceMeters;
+    }
+    if (!cleanTrip.totalDistanceMeters) {
+      cleanTrip.totalDistanceMeters = await calculateYandexRouteMeters(totalPoints);
+    }
+    cleanTrip.totalRouteUpdatedAt = new Date().toISOString();
+  } catch (e) {
+    console.warn('Route metrics:', e);
+  }
+
+  return cleanTrip;
+}
+
 function routeYandexMapsUrl(trip) {
-  const origin = trip.routeOrigin || routeEndpointParts(trip.route).origin;
-  const destination = trip.routeDestination || routeEndpointParts(trip.route).destination;
-  if (!origin || !destination) return '';
-  return 'https://yandex.ru/maps/?rtext=' + encodeURIComponent(origin) + '~' +
-    encodeURIComponent(destination) + '&rtt=auto';
+  const points = routePoints(trip, true);
+  if (points.length < 2) return '';
+  return 'https://yandex.ru/maps/?rtext=' + routeRtext(points) + '&rtt=auto';
 }
 
 function routeYandexWidgetUrl(trip) {
-  const origin = trip.routeOrigin || routeEndpointParts(trip.route).origin;
-  const destination = trip.routeDestination || routeEndpointParts(trip.route).destination;
-  if (!origin || !destination) return '';
-  return 'https://yandex.ru/map-widget/v1/?rtext=' + encodeURIComponent(origin) + '~' +
-    encodeURIComponent(destination) + '&rtt=auto&z=8';
+  const points = routePoints(trip, true);
+  if (points.length < 2) return '';
+  return 'https://yandex.ru/map-widget/v1/?rtext=' + routeRtext(points) + '&rtt=auto&z=8';
 }
 
 function routeMapMeta(trip) {
-  const km = trip.routeDistanceMeters ? Math.round(trip.routeDistanceMeters / 1000) + ' км' : '';
-  return [km, trip.car].filter(Boolean).join(' · ');
+  const cargo = formatKm(trip.cargoDistanceMeters || trip.routeDistanceMeters);
+  const total = formatKm(trip.totalDistanceMeters);
+  const perKm = grossPerKm(trip);
+  return [
+    total ? 'круг ' + total : '',
+    cargo ? 'груз ' + cargo : '',
+    perKm ? perKm.toLocaleString('ru-RU') + ' ₽/км' : '',
+    trip.car
+  ].filter(Boolean).join(' · ');
 }
 
 function ensureRouteMapModal() {
@@ -677,8 +767,34 @@ function renderRouteMapModal(trip, stateText, errorText) {
 }
 
 async function openRouteMapModal(tripId) {
-  const trip = (driveCache || []).map(normalizeTrip).filter(Boolean).find(item => item.id === tripId);
+  let trip = (driveCache || []).map(normalizeTrip).filter(Boolean).find(item => item.id === tripId);
   if (!trip) return;
+  if (routeBaseAddress() && (!trip.cargoDistanceMeters || !trip.totalDistanceMeters)) {
+    renderRouteMapModal(trip, 'Считаю полный круг маршрута...');
+    trip = await enrichTripRouteMetrics(trip);
+    if (trip && trip.totalDistanceMeters) {
+      const updated = (driveCache || []).map(item => item.id === trip.id ? trip : item);
+      driveCache = updated;
+      try {
+        const registry = await loadTripsRegistry();
+        const trips = mergeTrips([...(registry.trips || []), trip]).sort((a, b) => {
+          const da = a.date || String(a.year || '');
+          const db = b.date || String(b.year || '');
+          return db.localeCompare(da);
+        });
+        await saveTripsRegistry({
+          ...registry,
+          version: TRIPS_REGISTRY_VERSION,
+          updatedAt: new Date().toISOString(),
+          source: 'route-metrics',
+          trips
+        });
+        driveCache = trips;
+      } catch (e) {
+        console.warn('Save route metrics:', e);
+      }
+    }
+  }
   renderRouteMapModal(trip);
 }
 
@@ -838,6 +954,7 @@ function renderDriveAnalytics(entries, yr, panel) {
       '.journal-delete:active{transform:scale(.95)}' +
       '.journal-map-thumb{position:relative;width:100%;aspect-ratio:3.52/1;border:1px solid rgba(57,217,138,.26);border-radius:8px;overflow:hidden;background:#080b12 url("img/route-card-map.png") center/100% 100% no-repeat;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 10px 26px rgba(0,0,0,.18);transition:transform .18s ease,border-color .2s ease,box-shadow .2s ease}' +
       '.journal-map-thumb:hover{transform:translateY(-1px);border-color:rgba(57,217,138,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 16px 34px rgba(0,0,0,.24),0 0 24px rgba(57,217,138,.1)}' +
+      '.journal-route-metrics{display:flex;gap:6px;flex-wrap:wrap;margin-top:-3px}.journal-route-metrics span{border:1px solid rgba(57,217,138,.2);border-radius:999px;background:rgba(57,217,138,.07);color:var(--ana-muted);font-size:10px;line-height:1;padding:5px 7px;white-space:nowrap}.journal-route-metrics b{color:var(--ana-text);font-weight:800}' +
       '.route-map-modal{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(4,6,10,.72);backdrop-filter:blur(10px)}' +
       '.route-map-modal.is-open{display:flex}' +
       '.route-map-dialog{position:relative;width:min(760px,100%);border:1px solid rgba(57,217,138,.32);border-radius:12px;background:linear-gradient(180deg,#1b1428,#100d18);box-shadow:0 30px 80px rgba(0,0,0,.55);padding:16px}' +
@@ -915,6 +1032,15 @@ function analyticsJournal(rows) {
         const customer = trip.customerName || 'Заказчик не указан';
         const route = trip.route || 'Маршрут не указан';
         const mapHtml = '<div class="journal-map-thumb" role="button" tabindex="0" onclick="openRouteMapModalEncoded(&quot;' + routeMapId(trip.id) + '&quot;)" title="Открыть маршрут"></div>';
+        const totalKm = formatKm(trip.totalDistanceMeters);
+        const cargoKm = formatKm(trip.cargoDistanceMeters || trip.routeDistanceMeters);
+        const perKm = grossPerKm(trip);
+        const metrics = [
+          totalKm ? '<span>Круг: <b>' + aEsc(totalKm) + '</b></span>' : '',
+          cargoKm ? '<span>Груз: <b>' + aEsc(cargoKm) + '</b></span>' : '',
+          perKm ? '<span><b>' + aEsc(perKm.toLocaleString('ru-RU')) + ' ₽/км</b></span>' : ''
+        ].filter(Boolean).join('');
+        const metricsHtml = metrics ? '<div class="journal-route-metrics">' + metrics + '</div>' : '';
         const files = [
           trip.invoiceFileId ? 'счёт PDF' : '',
           trip.actFileId ? 'акт PDF' : ''
@@ -927,6 +1053,7 @@ function analyticsJournal(rows) {
             '<div class="journal-stat"><span>Сумма</span><b>' + aEsc(amount) + '</b></div>' +
           '</div>' +
           mapHtml +
+          metricsHtml +
           '<div style="display:flex;justify-content:space-between;gap:12px;align-items:center">' +
             '<div style="min-width:0;display:grid;gap:5px">' +
               '<div style="color:var(--ana);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + aEsc(customer) + '">' + aEsc(customer) + '</div>' +
