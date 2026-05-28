@@ -1,5 +1,3 @@
-// App Config template. Copy to js/config.js for local development.
-
 // Google OAuth
 const GCLIENT_ID = '';
 const GAPI_KEY = '';
