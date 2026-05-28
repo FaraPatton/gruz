@@ -630,7 +630,7 @@ function tripFromFormData(data, extra = {}) {
 }
 
 async function saveTripToRegistry(trip) {
-  const cleanTrip = await enrichTripRouteMetrics(normalizeTrip(trip));
+  const cleanTrip = normalizeTrip(trip);
   if (!cleanTrip) throw new Error('Не удалось подготовить рейс для trips.json');
 
   const registry = await loadTripsRegistry();
@@ -776,7 +776,11 @@ function buildManualKmHtml(trip) {
     '<label for="manualRouteKm">Круг, км</label>' +
     '<div>' +
       '<input id="manualRouteKm" inputmode="decimal" placeholder="например 264" value="' + aEsc(trip.totalDistanceMeters ? Math.round(trip.totalDistanceMeters / 1000) : '') + '">' +
-      '<button onclick="saveManualRouteKmEncoded(&quot;' + routeMapId(trip.id) + '&quot;)">Сохранить км</button>' +
+      '<label class="manual-save-check" title="Сохранить километраж">' +
+        '<input id="manualRouteKmSave" type="checkbox" onchange="saveManualRouteKmEncoded(&quot;' + routeMapId(trip.id) + '&quot;)">' +
+        '<span class="manual-save-box"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 9.5 7.4 13 14.4 5"></path></svg></span>' +
+        '<span class="manual-save-text">Сохранить</span>' +
+      '</label>' +
     '</div>' +
     '<p>Топливо считается автоматически: 25 л / 100 км, 60 руб / л.</p>' +
   '</div>';
@@ -840,34 +844,6 @@ function renderRouteMapModal(trip, stateText, errorText) {
 async function openRouteMapModal(tripId) {
   let trip = (driveCache || []).map(normalizeTrip).filter(Boolean).find(item => item.id === tripId);
   if (!trip) return;
-  if (routeBaseAddress() && (!trip.cargoDistanceMeters || !trip.totalDistanceMeters)) {
-    renderRouteMapModal(trip, 'Считаю полный круг маршрута...');
-    trip = await enrichTripRouteMetrics(trip);
-    if (trip && trip.totalDistanceMeters) {
-      const updated = (driveCache || []).map(item => item.id === trip.id ? trip : item);
-      driveCache = updated;
-      try {
-        const registry = await loadTripsRegistry();
-        const trips = mergeTrips([...(registry.trips || []), trip]).sort((a, b) => {
-          const da = a.date || String(a.year || '');
-          const db = b.date || String(b.year || '');
-          return db.localeCompare(da);
-        });
-        await saveTripsRegistry({
-          ...registry,
-          version: TRIPS_REGISTRY_VERSION,
-          updatedAt: new Date().toISOString(),
-          source: 'route-metrics',
-          trips
-        });
-        driveCache = trips;
-        renderDriveAnalytics(driveCache, analyticsYear, document.getElementById('analyticsPanel'));
-        showToast('✓ Километраж рейса сохранён');
-      } catch (e) {
-        console.warn('Save route metrics:', e);
-      }
-    }
-  }
   renderRouteMapModal(trip);
 }
 
@@ -877,9 +853,11 @@ function openRouteMapModalEncoded(encodedTripId) {
 
 async function saveManualRouteKm(tripId) {
   const input = document.getElementById('manualRouteKm');
+  const check = document.getElementById('manualRouteKmSave');
   const km = parseKmValue(input && input.value);
   if (!km) {
     showToast('Укажи километраж круга');
+    if (check) check.checked = false;
     if (input) input.focus();
     return;
   }
@@ -1090,7 +1068,7 @@ function renderDriveAnalytics(entries, yr, panel) {
       '.route-map-large{border-radius:8px;overflow:hidden;border:1px solid rgba(57,217,138,.22);background:rgba(255,255,255,.04);min-height:360px}.route-map-large iframe{width:100%;height:360px;border:0;display:block}.route-map-state{height:100%;min-height:220px;display:flex;align-items:center;justify-content:center;color:var(--ana);font-size:13px;font-weight:800}' +
       '.route-map-error{margin-top:10px;border:1px solid rgba(255,95,95,.32);border-radius:8px;padding:10px;color:#ffb9b9;background:rgba(255,95,95,.08);font-size:12px;line-height:1.45}' +
       '.route-map-customer{margin-top:12px;color:var(--ana);font-size:13px;font-weight:750}.route-map-route{margin-top:5px;color:var(--ana-text);font-size:12px;line-height:1.45}.route-map-meta,.route-map-hint{margin-top:7px;color:var(--ana-muted);font-size:11px;font-family:monospace;letter-spacing:0}.route-map-hint{color:var(--ana)}' +
-      '.route-map-manual-km{margin-top:12px;border:1px solid rgba(137,104,190,.28);border-radius:10px;background:rgba(255,255,255,.035);padding:10px}.route-map-manual-km label{display:block;color:var(--ana-muted);font-size:10px;font-family:monospace;letter-spacing:0;margin-bottom:6px}.route-map-manual-km>div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.route-map-manual-km input{min-width:0;border:1px solid rgba(57,217,138,.24);border-radius:8px;background:rgba(255,255,255,.06);color:var(--ana-text);padding:10px 11px;font-size:14px;outline:0}.route-map-manual-km input:focus{border-color:rgba(57,217,138,.62);box-shadow:0 0 0 3px rgba(57,217,138,.1)}.route-map-manual-km button{border:0;border-radius:8px;background:linear-gradient(180deg,var(--ana),var(--ana2));color:#07140d;padding:0 12px;font-weight:800;font-size:12px;cursor:pointer}.route-map-manual-km p{margin:7px 0 0;color:rgba(248,251,255,.55);font-size:10px;line-height:1.35}' +
+      '.route-map-manual-km{margin-top:12px;border:1px solid rgba(137,104,190,.28);border-radius:10px;background:rgba(255,255,255,.035);padding:10px}.route-map-manual-km>label:not(.manual-save-check){display:block;color:var(--ana-muted);font-size:10px;font-family:monospace;letter-spacing:0;margin-bottom:6px}.route-map-manual-km>div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}.route-map-manual-km input{min-width:0;border:1px solid rgba(57,217,138,.24);border-radius:8px;background:rgba(255,255,255,.06);color:var(--ana-text);padding:10px 11px;font-size:14px;outline:0}.route-map-manual-km input:focus{border-color:rgba(57,217,138,.62);box-shadow:0 0 0 3px rgba(57,217,138,.1)}.manual-save-check{display:inline-flex;align-items:center;gap:8px;min-height:40px;border-radius:10px;padding:0 11px;background:rgba(57,217,138,.08);border:1px solid rgba(57,217,138,.28);color:var(--ana-text);cursor:pointer;user-select:none;transition:transform .16s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease}.manual-save-check:hover{transform:translateY(-1px);border-color:rgba(57,217,138,.54);box-shadow:0 10px 22px rgba(57,217,138,.12)}.manual-save-check input{position:absolute;opacity:0;pointer-events:none}.manual-save-box{width:22px;height:22px;border-radius:6px;border:2px solid rgba(57,217,138,.72);background:#120e1b;display:grid;place-items:center;transition:background .18s ease,border-color .18s ease,transform .18s ease}.manual-save-box svg{width:17px;height:17px;fill:none;stroke:#07140d;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:24;stroke-dashoffset:24;transition:stroke-dashoffset .22s ease}.manual-save-check input:checked + .manual-save-box{background:linear-gradient(180deg,var(--ana),var(--ana2));border-color:transparent;transform:scale(1.05)}.manual-save-check input:checked + .manual-save-box svg{stroke-dashoffset:0}.manual-save-text{font-size:12px;font-weight:800;white-space:nowrap}.route-map-manual-km p{margin:7px 0 0;color:rgba(248,251,255,.55);font-size:10px;line-height:1.35}' +
       '.route-map-actions{margin-top:14px;display:flex;justify-content:flex-end}' +
       '.route-map-yandex-btn{border:0;border-radius:10px;background:linear-gradient(135deg,#4f7cff 0%,#3163df 100%);color:#fff;padding:13px 18px;min-height:50px;min-width:250px;display:inline-flex;align-items:center;justify-content:center;gap:10px;font-size:17px;font-weight:700;cursor:pointer;overflow:hidden;box-shadow:0 10px 28px rgba(66,133,244,.24);text-decoration:none;-webkit-tap-highlight-color:transparent;transition:transform .16s ease,box-shadow .18s ease,background .18s ease}' +
       '.route-map-yandex-btn .route-map-yandex-label{display:block;transition:transform .28s ease,opacity .28s ease}.route-map-yandex-btn .route-map-yandex-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;transition:transform .28s ease}.route-map-yandex-btn svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transform-origin:center;transition:transform .28s ease}' +
