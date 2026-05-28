@@ -685,6 +685,7 @@ async function enrichTripRouteMetrics(trip) {
     cleanTrip.totalRouteUpdatedAt = new Date().toISOString();
   } catch (e) {
     console.warn('Route metrics:', e);
+    cleanTrip.routeMetricsError = e.message || String(e);
   }
 
   return cleanTrip;
@@ -712,6 +713,21 @@ function routeMapMeta(trip) {
     perKm ? perKm.toLocaleString('ru-RU') + ' ₽/км' : '',
     trip.car
   ].filter(Boolean).join(' · ');
+}
+
+function routeMetricsHtml(trip, mode = 'journal') {
+  const totalKm = formatKm(trip.totalDistanceMeters);
+  const cargoKm = formatKm(trip.cargoDistanceMeters || trip.routeDistanceMeters);
+  const perKm = grossPerKm(trip);
+  const parts = [
+    totalKm ? '<span>Круг: <b>' + aEsc(totalKm) + '</b></span>' : '',
+    cargoKm ? '<span>Груз: <b>' + aEsc(cargoKm) + '</b></span>' : '',
+    perKm ? '<span><b>' + aEsc(perKm.toLocaleString('ru-RU')) + ' ₽/км</b></span>' : ''
+  ].filter(Boolean).join('');
+
+  if (parts) return '<div class="' + mode + '-route-metrics">' + parts + '</div>';
+  if (!routeBaseAddress()) return '';
+  return '<div class="' + mode + '-route-metrics is-pending"><span>Км: <b>нужно рассчитать</b></span></div>';
 }
 
 function ensureRouteMapModal() {
@@ -754,7 +770,9 @@ function renderRouteMapModal(trip, stateText, errorText) {
     (errorText ? '<div class="route-map-error">' + aEsc(errorText) + '</div>' : '') +
     '<div class="route-map-customer">' + aEsc(trip.customerName || 'Заказчик не указан') + '</div>' +
     '<div class="route-map-route">' + aEsc(route || 'Маршрут не указан') + '</div>' +
+    routeMetricsHtml(trip, 'route-map') +
     '<div class="route-map-meta">' + aEsc(routeMapMeta(trip) || 'Детали маршрута появятся после построения') + '</div>' +
+    (stateText ? '<div class="route-map-hint">' + aEsc(stateText) + '</div>' : '') +
     '<div class="route-map-actions">' +
       (mapsUrl ? '<a class="route-map-yandex-btn" href="' + aEsc(mapsUrl) + '" target="_blank" rel="noopener">' +
         '<span class="route-map-yandex-icon">' +
@@ -790,9 +808,14 @@ async function openRouteMapModal(tripId) {
           trips
         });
         driveCache = trips;
+        renderDriveAnalytics(driveCache, analyticsYear, document.getElementById('analyticsPanel'));
+        showToast('✓ Километраж рейса сохранён');
       } catch (e) {
         console.warn('Save route metrics:', e);
       }
+    } else if (trip && trip.routeMetricsError) {
+      renderRouteMapModal(trip, '', 'Не удалось рассчитать километраж: ' + trip.routeMetricsError);
+      return;
     }
   }
   renderRouteMapModal(trip);
@@ -954,7 +977,7 @@ function renderDriveAnalytics(entries, yr, panel) {
       '.journal-delete:active{transform:scale(.95)}' +
       '.journal-map-thumb{position:relative;width:100%;aspect-ratio:3.52/1;border:1px solid rgba(57,217,138,.26);border-radius:8px;overflow:hidden;background:#080b12 url("img/route-card-map.png") center/100% 100% no-repeat;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 10px 26px rgba(0,0,0,.18);transition:transform .18s ease,border-color .2s ease,box-shadow .2s ease}' +
       '.journal-map-thumb:hover{transform:translateY(-1px);border-color:rgba(57,217,138,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 16px 34px rgba(0,0,0,.24),0 0 24px rgba(57,217,138,.1)}' +
-      '.journal-route-metrics{display:flex;gap:6px;flex-wrap:wrap;margin-top:-3px}.journal-route-metrics span{border:1px solid rgba(57,217,138,.2);border-radius:999px;background:rgba(57,217,138,.07);color:var(--ana-muted);font-size:10px;line-height:1;padding:5px 7px;white-space:nowrap}.journal-route-metrics b{color:var(--ana-text);font-weight:800}' +
+      '.journal-route-metrics,.route-map-route-metrics{display:flex;gap:6px;flex-wrap:wrap}.journal-route-metrics{margin-top:-3px}.route-map-route-metrics{margin-top:10px}.journal-route-metrics span,.route-map-route-metrics span{border:1px solid rgba(57,217,138,.2);border-radius:999px;background:rgba(57,217,138,.07);color:var(--ana-muted);font-size:10px;line-height:1;padding:5px 7px;white-space:nowrap}.route-map-route-metrics span{font-size:11px;padding:7px 9px}.journal-route-metrics b,.route-map-route-metrics b{color:var(--ana-text);font-weight:800}.journal-route-metrics.is-pending span,.route-map-route-metrics.is-pending span{border-color:rgba(248,251,255,.16);background:rgba(255,255,255,.045);color:rgba(248,251,255,.58)}' +
       '.route-map-modal{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(4,6,10,.72);backdrop-filter:blur(10px)}' +
       '.route-map-modal.is-open{display:flex}' +
       '.route-map-dialog{position:relative;width:min(760px,100%);border:1px solid rgba(57,217,138,.32);border-radius:12px;background:linear-gradient(180deg,#1b1428,#100d18);box-shadow:0 30px 80px rgba(0,0,0,.55);padding:16px}' +
@@ -963,7 +986,7 @@ function renderDriveAnalytics(entries, yr, panel) {
       '.route-map-kicker{font-family:monospace;font-size:10px;letter-spacing:0;color:var(--ana)}.route-map-title{font-size:16px;font-weight:800;color:var(--ana-text);margin-top:3px}.route-map-sum{color:var(--ana);font-size:14px;font-weight:800;white-space:nowrap}' +
       '.route-map-large{border-radius:8px;overflow:hidden;border:1px solid rgba(57,217,138,.22);background:rgba(255,255,255,.04);min-height:360px}.route-map-large iframe{width:100%;height:360px;border:0;display:block}.route-map-state{height:100%;min-height:220px;display:flex;align-items:center;justify-content:center;color:var(--ana);font-size:13px;font-weight:800}' +
       '.route-map-error{margin-top:10px;border:1px solid rgba(255,95,95,.32);border-radius:8px;padding:10px;color:#ffb9b9;background:rgba(255,95,95,.08);font-size:12px;line-height:1.45}' +
-      '.route-map-customer{margin-top:12px;color:var(--ana);font-size:13px;font-weight:750}.route-map-route{margin-top:5px;color:var(--ana-text);font-size:12px;line-height:1.45}.route-map-meta{margin-top:7px;color:var(--ana-muted);font-size:11px;font-family:monospace;letter-spacing:0}' +
+      '.route-map-customer{margin-top:12px;color:var(--ana);font-size:13px;font-weight:750}.route-map-route{margin-top:5px;color:var(--ana-text);font-size:12px;line-height:1.45}.route-map-meta,.route-map-hint{margin-top:7px;color:var(--ana-muted);font-size:11px;font-family:monospace;letter-spacing:0}.route-map-hint{color:var(--ana)}' +
       '.route-map-actions{margin-top:14px;display:flex;justify-content:flex-end}' +
       '.route-map-yandex-btn{border:0;border-radius:10px;background:linear-gradient(135deg,#4f7cff 0%,#3163df 100%);color:#fff;padding:13px 18px;min-height:50px;min-width:250px;display:inline-flex;align-items:center;justify-content:center;gap:10px;font-size:17px;font-weight:700;cursor:pointer;overflow:hidden;box-shadow:0 10px 28px rgba(66,133,244,.24);text-decoration:none;-webkit-tap-highlight-color:transparent;transition:transform .16s ease,box-shadow .18s ease,background .18s ease}' +
       '.route-map-yandex-btn .route-map-yandex-label{display:block;transition:transform .28s ease,opacity .28s ease}.route-map-yandex-btn .route-map-yandex-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;transition:transform .28s ease}.route-map-yandex-btn svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transform-origin:center;transition:transform .28s ease}' +
@@ -1032,15 +1055,7 @@ function analyticsJournal(rows) {
         const customer = trip.customerName || 'Заказчик не указан';
         const route = trip.route || 'Маршрут не указан';
         const mapHtml = '<div class="journal-map-thumb" role="button" tabindex="0" onclick="openRouteMapModalEncoded(&quot;' + routeMapId(trip.id) + '&quot;)" title="Открыть маршрут"></div>';
-        const totalKm = formatKm(trip.totalDistanceMeters);
-        const cargoKm = formatKm(trip.cargoDistanceMeters || trip.routeDistanceMeters);
-        const perKm = grossPerKm(trip);
-        const metrics = [
-          totalKm ? '<span>Круг: <b>' + aEsc(totalKm) + '</b></span>' : '',
-          cargoKm ? '<span>Груз: <b>' + aEsc(cargoKm) + '</b></span>' : '',
-          perKm ? '<span><b>' + aEsc(perKm.toLocaleString('ru-RU')) + ' ₽/км</b></span>' : ''
-        ].filter(Boolean).join('');
-        const metricsHtml = metrics ? '<div class="journal-route-metrics">' + metrics + '</div>' : '';
+        const metricsHtml = routeMetricsHtml(trip, 'journal');
         const files = [
           trip.invoiceFileId ? 'счёт PDF' : '',
           trip.actFileId ? 'акт PDF' : ''
