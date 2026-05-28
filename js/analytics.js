@@ -421,6 +421,10 @@ function normalizeTrip(trip) {
     routeDuration: String(trip.routeDuration || '').trim(),
     routeMapUpdatedAt: trip.routeMapUpdatedAt || '',
     totalRouteUpdatedAt: trip.totalRouteUpdatedAt || '',
+    routeMetricsSource: trip.routeMetricsSource || '',
+    fuelCostRub: Math.round(Number(trip.fuelCostRub) || 0),
+    fuelLiters: Number(trip.fuelLiters) || 0,
+    fuelPriceRub: Number(trip.fuelPriceRub) || 0,
     car: cleanText(trip.car || ''),
     loadDate: trip.loadDate || '',
     unloadDate: trip.unloadDate || '',
@@ -741,6 +745,22 @@ function routeMetricsHtml(trip, mode = 'journal') {
   return '<div class="' + mode + '-route-metrics is-pending"><span>Км: <b>нужно рассчитать</b></span></div>';
 }
 
+function parseKmValue(value) {
+  const n = Number(String(value || '').replace(',', '.').replace(/[^\d.]/g, ''));
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : 0;
+}
+
+function buildManualKmHtml(trip) {
+  return '<div class="route-map-manual-km">' +
+    '<label for="manualRouteKm">Круг, км</label>' +
+    '<div>' +
+      '<input id="manualRouteKm" inputmode="decimal" placeholder="например 264" value="' + aEsc(trip.totalDistanceMeters ? Math.round(trip.totalDistanceMeters / 1000) : '') + '">' +
+      '<button onclick="saveManualRouteKmEncoded(&quot;' + routeMapId(trip.id) + '&quot;)">Сохранить км</button>' +
+    '</div>' +
+    '<p>Введи километраж с карты. Позже сюда добавим топливо в рублях и чистую маржу.</p>' +
+  '</div>';
+}
+
 function ensureRouteMapModal() {
   let modal = document.getElementById('routeMapModal');
   if (modal) return modal;
@@ -784,6 +804,7 @@ function renderRouteMapModal(trip, stateText, errorText) {
     routeMetricsHtml(trip, 'route-map') +
     '<div class="route-map-meta">' + aEsc(routeMapMeta(trip) || 'Детали маршрута появятся после построения') + '</div>' +
     (stateText ? '<div class="route-map-hint">' + aEsc(stateText) + '</div>' : '') +
+    buildManualKmHtml(trip) +
     '<div class="route-map-actions">' +
       (mapsUrl ? '<a class="route-map-yandex-btn" href="' + aEsc(mapsUrl) + '" target="_blank" rel="noopener">' +
         '<span class="route-map-yandex-icon">' +
@@ -834,6 +855,55 @@ async function openRouteMapModal(tripId) {
 
 function openRouteMapModalEncoded(encodedTripId) {
   openRouteMapModal(decodeURIComponent(encodedTripId));
+}
+
+async function saveManualRouteKm(tripId) {
+  const input = document.getElementById('manualRouteKm');
+  const km = parseKmValue(input && input.value);
+  if (!km) {
+    showToast('Укажи километраж круга');
+    if (input) input.focus();
+    return;
+  }
+
+  const currentTrips = (driveCache || []).map(normalizeTrip).filter(Boolean);
+  const trip = currentTrips.find(item => item.id === tripId);
+  if (!trip) return;
+
+  const updatedTrip = normalizeTrip({
+    ...trip,
+    totalDistanceMeters: km * 1000,
+    totalRouteUpdatedAt: new Date().toISOString(),
+    routeMetricsSource: 'manual'
+  });
+
+  if (!updatedTrip.cargoDistanceMeters && updatedTrip.routeDistanceMeters) {
+    updatedTrip.cargoDistanceMeters = updatedTrip.routeDistanceMeters;
+  }
+
+  const registry = await loadTripsRegistry();
+  const trips = mergeTrips([...(registry.trips || []), updatedTrip]).sort((a, b) => {
+    const da = a.date || String(a.year || '');
+    const db = b.date || String(b.year || '');
+    return db.localeCompare(da);
+  });
+
+  await saveTripsRegistry({
+    ...registry,
+    version: TRIPS_REGISTRY_VERSION,
+    updatedAt: new Date().toISOString(),
+    source: 'manual-route-km',
+    trips
+  });
+
+  driveCache = trips;
+  renderDriveAnalytics(driveCache, analyticsYear, document.getElementById('analyticsPanel'));
+  renderRouteMapModal(updatedTrip);
+  showToast('✓ Километраж сохранён');
+}
+
+function saveManualRouteKmEncoded(encodedTripId) {
+  saveManualRouteKm(decodeURIComponent(encodedTripId));
 }
 
 async function deleteTripFromRegistry(tripId) {
@@ -998,6 +1068,7 @@ function renderDriveAnalytics(entries, yr, panel) {
       '.route-map-large{border-radius:8px;overflow:hidden;border:1px solid rgba(57,217,138,.22);background:rgba(255,255,255,.04);min-height:360px}.route-map-large iframe{width:100%;height:360px;border:0;display:block}.route-map-state{height:100%;min-height:220px;display:flex;align-items:center;justify-content:center;color:var(--ana);font-size:13px;font-weight:800}' +
       '.route-map-error{margin-top:10px;border:1px solid rgba(255,95,95,.32);border-radius:8px;padding:10px;color:#ffb9b9;background:rgba(255,95,95,.08);font-size:12px;line-height:1.45}' +
       '.route-map-customer{margin-top:12px;color:var(--ana);font-size:13px;font-weight:750}.route-map-route{margin-top:5px;color:var(--ana-text);font-size:12px;line-height:1.45}.route-map-meta,.route-map-hint{margin-top:7px;color:var(--ana-muted);font-size:11px;font-family:monospace;letter-spacing:0}.route-map-hint{color:var(--ana)}' +
+      '.route-map-manual-km{margin-top:12px;border:1px solid rgba(137,104,190,.28);border-radius:10px;background:rgba(255,255,255,.035);padding:10px}.route-map-manual-km label{display:block;color:var(--ana-muted);font-size:10px;font-family:monospace;letter-spacing:0;margin-bottom:6px}.route-map-manual-km>div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.route-map-manual-km input{min-width:0;border:1px solid rgba(57,217,138,.24);border-radius:8px;background:rgba(255,255,255,.06);color:var(--ana-text);padding:10px 11px;font-size:14px;outline:0}.route-map-manual-km input:focus{border-color:rgba(57,217,138,.62);box-shadow:0 0 0 3px rgba(57,217,138,.1)}.route-map-manual-km button{border:0;border-radius:8px;background:linear-gradient(180deg,var(--ana),var(--ana2));color:#07140d;padding:0 12px;font-weight:800;font-size:12px;cursor:pointer}.route-map-manual-km p{margin:7px 0 0;color:rgba(248,251,255,.55);font-size:10px;line-height:1.35}' +
       '.route-map-actions{margin-top:14px;display:flex;justify-content:flex-end}' +
       '.route-map-yandex-btn{border:0;border-radius:10px;background:linear-gradient(135deg,#4f7cff 0%,#3163df 100%);color:#fff;padding:13px 18px;min-height:50px;min-width:250px;display:inline-flex;align-items:center;justify-content:center;gap:10px;font-size:17px;font-weight:700;cursor:pointer;overflow:hidden;box-shadow:0 10px 28px rgba(66,133,244,.24);text-decoration:none;-webkit-tap-highlight-color:transparent;transition:transform .16s ease,box-shadow .18s ease,background .18s ease}' +
       '.route-map-yandex-btn .route-map-yandex-label{display:block;transition:transform .28s ease,opacity .28s ease}.route-map-yandex-btn .route-map-yandex-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;transition:transform .28s ease}.route-map-yandex-btn svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transform-origin:center;transition:transform .28s ease}' +
@@ -1159,6 +1230,11 @@ window.setAnalyticsView = setAnalyticsView;
 window.saveFormTripToRegistry = saveFormTripToRegistry;
 window.deleteTripFromRegistry = deleteTripFromRegistry;
 window.deleteTripFromRegistryEncoded = deleteTripFromRegistryEncoded;
+window.openRouteMapModal = openRouteMapModal;
+window.openRouteMapModalEncoded = openRouteMapModalEncoded;
+window.saveManualRouteKm = saveManualRouteKm;
+window.saveManualRouteKmEncoded = saveManualRouteKmEncoded;
+window.closeRouteMapModal = closeRouteMapModal;
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', bindAnalyticsButton);
