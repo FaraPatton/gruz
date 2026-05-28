@@ -8,6 +8,9 @@ const YANDEX_MAPS_API_KEY = '';
 // Google Drive archive root folder
 const ARCHIVE_ROOT = '';
 
+// Private route analytics base address
+const ROUTE_BASE_ADDRESS = '';
+
 // Email defaults
 const EMAIL_SUBJECT = '';
 const EMAIL_BODY = ``;

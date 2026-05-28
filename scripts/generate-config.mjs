@@ -14,6 +14,9 @@ const YANDEX_MAPS_API_KEY = ${jsString(read('YANDEX_MAPS_API_KEY'))};
 // Google Drive archive root folder
 const ARCHIVE_ROOT = ${jsString(readTrim('ARCHIVE_ROOT'))};
 
+// Private route analytics base address
+const ROUTE_BASE_ADDRESS = ${jsString(readTrim('ROUTE_BASE_ADDRESS'))};
+
 // Email defaults
 const EMAIL_SUBJECT = ${jsString(read('EMAIL_SUBJECT'))};
 const EMAIL_BODY = ${jsString(read('EMAIL_BODY'))};

@@ -30,6 +30,7 @@ jobs:
           GAPI_KEY: ${{ secrets.GAPI_KEY }}
           YANDEX_MAPS_API_KEY: ${{ secrets.YANDEX_MAPS_API_KEY }}
           ARCHIVE_ROOT: ${{ secrets.ARCHIVE_ROOT }}
+          ROUTE_BASE_ADDRESS: ${{ secrets.ROUTE_BASE_ADDRESS }}
           EMAIL_SUBJECT: ${{ secrets.EMAIL_SUBJECT }}
           EMAIL_BODY: ${{ secrets.EMAIL_BODY }}
           EMAIL_DRIVE_FOLDER_ID: ${{ secrets.EMAIL_DRIVE_FOLDER_ID }}
