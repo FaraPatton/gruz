@@ -636,7 +636,7 @@ async function saveFormTripToRegistry(data, extra = {}) {
 
 function loadYandexMapsApi() {
   if (typeof ymaps !== 'undefined') {
-    return new Promise(resolve => ymaps.ready(resolve));
+    return new Promise((resolve, reject) => ymaps.ready(resolve, reject));
   }
   if (yandexMapsLoadPromise) return yandexMapsLoadPromise;
 
@@ -648,10 +648,13 @@ function loadYandexMapsApi() {
     }
 
     const script = document.createElement('script');
-    script.src = 'https://api-maps.yandex.ru/2.1/?apikey=' + encodeURIComponent(key) + '&lang=ru_RU';
+    script.src = 'https://api-maps.yandex.ru/2.1/?apikey=' + encodeURIComponent(key) + '&lang=ru_RU&load=package.full';
     script.async = true;
-    script.onload = () => ymaps.ready(resolve);
-    script.onerror = () => reject(new Error('Yandex Maps API load failed'));
+    script.onload = () => ymaps.ready(resolve, reject);
+    script.onerror = () => {
+      yandexMapsLoadPromise = null;
+      reject(new Error('Не загрузился Yandex Maps JS API'));
+    };
     document.head.appendChild(script);
   });
 
@@ -661,9 +664,17 @@ function loadYandexMapsApi() {
 async function calculateYandexRouteMeters(points) {
   const cleanPoints = (points || []).map(cleanText).filter(Boolean);
   if (cleanPoints.length < 2) return 0;
-  await loadYandexMapsApi();
-  const route = await ymaps.route(cleanPoints, { routingMode: 'auto' });
-  return Math.round(route.getLength() || 0);
+  try {
+    await loadYandexMapsApi();
+    const route = await ymaps.route(cleanPoints, { routingMode: 'auto' });
+    return Math.round(route.getLength() || 0);
+  } catch (e) {
+    const code = e && (e.message || e.name || e.toString && e.toString());
+    if (String(code || '').includes('scriptError')) {
+      throw new Error('Yandex JS API не отдал модуль маршрутизации');
+    }
+    throw e;
+  }
 }
 
 async function enrichTripRouteMetrics(trip) {
