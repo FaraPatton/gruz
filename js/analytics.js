@@ -5,6 +5,8 @@ const TRIPS_REGISTRY_VERSION = 5;
 const EXECUTOR_MARKERS = ['Карпов', '771313296859', '40802810438000085714', 'Керамический', 'СБЕРБАНК'];
 const ANALYTICS_GREEN = '#39d98a';
 const ANALYTICS_GREEN_DARK = '#1f9d63';
+const DEFAULT_FUEL_PRICE_RUB = 60;
+const DEFAULT_FUEL_LITERS_PER_100KM = 25;
 
 let analyticsRegistryFileId = null;
 let analyticsView = 'overview';
@@ -45,6 +47,21 @@ function formatKm(meters) {
 function grossPerKm(trip) {
   const km = (Number(trip.totalDistanceMeters) || 0) / 1000;
   return km && trip.amount ? Math.round(trip.amount / km) : 0;
+}
+
+function fuelEstimate(trip) {
+  const km = (Number(trip.totalDistanceMeters) || 0) / 1000;
+  if (!km) return { liters: 0, cost: Number(trip.fuelCostRub) || 0, net: 0 };
+  const litersPer100 = Number(trip.fuelLitersPer100Km || DEFAULT_FUEL_LITERS_PER_100KM) || DEFAULT_FUEL_LITERS_PER_100KM;
+  const price = Number(trip.fuelPriceRub || DEFAULT_FUEL_PRICE_RUB) || DEFAULT_FUEL_PRICE_RUB;
+  const liters = Number(trip.fuelLiters) || km * litersPer100 / 100;
+  const cost = Number(trip.fuelCostRub) || liters * price;
+  const net = Math.round((Number(trip.amount) || 0) - cost);
+  return {
+    liters: Math.round(liters * 10) / 10,
+    cost: Math.round(cost),
+    net
+  };
 }
 
 function toggleAnalytics() {
@@ -425,6 +442,7 @@ function normalizeTrip(trip) {
     fuelCostRub: Math.round(Number(trip.fuelCostRub) || 0),
     fuelLiters: Number(trip.fuelLiters) || 0,
     fuelPriceRub: Number(trip.fuelPriceRub) || 0,
+    fuelLitersPer100Km: Number(trip.fuelLitersPer100Km) || 0,
     car: cleanText(trip.car || ''),
     loadDate: trip.loadDate || '',
     unloadDate: trip.unloadDate || '',
@@ -675,7 +693,7 @@ async function calculateYandexRouteMeters(points) {
   } catch (e) {
     const code = e && (e.message || e.name || e.toString && e.toString());
     if (String(code || '').includes('scriptError')) {
-      throw new Error('Yandex JS API не отдал модуль маршрутизации');
+      throw new Error('routing unavailable');
     }
     throw e;
   }
@@ -699,8 +717,7 @@ async function enrichTripRouteMetrics(trip) {
     }
     cleanTrip.totalRouteUpdatedAt = new Date().toISOString();
   } catch (e) {
-    console.warn('Route metrics:', e);
-    cleanTrip.routeMetricsError = e.message || String(e);
+    cleanTrip.routeMetricsSource = 'manual-required';
   }
 
   return cleanTrip;
@@ -722,10 +739,12 @@ function routeMapMeta(trip) {
   const cargo = formatKm(trip.cargoDistanceMeters || trip.routeDistanceMeters);
   const total = formatKm(trip.totalDistanceMeters);
   const perKm = grossPerKm(trip);
+  const fuel = fuelEstimate(trip);
   return [
     total ? 'круг ' + total : '',
     cargo ? 'груз ' + cargo : '',
     perKm ? perKm.toLocaleString('ru-RU') + ' ₽/км' : '',
+    fuel.cost ? 'топливо ' + fuel.cost.toLocaleString('ru-RU') + ' ₽' : '',
     trip.car
   ].filter(Boolean).join(' · ');
 }
@@ -734,10 +753,12 @@ function routeMetricsHtml(trip, mode = 'journal') {
   const totalKm = formatKm(trip.totalDistanceMeters);
   const cargoKm = formatKm(trip.cargoDistanceMeters || trip.routeDistanceMeters);
   const perKm = grossPerKm(trip);
+  const fuel = fuelEstimate(trip);
   const parts = [
     totalKm ? '<span>Круг: <b>' + aEsc(totalKm) + '</b></span>' : '',
     cargoKm ? '<span>Груз: <b>' + aEsc(cargoKm) + '</b></span>' : '',
-    perKm ? '<span><b>' + aEsc(perKm.toLocaleString('ru-RU')) + ' ₽/км</b></span>' : ''
+    perKm ? '<span><b>' + aEsc(perKm.toLocaleString('ru-RU')) + ' ₽/км</b></span>' : '',
+    fuel.cost ? '<span>Топливо: <b>' + aEsc(fuel.cost.toLocaleString('ru-RU')) + ' ₽</b></span>' : ''
   ].filter(Boolean).join('');
 
   if (parts) return '<div class="' + mode + '-route-metrics">' + parts + '</div>';
@@ -757,7 +778,7 @@ function buildManualKmHtml(trip) {
       '<input id="manualRouteKm" inputmode="decimal" placeholder="например 264" value="' + aEsc(trip.totalDistanceMeters ? Math.round(trip.totalDistanceMeters / 1000) : '') + '">' +
       '<button onclick="saveManualRouteKmEncoded(&quot;' + routeMapId(trip.id) + '&quot;)">Сохранить км</button>' +
     '</div>' +
-    '<p>Введи километраж с карты. Позже сюда добавим топливо в рублях и чистую маржу.</p>' +
+    '<p>Топливо считается автоматически: 25 л / 100 км, 60 руб / л.</p>' +
   '</div>';
 }
 
@@ -798,7 +819,7 @@ function renderRouteMapModal(trip, stateText, errorText) {
         ? '<iframe src="' + aEsc(widgetUrl) + '" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>'
         : '<div class="route-map-state">' + aEsc(stateText || 'Не хватает адресов для карты') + '</div>') +
     '</div>' +
-    (errorText ? '<div class="route-map-error">' + aEsc(errorText) + '</div>' : '') +
+    '' +
     '<div class="route-map-customer">' + aEsc(trip.customerName || 'Заказчик не указан') + '</div>' +
     '<div class="route-map-route">' + aEsc(route || 'Маршрут не указан') + '</div>' +
     routeMetricsHtml(trip, 'route-map') +
@@ -845,9 +866,6 @@ async function openRouteMapModal(tripId) {
       } catch (e) {
         console.warn('Save route metrics:', e);
       }
-    } else if (trip && trip.routeMetricsError) {
-      renderRouteMapModal(trip, '', 'Не удалось рассчитать километраж: ' + trip.routeMetricsError);
-      return;
     }
   }
   renderRouteMapModal(trip);
@@ -874,7 +892,11 @@ async function saveManualRouteKm(tripId) {
     ...trip,
     totalDistanceMeters: km * 1000,
     totalRouteUpdatedAt: new Date().toISOString(),
-    routeMetricsSource: 'manual'
+    routeMetricsSource: 'manual',
+    fuelLitersPer100Km: DEFAULT_FUEL_LITERS_PER_100KM,
+    fuelPriceRub: DEFAULT_FUEL_PRICE_RUB,
+    fuelLiters: Math.round((km * DEFAULT_FUEL_LITERS_PER_100KM / 100) * 10) / 10,
+    fuelCostRub: Math.round(km * DEFAULT_FUEL_LITERS_PER_100KM / 100 * DEFAULT_FUEL_PRICE_RUB)
   });
 
   if (!updatedTrip.cargoDistanceMeters && updatedTrip.routeDistanceMeters) {
