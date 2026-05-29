@@ -864,6 +864,8 @@ function openRouteMapModalEncoded(encodedTripId) {
 async function saveManualRouteKm(tripId) {
   const input = document.getElementById('manualRouteKm');
   const check = document.getElementById('manualRouteKmSave');
+  const trigger = check && check.closest('.holo-save-check');
+  const panel = trigger && trigger.closest('.route-map-manual-km');
   const km = parseKmValue(input && input.value);
   if (!km) {
     showToast('Укажи километраж круга');
@@ -874,7 +876,20 @@ async function saveManualRouteKm(tripId) {
 
   const currentTrips = (driveCache || []).map(normalizeTrip).filter(Boolean);
   const trip = currentTrips.find(item => item.id === tripId);
-  if (!trip) return;
+  if (!trip) {
+    if (check) check.checked = false;
+    return;
+  }
+
+  if (trigger) {
+    trigger.classList.add('is-calculating');
+    trigger.setAttribute('aria-label', 'Считаю километраж и топливо');
+    trigger.title = 'Считаю километраж и топливо';
+  }
+  if (panel) panel.classList.add('is-saving');
+  if (check) check.disabled = true;
+  if (input) input.disabled = true;
+  await new Promise(resolve => requestAnimationFrame(resolve));
 
   const updatedTrip = normalizeTrip({
     ...trip,
@@ -891,25 +906,40 @@ async function saveManualRouteKm(tripId) {
     updatedTrip.cargoDistanceMeters = updatedTrip.routeDistanceMeters;
   }
 
-  const registry = await loadTripsRegistry();
-  const trips = mergeTrips([...(registry.trips || []), updatedTrip]).sort((a, b) => {
-    const da = a.date || String(a.year || '');
-    const db = b.date || String(b.year || '');
-    return db.localeCompare(da);
-  });
+  try {
+    const registry = await loadTripsRegistry();
+    const trips = mergeTrips([...(registry.trips || []), updatedTrip]).sort((a, b) => {
+      const da = a.date || String(a.year || '');
+      const db = b.date || String(b.year || '');
+      return db.localeCompare(da);
+    });
 
-  await saveTripsRegistry({
-    ...registry,
-    version: TRIPS_REGISTRY_VERSION,
-    updatedAt: new Date().toISOString(),
-    source: 'manual-route-km',
-    trips
-  });
+    await saveTripsRegistry({
+      ...registry,
+      version: TRIPS_REGISTRY_VERSION,
+      updatedAt: new Date().toISOString(),
+      source: 'manual-route-km',
+      trips
+    });
 
-  driveCache = trips;
-  renderDriveAnalytics(driveCache, analyticsYear, document.getElementById('analyticsPanel'));
-  renderRouteMapModal(updatedTrip);
-  showToast('✓ Километраж сохранён');
+    driveCache = trips;
+    renderDriveAnalytics(driveCache, analyticsYear, document.getElementById('analyticsPanel'));
+    renderRouteMapModal(updatedTrip);
+    showToast('✓ Километраж сохранён');
+  } catch(e) {
+    if (trigger) {
+      trigger.classList.remove('is-calculating');
+      trigger.setAttribute('aria-label', 'Сохранить километраж');
+      trigger.title = 'Сохранить километраж';
+    }
+    if (panel) panel.classList.remove('is-saving');
+    if (check) {
+      check.disabled = false;
+      check.checked = false;
+    }
+    if (input) input.disabled = false;
+    showToast('Не удалось сохранить километраж: ' + e.message);
+  }
 }
 
 function saveManualRouteKmEncoded(encodedTripId) {
@@ -1079,6 +1109,8 @@ function renderDriveAnalytics(entries, yr, panel) {
       '.route-map-error{margin-top:10px;border:1px solid rgba(255,95,95,.32);border-radius:8px;padding:10px;color:#ffb9b9;background:rgba(255,95,95,.08);font-size:12px;line-height:1.45}' +
       '.route-map-customer{margin-top:12px;color:var(--ana);font-size:13px;font-weight:750}.route-map-route{margin-top:5px;color:var(--ana-text);font-size:12px;line-height:1.45}.route-map-meta,.route-map-hint{margin-top:7px;color:var(--ana-muted);font-size:11px;font-family:monospace;letter-spacing:0}.route-map-hint{color:var(--ana)}' +
       '.route-map-manual-km{margin-top:12px;border:1px solid rgba(137,104,190,.28);border-radius:10px;background:rgba(255,255,255,.035);padding:10px}.route-map-manual-km>label{display:block;color:var(--ana-muted);font-size:10px;font-family:monospace;letter-spacing:0;margin-bottom:6px}.route-map-manual-km>div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}.route-map-manual-km #manualRouteKm{min-width:0;border:1px solid rgba(57,217,138,.24);border-radius:8px;background:rgba(255,255,255,.06);color:var(--ana-text);padding:10px 11px;font-size:14px;outline:0}.route-map-manual-km #manualRouteKm:focus{border-color:rgba(57,217,138,.62);box-shadow:0 0 0 3px rgba(57,217,138,.1)}.holo-save-check{position:relative;display:grid!important;place-items:center;margin:0!important;width:54px;height:54px;padding:0;border:0;border-radius:14px;background:linear-gradient(145deg,#2d2638,#121019);box-shadow:inset 0 -8px 10px rgba(0,0,0,.34),inset 0 2px 2px rgba(255,255,255,.08),0 12px 24px rgba(0,0,0,.26);cursor:pointer;user-select:none;transition:transform .16s ease,box-shadow .18s ease,filter .18s ease}.holo-save-check:hover{transform:translateY(-1px);filter:brightness(1.06);box-shadow:inset 0 -8px 10px rgba(0,0,0,.32),inset 0 2px 2px rgba(255,255,255,.1),0 16px 28px rgba(57,217,138,.12)}.holo-save-check:active{transform:translateY(1px) scale(.97);box-shadow:inset 0 6px 12px rgba(0,0,0,.42),0 6px 14px rgba(0,0,0,.18)}.holo-checkbox-input{position:absolute!important;opacity:0!important;pointer-events:none!important}.holo-checkbox{position:relative;width:36px;height:36px;display:block;flex:0 0 36px}.holo-box{position:absolute;inset:0;border:2px solid rgba(57,217,138,.78);border-radius:10px;background:rgba(8,11,18,.92);box-shadow:inset 0 0 0 2px rgba(255,255,255,.03),inset 0 0 12px rgba(57,217,138,.12),0 0 14px rgba(57,217,138,.1);overflow:hidden;transition:background .24s ease,border-color .24s ease,box-shadow .24s ease,transform .18s ease}.holo-inner{position:absolute;left:9px;top:6px;width:12px;height:20px;border-right:4px solid #07140d;border-bottom:4px solid #07140d;opacity:0;transform:rotate(40deg) scale(.5);transform-origin:center;transition:opacity .16s ease,transform .28s cubic-bezier(.2,1.7,.35,1)}.scan-effect{position:absolute;left:-40%;right:-40%;height:3px;top:-7px;background:linear-gradient(90deg,transparent,#fff,transparent);opacity:0;filter:blur(.2px)}.holo-particles,.activation-rings{position:absolute;inset:0;pointer-events:none}.holo-particle{position:absolute;width:3px;height:3px;border-radius:50%;background:var(--ana);opacity:0}.holo-particle:nth-child(1){left:5px;top:5px}.holo-particle:nth-child(2){right:5px;top:6px}.holo-particle:nth-child(3){left:8px;bottom:5px}.holo-particle:nth-child(4){right:8px;bottom:5px}.holo-particle:nth-child(5){left:16px;top:3px}.holo-particle:nth-child(6){right:16px;bottom:3px}.activation-ring{position:absolute;inset:2px;border:1px solid rgba(57,217,138,.45);border-radius:10px;opacity:0}.corner-accent{position:absolute;width:8px;height:8px;border-color:var(--ana);opacity:.64}.corner-accent:nth-of-type(1){left:-1px;top:-1px;border-top:1px solid;border-left:1px solid}.corner-accent:nth-of-type(2){right:-1px;top:-1px;border-top:1px solid;border-right:1px solid}.corner-accent:nth-of-type(3){left:-1px;bottom:-1px;border-bottom:1px solid;border-left:1px solid}.corner-accent:nth-of-type(4){right:-1px;bottom:-1px;border-bottom:1px solid;border-right:1px solid}.holo-glow{position:absolute;inset:-9px;border-radius:16px;background:radial-gradient(circle,rgba(57,217,138,.34),transparent 68%);opacity:0;transition:.2s ease}.holo-checkbox-input:focus-visible + .holo-checkbox .holo-box{box-shadow:0 0 0 3px rgba(57,217,138,.18),0 0 18px rgba(57,217,138,.22)}.holo-checkbox-input:checked + .holo-checkbox .holo-box{background:linear-gradient(180deg,var(--ana),var(--ana2));border-color:transparent;box-shadow:0 0 22px rgba(57,217,138,.46);transform:scale(1.03)}.holo-checkbox-input:checked + .holo-checkbox .holo-inner{opacity:1;transform:rotate(40deg) scale(1)}.holo-checkbox-input:checked + .holo-checkbox .scan-effect{animation:holoScan .72s ease-out}.holo-checkbox-input:checked + .holo-checkbox .holo-particle{animation:holoParticle .55s ease-out}.holo-checkbox-input:checked + .holo-checkbox .activation-ring{animation:holoRing .7s ease-out}.holo-checkbox-input:checked + .holo-checkbox .holo-glow{opacity:1}.route-map-manual-km p{margin:7px 0 0;color:rgba(248,251,255,.55);font-size:10px;line-height:1.35}@keyframes holoScan{0%{top:-7px;opacity:0}25%{opacity:1}100%{top:40px;opacity:0}}@keyframes holoParticle{0%{transform:scale(.3);opacity:0}35%{opacity:1}100%{transform:scale(2.1);opacity:0}}@keyframes holoRing{0%{transform:scale(.72);opacity:0}35%{opacity:.8}100%{transform:scale(1.45);opacity:0}}' +
+      '.holo-save-check{background:linear-gradient(135deg,#4f7cff 0%,#3163df 100%);border-radius:12px;box-shadow:0 10px 28px rgba(66,133,244,.24),inset 0 1px 0 rgba(255,255,255,.22),inset 0 -10px 18px rgba(14,45,139,.28);overflow:visible}.holo-save-check:before{content:"";position:absolute;inset:-7px;border-radius:18px;background:radial-gradient(circle,rgba(79,124,255,.32),transparent 68%);opacity:.42;filter:blur(4px);transition:opacity .18s ease}.holo-save-check:after{content:"";position:absolute;inset:6px;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,0));pointer-events:none}.holo-save-check:hover{filter:none;background:linear-gradient(135deg,#5d8cff 0%,#3a6df0 100%);box-shadow:0 14px 34px rgba(66,133,244,.32),inset 0 1px 0 rgba(255,255,255,.25),inset 0 -10px 18px rgba(14,45,139,.24)}.holo-save-check:hover:before,.holo-save-check.is-calculating:before{opacity:1}.holo-save-check .holo-checkbox{z-index:1;width:34px;height:34px}.holo-save-check .holo-box{border-color:rgba(255,255,255,.72);background:rgba(6,15,38,.52);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),inset 0 0 18px rgba(255,255,255,.05),0 0 16px rgba(255,255,255,.1)}.holo-save-check .holo-box:before{content:"";position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(180deg,#9ad8ff 0%,#57f4ff 42%,#4f7cff 100%);box-shadow:0 0 18px rgba(87,244,255,.55);transition:height .46s cubic-bezier(.2,.8,.2,1)}.holo-save-check .holo-box:after{content:"";position:absolute;inset:5px;border-radius:50%;border:2px solid transparent;border-top-color:rgba(255,255,255,.9);border-right-color:rgba(87,244,255,.95);opacity:0;transform:scale(.6);transition:opacity .16s ease,transform .18s ease}.holo-save-check .holo-inner{border-color:#fff;z-index:2}.holo-save-check .scan-effect{background:linear-gradient(90deg,transparent,#fff,#57f4ff,transparent);height:4px}.holo-save-check .corner-accent{border-color:#fff;opacity:.72}.holo-save-check .holo-particle{background:#57f4ff;box-shadow:0 0 8px rgba(87,244,255,.85)}.holo-save-check .activation-ring{border-color:rgba(255,255,255,.42)}.holo-save-check .holo-glow{background:radial-gradient(circle,rgba(87,244,255,.45),transparent 66%)}.holo-save-check.is-calculating{pointer-events:none;animation:calcButtonPulse 1.1s ease-in-out infinite}.holo-save-check.is-calculating .holo-box:before,.holo-checkbox-input:checked + .holo-checkbox .holo-box:before{height:100%}.holo-save-check.is-calculating .holo-box:after{opacity:1;transform:scale(1);animation:calcOrbit .72s linear infinite}.holo-save-check.is-calculating .holo-inner{opacity:0;transform:rotate(40deg) scale(.5)}.holo-save-check.is-calculating .scan-effect{animation:holoScan .8s linear infinite}.holo-save-check.is-calculating .holo-particle{animation:calcParticle .9s ease-in-out infinite}.holo-save-check.is-calculating .activation-ring{animation:holoRing 1s ease-out infinite}.route-map-manual-km.is-saving #manualRouteKm{color:rgba(248,251,255,.68);border-color:rgba(79,124,255,.62);background:rgba(79,124,255,.08);box-shadow:0 0 0 3px rgba(79,124,255,.1)}@keyframes calcOrbit{to{transform:scale(1) rotate(360deg)}}@keyframes calcButtonPulse{0%,100%{transform:translateY(0);box-shadow:0 10px 28px rgba(66,133,244,.26),0 0 0 rgba(87,244,255,0)}50%{transform:translateY(-1px);box-shadow:0 16px 38px rgba(66,133,244,.4),0 0 24px rgba(87,244,255,.28)}}@keyframes calcParticle{0%{transform:translateY(0) scale(.45);opacity:0}30%{opacity:1}100%{transform:translateY(-12px) scale(1.8);opacity:0}}' +
+      '.holo-save-check .holo-checkbox-input:checked + .holo-checkbox .holo-box{background:rgba(6,15,38,.52);border-color:rgba(255,255,255,.18);box-shadow:0 0 22px rgba(66,133,244,.46),inset 0 0 0 1px rgba(255,255,255,.1);transform:scale(1.03)}.holo-save-check .holo-checkbox-input:checked + .holo-checkbox .holo-inner{border-color:#fff;opacity:1;transform:rotate(40deg) scale(1)}' +
       '.route-map-actions{margin-top:14px;display:flex;justify-content:flex-end}' +
       '.route-map-yandex-btn{border:0;border-radius:10px;background:linear-gradient(135deg,#4f7cff 0%,#3163df 100%);color:#fff;padding:13px 18px;min-height:50px;min-width:250px;display:inline-flex;align-items:center;justify-content:center;gap:10px;font-size:17px;font-weight:700;cursor:pointer;overflow:hidden;box-shadow:0 10px 28px rgba(66,133,244,.24);text-decoration:none;-webkit-tap-highlight-color:transparent;transition:transform .16s ease,box-shadow .18s ease,background .18s ease}' +
       '.route-map-yandex-btn .route-map-yandex-label{display:block;transition:transform .28s ease,opacity .28s ease}.route-map-yandex-btn .route-map-yandex-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;transition:transform .28s ease}.route-map-yandex-btn svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transform-origin:center;transition:transform .28s ease}' +
