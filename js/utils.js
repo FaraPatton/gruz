@@ -154,7 +154,7 @@ function applyAppTheme(theme) {
     const nextTheme = theme === 'light' ? 'light' : 'dark';
     document.body.dataset.theme = nextTheme;
     const toggle = document.getElementById('authLockToggle');
-    if (toggle) toggle.checked = nextTheme === 'light';
+    if (toggle) toggle.checked = nextTheme === 'dark';
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', nextTheme === 'light' ? '#f4f0e7' : '#e8c84a');
 }
@@ -166,15 +166,37 @@ function initThemeSwitch() {
     if (!toggle || toggle.dataset.themeBound === '1') return;
     toggle.dataset.themeBound = '1';
     toggle.addEventListener('change', () => {
-          const theme = toggle.checked ? 'light' : 'dark';
+          const theme = toggle.checked ? 'dark' : 'light';
           localStorage.setItem('gruzTheme', theme);
           applyAppTheme(theme);
+    });
+}
+
+function initAppMotion() {
+    requestAnimationFrame(() => document.body.classList.add('app-ready'));
+    const items = document.querySelectorAll('.main > .dc, .main > .row, #emailPanel .dc, #signPanel .dc, #analyticsPanel .dc');
+    if (!('IntersectionObserver' in window)) {
+          items.forEach(el => el.classList.add('is-visible'));
+          return;
+    }
+    const observer = new IntersectionObserver(entries => {
+          entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+          });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+    items.forEach((el, index) => {
+          el.classList.add('reveal-on-scroll');
+          el.style.transitionDelay = Math.min(index * 45, 220) + 'ms';
+          observer.observe(el);
     });
 }
 
 // ── Stamp init on DOMContentLoaded ──
 document.addEventListener('DOMContentLoaded', () => {
     initThemeSwitch();
+    initAppMotion();
     // Set today for empty date fields
                             loadTpl();
     const t = today();
