@@ -912,6 +912,46 @@ body[data-theme="light"] #analyticsPanel .journal-route-metrics span {
 
 /* ── Hint ──────────────────────────────────────────────────────────── */
 .hint { font-size: 11px; color: var(--mut); text-align: center; line-height: 1.7; margin-top: 4px; }
+.app-slogan {
+  margin: 26px auto 8px;
+  padding: 18px 10px 22px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.app-slogan::before {
+  content: "";
+  width: min(420px, 86%);
+  height: 1px;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, rgba(255,71,232,.55), rgba(81,210,255,.62), transparent);
+  box-shadow: 0 0 18px rgba(81,210,255,.22);
+}
+.app-slogan span {
+  display: inline-block;
+  color: transparent;
+  background: linear-gradient(90deg, #ff4fe8, #f8fbff 28%, #51d2ff 58%, var(--acc) 86%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  font-size: clamp(18px, 4.8vw, 28px);
+  font-weight: 850;
+  line-height: 1.18;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  text-shadow: 0 0 18px rgba(255,71,232,.2), 0 0 28px rgba(81,210,255,.14);
+  animation: sloganIn .72s cubic-bezier(.2,.8,.2,1) both, sloganGlow 4.2s ease-in-out infinite .72s;
+}
+body[data-theme="light"] .app-slogan span {
+  background: linear-gradient(90deg, #b80aa4, #2c2118 30%, #0f85ba 62%, #b88b08 88%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  text-shadow: 0 0 18px rgba(184,139,8,.14);
+}
 
 /* ── Google Overlay ────────────────────────────────────────────────── */
 .google-overlay {
@@ -952,6 +992,8 @@ body[data-theme="light"] #analyticsPanel .journal-route-metrics span {
 @keyframes appHeaderIn { from{opacity:0;transform:translateY(-10px);} to{opacity:1;transform:translateY(0);} }
 @keyframes appMainIn { from{opacity:0;transform:translateY(16px);} to{opacity:1;transform:translateY(0);} }
 @keyframes heroSweep { to{transform:rotate(360deg);} }
+@keyframes sloganIn { from{opacity:0;transform:translateY(18px) scale(.98);filter:blur(6px);} to{opacity:1;transform:translateY(0) scale(1);filter:blur(0);} }
+@keyframes sloganGlow { 0%,100%{background-position:0 50%;filter:saturate(1);} 50%{background-position:100% 50%;filter:saturate(1.22);} }
 
 /* ── Responsive ────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
