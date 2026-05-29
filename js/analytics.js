@@ -1053,9 +1053,9 @@ function renderDriveAnalytics(entries, yr, panel) {
   const overviewHtml =
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px;margin-bottom:16px">' +
       statCard(totalRides, 'Рейсов') +
+      statCard(money(avgAmt), 'Средний чек') +
       statCard(money(totalAmt), 'Оборот') +
       statCard(money(totalNet), 'Чистая прибыль') +
-      statCard(money(avgAmt), 'Средний чек') +
     '</div>' +
     sectionTitle('Рейсы по месяцам') +
     '<div style="display:flex;align-items:flex-end;gap:5px;height:76px;margin-bottom:20px;padding:6px 2px 0;border-bottom:1px solid rgba(255,255,255,.08)">' +
