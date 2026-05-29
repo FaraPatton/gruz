@@ -51,17 +51,25 @@ function grossPerKm(trip) {
 
 function fuelEstimate(trip) {
   const km = (Number(trip.totalDistanceMeters) || 0) / 1000;
-  if (!km) return { liters: 0, cost: Number(trip.fuelCostRub) || 0, net: 0 };
+  const amount = Number(trip.amount) || 0;
+  if (!km) {
+    const cost = Number(trip.fuelCostRub) || 0;
+    return { liters: Number(trip.fuelLiters) || 0, cost, net: Math.round(amount - cost) };
+  }
   const litersPer100 = Number(trip.fuelLitersPer100Km || DEFAULT_FUEL_LITERS_PER_100KM) || DEFAULT_FUEL_LITERS_PER_100KM;
   const price = Number(trip.fuelPriceRub || DEFAULT_FUEL_PRICE_RUB) || DEFAULT_FUEL_PRICE_RUB;
   const liters = Number(trip.fuelLiters) || km * litersPer100 / 100;
   const cost = Number(trip.fuelCostRub) || liters * price;
-  const net = Math.round((Number(trip.amount) || 0) - cost);
+  const net = Math.round(amount - cost);
   return {
     liters: Math.round(liters * 10) / 10,
     cost: Math.round(cost),
     net
   };
+}
+
+function netProfit(trip) {
+  return fuelEstimate(trip).net;
 }
 
 function toggleAnalytics() {
@@ -1013,6 +1021,7 @@ function renderDriveAnalytics(entries, yr, panel) {
 
   const totalRides = filtered.length;
   const totalAmt = filtered.reduce((sum, e) => sum + e.amount, 0);
+  const totalNet = filtered.reduce((sum, e) => sum + netProfit(e), 0);
   const avgAmt = totalRides ? Math.round(totalAmt / totalRides) : 0;
   const monthly = Array(12).fill(0);
   filtered.forEach(e => { if (e.month >= 1 && e.month <= 12) monthly[e.month - 1]++; });
@@ -1036,9 +1045,10 @@ function renderDriveAnalytics(entries, yr, panel) {
   if (!['overview', 'years', 'customers', 'routes', 'journal'].includes(analyticsView)) analyticsView = 'overview';
 
   const overviewHtml =
-    '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:16px">' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px;margin-bottom:16px">' +
       statCard(totalRides, 'Рейсов') +
       statCard(money(totalAmt), 'Выручка') +
+      statCard(money(totalNet), 'Чистая прибыль') +
       statCard(money(avgAmt), 'Средний чек') +
     '</div>' +
     sectionTitle('Рейсы по месяцам') +
@@ -1079,7 +1089,7 @@ function renderDriveAnalytics(entries, yr, panel) {
       '.journal-card:before{content:"";position:absolute;width:110px;height:110px;right:-48px;top:-46px;background:radial-gradient(circle,rgba(57,217,138,.28),transparent 62%);transition:transform .35s ease,opacity .35s ease;opacity:.74}' +
       '.journal-card:hover:before{transform:scale(1.25);opacity:1}' +
       '.journal-card-inner{position:relative;z-index:1;border-radius:17px;padding:13px;display:grid;gap:10px;background:linear-gradient(145deg,#241837 0%,#171023 56%,#110d19 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}' +
-      '.journal-summary{position:relative;overflow:hidden;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;border:1px solid rgba(57,217,138,.35);border-radius:14px;background:linear-gradient(135deg,rgba(57,217,138,.18),rgba(248,251,255,.065));box-shadow:0 12px 26px rgba(57,217,138,.09),inset 0 1px 0 rgba(255,255,255,.07)}' +
+      '.journal-summary{position:relative;overflow:hidden;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;border:1px solid rgba(57,217,138,.35);border-radius:14px;background:linear-gradient(135deg,rgba(57,217,138,.18),rgba(248,251,255,.065));box-shadow:0 12px 26px rgba(57,217,138,.09),inset 0 1px 0 rgba(255,255,255,.07)}' +
       '.journal-summary:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent,rgba(255,255,255,.13),transparent);transform:translateX(-120%);transition:transform .55s ease}' +
       '.journal-card:hover .journal-summary:before{transform:translateX(120%)}' +
       '.journal-stat{position:relative;z-index:1;min-width:0;padding:10px 10px;border-right:1px solid rgba(57,217,138,.18)}' +
@@ -1176,6 +1186,7 @@ function analyticsJournal(rows) {
         const num = trip.docNum || '—';
         const date = formatIsoDate(trip.date);
         const amount = money(trip.amount);
+        const net = money(netProfit(trip));
         const customer = trip.customerName || 'Заказчик не указан';
         const route = trip.route || 'Маршрут не указан';
         const mapHtml = '<div class="journal-map-thumb" role="button" tabindex="0" onclick="openRouteMapModalEncoded(&quot;' + routeMapId(trip.id) + '&quot;)" title="Открыть маршрут"></div>';
@@ -1190,6 +1201,7 @@ function analyticsJournal(rows) {
             '<div class="journal-stat"><span>Номер</span><b>№' + aEsc(num) + '</b></div>' +
             '<div class="journal-stat"><span>Дата</span><b>' + aEsc(date) + '</b></div>' +
             '<div class="journal-stat"><span>Сумма</span><b>' + aEsc(amount) + '</b></div>' +
+            '<div class="journal-stat"><span>Чистая</span><b>' + aEsc(net) + '</b></div>' +
           '</div>' +
           mapHtml +
           metricsHtml +
