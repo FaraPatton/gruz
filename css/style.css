@@ -58,7 +58,7 @@ body.app-ready .main {
 .app-hdr {
   background: linear-gradient(180deg, color-mix(in srgb, var(--surf) 82%, #000 18%) 0%, color-mix(in srgb, var(--bg) 86%, #000 14%) 100%);
   border-bottom: 1px solid var(--brd);
-  padding: 28px 20px 24px;
+  padding: 16px 20px 18px;
   text-align: center;
   position: sticky;
   top: 0;
@@ -76,23 +76,37 @@ body.app-ready .main {
   border-radius: 2px;
 }
 .hdr-in { max-width: 640px; margin: 0 auto; }
+.brand-row {
+  display: grid;
+  grid-template-columns: 104px minmax(0, auto);
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+}
+.brand-copy {
+  min-width: 0;
+  text-align: left;
+}
 .hero-art-frame {
-  width: min(310px, 74vw);
+  width: 104px;
   aspect-ratio: 1;
-  margin: 0 auto 16px;
-  padding: 5px;
+  margin: 0;
+  padding: 3px;
   position: relative;
   overflow: hidden;
-  border-radius: 30px;
+  border-radius: 18px;
   background: linear-gradient(135deg, rgba(255,71,232,.92), rgba(81,210,255,.78) 48%, rgba(232,200,74,.7));
-  box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 18px 54px rgba(0,0,0,.42), 0 0 36px rgba(123,93,255,.2);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 12px 28px rgba(0,0,0,.36), 0 0 24px rgba(123,93,255,.18);
 }
 .hero-art-frame::before {
   content: "";
   position: absolute;
-  inset: 5px;
-  border-radius: 25px;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.18), inset 0 0 22px rgba(81,210,255,.22);
+  inset: 3px;
+  border-radius: 15px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.2), inset 0 0 16px rgba(81,210,255,.2);
   pointer-events: none;
   z-index: 1;
 }
@@ -110,7 +124,7 @@ body.app-ready .main {
   height: 100%;
   display: block;
   object-fit: cover;
-  border-radius: 25px;
+  border-radius: 15px;
   position: relative;
   z-index: 1;
 }
@@ -124,7 +138,7 @@ body.app-ready .main {
   border: 1px solid var(--brd);
   border-radius: 20px;
   padding: 3px 12px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 .hdr-in h1 {
   font-size: 22px;
@@ -162,11 +176,17 @@ body.app-ready .main {
 }
 #loginBtnIcon { display: none; }
 .auth-row {
-  margin-top: 12px;
+  margin: 14px auto 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
+  padding: 8px 10px;
+  min-height: 58px;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 16px;
+  background: rgba(255,255,255,.025);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
 }
 .auth-row #loginBtn { margin-top: 0; }
 .google-auth-btn {
@@ -220,6 +240,11 @@ body[data-theme="light"] .app-hdr {
   background: linear-gradient(180deg, rgba(255,250,240,.86) 0%, rgba(244,240,231,.92) 100%);
   box-shadow: 0 10px 26px rgba(113,83,45,.08);
 }
+body[data-theme="light"] .auth-row {
+  background: rgba(255,255,255,.42);
+  border-color: rgba(184,139,8,.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 8px 22px rgba(113,83,45,.08);
+}
 #loginStatus {
   font-size: 10px;
   color: var(--mut);
@@ -232,14 +257,14 @@ body[data-theme="light"] .app-hdr {
 
 /* ── Theme Switch ──────────────────────────────────────────────────── */
 .theme-switch-wrap {
-  width: 92px;
-  height: 50px;
+  width: 86px;
+  height: 46px;
   display: grid;
   place-items: center;
   flex: 0 0 auto;
 }
 .auth-row .bb8-toggle {
-  --toggle-size: 8.4px;
+  --toggle-size: 7.9px;
   margin-top: 0;
   filter: drop-shadow(0 10px 20px rgba(0,0,0,.28));
 }
@@ -931,6 +956,17 @@ body[data-theme="light"] #analyticsPanel .journal-route-metrics span {
 /* ── Responsive ────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
   .app-hdr { padding: 20px 14px 18px; }
+  .brand-row { grid-template-columns: 82px minmax(0, 1fr); gap: 12px; width: 100%; }
+  .brand-copy { text-align: left; }
+  .hero-art-frame { width: 82px; border-radius: 15px; }
+  .hero-art-frame img,
+  .hero-art-frame::before { border-radius: 12px; }
+  .hdr-in h1 { font-size: 19px; }
+  .hdr-badge { font-size: 8px; letter-spacing: 2px; padding-inline: 10px; }
+  .auth-row { width: 100%; justify-content: center; gap: 10px; padding-inline: 8px; }
+  .google-auth-btn { min-width: 148px; }
+  .theme-switch-wrap { width: 80px; }
+  .auth-row .bb8-toggle { --toggle-size: 7.3px; }
   .main { padding: 14px 12px 0; }
   .dc { padding: 16px 14px; }
   .bd { font-size: 15px; padding: 14px; }
