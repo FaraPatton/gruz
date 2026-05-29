@@ -1080,6 +1080,7 @@ function renderDriveAnalytics(entries, yr, panel) {
     '<style>' +
       '@keyframes analyticsViewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}' +
       '@keyframes yearChartIn{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes yearBarGrow{from{transform:scaleX(.04);filter:saturate(.8)}to{transform:scaleX(1);filter:saturate(1.1)}}@keyframes yearCardShine{from{transform:translateX(-130%)}to{transform:translateX(130%)}}' +
+      '.journal-trip-list{display:grid;gap:10px}.journal-trip-card{position:relative;overflow:hidden;border:1px solid rgba(79,124,255,.34);border-radius:19px;padding:12px;background:linear-gradient(145deg,rgba(35,25,54,.98),rgba(15,12,24,.98));box-shadow:0 16px 34px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.05);cursor:pointer;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease,background .22s ease}.journal-trip-card:before{content:"";position:absolute;inset:-1px;background:radial-gradient(circle at 88% 12%,rgba(79,124,255,.24),transparent 30%),radial-gradient(circle at 12% 105%,rgba(57,217,138,.18),transparent 30%);opacity:.78;pointer-events:none;transition:opacity .25s ease,transform .32s ease}.journal-trip-card:hover,.journal-trip-card.is-open{transform:translateY(-2px);border-color:rgba(79,124,255,.62);box-shadow:0 22px 44px rgba(0,0,0,.3),0 0 24px rgba(79,124,255,.12),inset 0 1px 0 rgba(255,255,255,.06)}.journal-trip-card:hover:before,.journal-trip-card.is-open:before{opacity:1;transform:scale(1.04)}.journal-trip-card:focus-visible{outline:3px solid rgba(79,124,255,.32);outline-offset:3px}.journal-trip-main,.journal-trip-strip,.journal-trip-expand{position:relative;z-index:1}.journal-trip-main{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start}.journal-trip-kicker{color:var(--ana);font-family:monospace;font-size:10px;letter-spacing:0;font-weight:800;text-transform:uppercase}.journal-trip-title{margin-top:5px;color:var(--ana-text);font-size:14px;font-weight:820;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.journal-trip-route{margin-top:5px;color:var(--ana-muted);font-size:11px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.journal-trip-money{text-align:right;min-width:96px}.journal-trip-money b{display:block;color:#fff;font-size:16px;line-height:1.1;white-space:nowrap}.journal-trip-money span{display:block;margin-top:4px;color:var(--ana-muted);font-size:10px}.journal-trip-strip{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}.journal-trip-strip span{border:1px solid rgba(79,124,255,.22);border-radius:999px;background:rgba(79,124,255,.08);color:var(--ana-muted);font-size:10px;line-height:1;padding:6px 8px;white-space:nowrap}.journal-trip-strip b{color:var(--ana-text);font-weight:820}.journal-trip-strip span:first-child{border-color:rgba(57,217,138,.28);background:rgba(57,217,138,.08);color:rgba(224,255,241,.78)}.journal-trip-expand{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;max-height:0;opacity:0;transform:translateY(-7px);overflow:hidden;transition:max-height .42s ease,opacity .26s ease,transform .32s ease,margin-top .32s ease}.journal-trip-card:hover .journal-trip-expand,.journal-trip-card.is-open .journal-trip-expand{max-height:260px;opacity:1;transform:translateY(0);margin-top:12px}.journal-trip-map-thumb{grid-column:1/-1;position:relative;min-height:76px;border:1px solid rgba(57,217,138,.24);border-radius:13px;overflow:hidden;background:#080b12 url("img/route-card-map.png") center/100% 100% no-repeat;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 12px 28px rgba(0,0,0,.2)}.journal-trip-map-thumb:after{content:"Открыть карту";position:absolute;right:10px;bottom:10px;border-radius:999px;background:rgba(8,11,18,.78);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:10px;font-weight:800;padding:6px 9px;backdrop-filter:blur(6px)}.journal-trip-more{min-width:0;color:rgba(248,251,255,.6);font-size:10px;font-family:monospace;letter-spacing:0;line-height:1.45}.journal-trip-more b{display:block;color:var(--ana);font-family:inherit;font-size:11px;margin-bottom:2px}.journal-trip-delete{align-self:end}' +
       '.journal-card{position:relative;overflow:hidden;border-radius:18px;padding:1px;background:linear-gradient(135deg,rgba(57,217,138,.65),rgba(137,104,190,.35),rgba(255,255,255,.08));box-shadow:0 18px 34px rgba(0,0,0,.24),0 0 24px rgba(57,217,138,.06);transition:transform .22s ease,box-shadow .22s ease}' +
       '.journal-card:hover{transform:translateY(-2px);box-shadow:0 24px 42px rgba(0,0,0,.3),0 0 30px rgba(57,217,138,.11)}' +
       '.journal-card:before{content:"";position:absolute;width:110px;height:110px;right:-48px;top:-46px;background:radial-gradient(circle,rgba(57,217,138,.28),transparent 62%);transition:transform .35s ease,opacity .35s ease;opacity:.74}' +
@@ -1124,7 +1125,7 @@ function renderDriveAnalytics(entries, yr, panel) {
       '.route-map-yandex-btn .route-map-yandex-label{display:block;transition:transform .28s ease,opacity .28s ease}.route-map-yandex-btn .route-map-yandex-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;transition:transform .28s ease}.route-map-yandex-btn svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transform-origin:center;transition:transform .28s ease}' +
       '.route-map-yandex-btn:hover{background:linear-gradient(135deg,#5d8cff 0%,#3a6df0 100%);box-shadow:0 14px 34px rgba(66,133,244,.32);transform:translateY(-1px)}.route-map-yandex-btn:hover .route-map-yandex-icon{animation:sendFloat .62s ease-in-out infinite alternate}.route-map-yandex-btn:hover svg{transform:translateX(13px) rotate(42deg) scale(1.08)}.route-map-yandex-btn:hover .route-map-yandex-label{transform:translateX(72px);opacity:0}.route-map-yandex-btn:active{transform:scale(.97)}' +
       '.analytics-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:16px}' +
-      '@media(max-width:430px){.analytics-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-tabs button:first-child{grid-column:1 / -1}.overview-year-card{grid-template-columns:1fr;gap:9px}.overview-year-money{text-align:left}.journal-card-inner{padding:12px}.journal-summary{grid-template-columns:1fr}.journal-stat{border-right:0;border-bottom:1px solid rgba(57,217,138,.18)}.journal-stat:last-child{border-bottom:0}.journal-delete{width:42px;height:42px}.route-map-dialog{padding:13px}.route-map-head{display:block}.route-map-sum{margin-top:6px}.route-map-large{min-height:280px}.route-map-large iframe{height:280px}.route-map-state{min-height:170px}}' +
+      '@media(max-width:430px){.analytics-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-tabs button:first-child{grid-column:1 / -1}.overview-year-card{grid-template-columns:1fr;gap:9px}.overview-year-money{text-align:left}.journal-trip-card{padding:11px;border-radius:16px}.journal-trip-main{grid-template-columns:1fr;gap:8px}.journal-trip-money{text-align:left;min-width:0;display:flex;align-items:baseline;gap:8px}.journal-trip-title{font-size:13px}.journal-trip-route{-webkit-line-clamp:1}.journal-trip-strip span{font-size:9px;padding:6px 7px}.journal-trip-map-thumb{min-height:68px}.journal-card-inner{padding:12px}.journal-summary{grid-template-columns:1fr}.journal-stat{border-right:0;border-bottom:1px solid rgba(57,217,138,.18)}.journal-stat:last-child{border-bottom:0}.journal-delete{width:42px;height:42px}.route-map-dialog{padding:13px}.route-map-head{display:block}.route-map-sum{margin-top:6px}.route-map-large{min-height:280px}.route-map-large iframe{height:280px}.route-map-state{min-height:170px}}' +
     '</style>' +
     '<div class="dc" style="--acc:' + ANALYTICS_GREEN + ';--ana:' + ANALYTICS_GREEN + ';--ana2:' + ANALYTICS_GREEN_DARK + ';--ana-bg:#171022;--ana-card:#211733;--ana-card2:#2b2140;--ana-text:#f8fbff;--ana-muted:#a99bc8;padding:18px;margin-bottom:0;background:radial-gradient(circle at 12% 0%,rgba(57,217,138,.11),transparent 30%),linear-gradient(180deg,#1a1128,#130f1d);border-color:rgba(137,104,190,.28);box-shadow:0 22px 54px rgba(0,0,0,.24)">' +
       '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:14px">' +
@@ -1174,7 +1175,7 @@ function emptyAnalyticsText(text) {
   return '<div style="background:rgba(255,255,255,.035);border:1px solid rgba(137,104,190,.24);border-radius:8px;padding:12px;color:var(--ana-muted);font-size:12px;line-height:1.45">' + aEsc(text) + '</div>';
 }
 
-function analyticsJournal(rows) {
+function analyticsJournalCompact(rows) {
   const sorted = rows.slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   if (!sorted.length) return emptyAnalyticsText('В выбранном периоде нет записей trips.json.');
 
@@ -1270,6 +1271,61 @@ function overviewYearsChart(rows, maxAmount) {
   '</div>';
 }
 
+function analyticsJournal(rows) {
+  const sorted = rows.slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  if (!sorted.length) return emptyAnalyticsText('В выбранном периоде нет записей trips.json.');
+
+  return sectionTitle('Журнал trips.json') +
+    '<div class="journal-trip-list">' +
+      sorted.map(trip => {
+        const num = trip.docNum || '—';
+        const date = formatIsoDate(trip.date);
+        const amount = money(trip.amount);
+        const net = money(netProfit(trip));
+        const fuel = fuelEstimate(trip);
+        const totalKm = formatKm(trip.totalDistanceMeters);
+        const perKm = grossPerKm(trip);
+        const customer = trip.customerName || 'Заказчик не указан';
+        const route = trip.route || 'Маршрут не указан';
+        const encodedId = routeMapId(trip.id);
+        const keyHandler = 'if(event.key===&quot;Enter&quot;||event.key===&quot; &quot;){event.preventDefault();toggleJournalCardAndMap(this,&quot;' + encodedId + '&quot;)}';
+        const files = [
+          trip.invoiceFileId ? 'счёт PDF' : '',
+          trip.actFileId ? 'акт PDF' : ''
+        ].filter(Boolean).join(' · ') || 'PDF не привязаны';
+
+        return '<div class="journal-trip-card" role="button" tabindex="0" title="Раскрыть и открыть маршрут" onclick="toggleJournalCardAndMap(this,&quot;' + encodedId + '&quot;)" onkeydown="' + keyHandler + '">' +
+          '<div class="journal-trip-main">' +
+            '<div style="min-width:0">' +
+              '<div class="journal-trip-kicker">№' + aEsc(num) + ' · ' + aEsc(date) + '</div>' +
+              '<div class="journal-trip-title" title="' + aEsc(customer) + '">' + aEsc(customer) + '</div>' +
+              '<div class="journal-trip-route" title="' + aEsc(route) + '">' + aEsc(route) + '</div>' +
+            '</div>' +
+            '<div class="journal-trip-money"><b>' + aEsc(amount) + '</b><span>оборот</span></div>' +
+          '</div>' +
+          '<div class="journal-trip-strip">' +
+            '<span>чистая <b>' + aEsc(net) + '</b></span>' +
+            '<span>топливо <b>' + aEsc(money(fuel.cost)) + '</b></span>' +
+            '<span>' + (totalKm ? 'круг <b>' + aEsc(totalKm) + '</b>' : 'км не указан') + '</span>' +
+            (perKm ? '<span><b>' + aEsc(perKm.toLocaleString('ru-RU')) + ' ₽/км</b></span>' : '') +
+          '</div>' +
+          '<div class="journal-trip-expand">' +
+            '<div class="journal-trip-map-thumb" aria-hidden="true"></div>' +
+            '<div class="journal-trip-more"><b>Детали рейса</b>' + aEsc(files) + (trip.car ? ' · ' + aEsc(trip.car) : '') + '</div>' +
+            '<button class="journal-delete journal-trip-delete" title="Удалить рейс" aria-label="Удалить рейс" onclick="event.stopPropagation();deleteTripFromRegistryEncoded(&quot;' + encodeURIComponent(trip.id) + '&quot;)">' +
+              '<span class="journal-delete-cap"></span><span class="journal-delete-top"></span><span class="journal-delete-bottom"></span>' +
+            '</button>' +
+          '</div>' +
+        '</div>';
+      }).join('') +
+    '</div>';
+}
+
+function toggleJournalCardAndMap(card, encodedTripId) {
+  if (card) card.classList.toggle('is-open');
+  openRouteMapModalEncoded(encodedTripId);
+}
+
 function analyticsList(title, rows, max, formatValue, amountWidth) {
   if (!rows.length) return '';
   return sectionTitle(title) + rows.map((row, i) => {
@@ -1308,6 +1364,7 @@ window.deleteTripFromRegistry = deleteTripFromRegistry;
 window.deleteTripFromRegistryEncoded = deleteTripFromRegistryEncoded;
 window.openRouteMapModal = openRouteMapModal;
 window.openRouteMapModalEncoded = openRouteMapModalEncoded;
+window.toggleJournalCardAndMap = toggleJournalCardAndMap;
 window.saveManualRouteKm = saveManualRouteKm;
 window.saveManualRouteKmEncoded = saveManualRouteKmEncoded;
 window.closeRouteMapModal = closeRouteMapModal;
