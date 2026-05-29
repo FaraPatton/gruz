@@ -1035,10 +1035,16 @@ function renderDriveAnalytics(entries, yr, panel) {
   const routeStats = groupStats(filtered.filter(e => e.route), e => e.route).sort((a, b) => b.count - a.count).slice(0, 5);
   const yearStats = years.map(y => {
     const rows = trips.filter(e => e.year === y);
-    return { name: String(y), count: rows.length, amount: rows.reduce((s, e) => s + e.amount, 0) };
+    return {
+      name: String(y),
+      count: rows.length,
+      amount: rows.reduce((s, e) => s + e.amount, 0),
+      net: rows.reduce((s, e) => s + netProfit(e), 0)
+    };
   });
 
   const maxYearCount = Math.max(...yearStats.map(s => s.count), 1);
+  const maxYearAmount = Math.max(...yearStats.map(s => s.amount), 1);
   const maxTopTrips = Math.max(...topByTrips.map(s => s.count), 1);
   const maxTopMoney = Math.max(...topByMoney.map(s => s.amount), 1);
   const maxRoutes = Math.max(...routeStats.map(s => s.count), 1);
@@ -1047,7 +1053,7 @@ function renderDriveAnalytics(entries, yr, panel) {
   const overviewHtml =
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px;margin-bottom:16px">' +
       statCard(totalRides, 'Рейсов') +
-      statCard(money(totalAmt), 'Выручка') +
+      statCard(money(totalAmt), 'Оборот') +
       statCard(money(totalNet), 'Чистая прибыль') +
       statCard(money(avgAmt), 'Средний чек') +
     '</div>' +
@@ -1056,7 +1062,7 @@ function renderDriveAnalytics(entries, yr, panel) {
       monthly.map((v, i) => monthBar(v, maxM, monthNames[i])).join('') +
     '</div>' +
     sectionTitle('Кратко по годам') +
-    yearStats.slice(0, 4).map(row => metricRow(row.name, row.count + ' рейсов · ' + money(row.amount), pct(row.count, maxYearCount))).join('');
+    overviewYearsChart(yearStats.slice(0, 4), maxYearAmount);
 
   const yearsHtml =
     sectionTitle('Динамика по годам') +
@@ -1084,6 +1090,7 @@ function renderDriveAnalytics(entries, yr, panel) {
   panel.innerHTML =
     '<style>' +
       '@keyframes analyticsViewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}' +
+      '@keyframes yearChartIn{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes yearBarGrow{from{transform:scaleX(.04);filter:saturate(.8)}to{transform:scaleX(1);filter:saturate(1.1)}}@keyframes yearCardShine{from{transform:translateX(-130%)}to{transform:translateX(130%)}}' +
       '.journal-card{position:relative;overflow:hidden;border-radius:18px;padding:1px;background:linear-gradient(135deg,rgba(57,217,138,.65),rgba(137,104,190,.35),rgba(255,255,255,.08));box-shadow:0 18px 34px rgba(0,0,0,.24),0 0 24px rgba(57,217,138,.06);transition:transform .22s ease,box-shadow .22s ease}' +
       '.journal-card:hover{transform:translateY(-2px);box-shadow:0 24px 42px rgba(0,0,0,.3),0 0 30px rgba(57,217,138,.11)}' +
       '.journal-card:before{content:"";position:absolute;width:110px;height:110px;right:-48px;top:-46px;background:radial-gradient(circle,rgba(57,217,138,.28),transparent 62%);transition:transform .35s ease,opacity .35s ease;opacity:.74}' +
@@ -1107,6 +1114,7 @@ function renderDriveAnalytics(entries, yr, panel) {
       '.journal-delete:hover .journal-delete-bottom:before,.journal-delete:hover .journal-delete-bottom:after{background:rgb(255,38,38)}' +
       '.journal-delete:active{transform:scale(.95)}' +
       '.journal-map-thumb{position:relative;width:100%;aspect-ratio:3.52/1;border:1px solid rgba(57,217,138,.26);border-radius:8px;overflow:hidden;background:#080b12 url("img/route-card-map.png") center/100% 100% no-repeat;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 10px 26px rgba(0,0,0,.18);transition:transform .18s ease,border-color .2s ease,box-shadow .2s ease}' +
+      '.overview-year-chart{display:grid;gap:9px;margin:4px 0 20px}.overview-year-card{position:relative;overflow:hidden;display:grid;grid-template-columns:74px minmax(0,1fr) minmax(128px,auto);gap:12px;align-items:center;padding:12px;border:1px solid rgba(137,104,190,.22);border-radius:10px;background:linear-gradient(135deg,rgba(255,255,255,.045),rgba(57,217,138,.035));animation:yearChartIn .56s cubic-bezier(.2,.8,.2,1) both;animation-timeline:view();animation-range:entry 0% cover 34%}.overview-year-card:before{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent,rgba(255,255,255,.09),transparent);transform:translateX(-130%)}.overview-year-card:hover:before{animation:yearCardShine .85s ease}.overview-year-card:hover{border-color:rgba(57,217,138,.38);box-shadow:0 14px 28px rgba(0,0,0,.16),0 0 22px rgba(57,217,138,.08)}.overview-year-name{position:relative;z-index:1;color:var(--ana-text);font-size:18px;font-weight:780}.overview-year-main{position:relative;z-index:1;min-width:0}.overview-year-bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.22)}.overview-year-fill{height:100%;width:var(--w);border-radius:inherit;background:linear-gradient(90deg,var(--ana),#65e7a5 54%,#4f7cff);box-shadow:0 0 18px rgba(57,217,138,.2);transform-origin:left;animation:yearBarGrow .82s cubic-bezier(.2,.8,.2,1) both;animation-timeline:view();animation-range:entry 4% cover 32%}.overview-year-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.overview-year-meta span{border:1px solid rgba(57,217,138,.2);border-radius:999px;background:rgba(57,217,138,.06);color:var(--ana-muted);font-size:10px;line-height:1;padding:5px 7px}.overview-year-money{position:relative;z-index:1;text-align:right;min-width:0}.overview-year-money b{display:block;color:var(--ana);font-size:14px;line-height:1.1;white-space:nowrap}.overview-year-money span{display:block;margin-top:5px;color:var(--ana-muted);font-size:10px;white-space:nowrap}.overview-year-card:nth-child(2){animation-delay:.05s}.overview-year-card:nth-child(3){animation-delay:.1s}.overview-year-card:nth-child(4){animation-delay:.15s}' +
       '.journal-map-thumb:hover{transform:translateY(-1px);border-color:rgba(57,217,138,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 16px 34px rgba(0,0,0,.24),0 0 24px rgba(57,217,138,.1)}' +
       '.journal-route-metrics,.route-map-route-metrics{display:flex;gap:6px;flex-wrap:wrap}.journal-route-metrics{margin-top:-3px}.route-map-route-metrics{margin-top:10px}.journal-route-metrics span,.route-map-route-metrics span{border:1px solid rgba(57,217,138,.2);border-radius:999px;background:rgba(57,217,138,.07);color:var(--ana-muted);font-size:10px;line-height:1;padding:5px 7px;white-space:nowrap}.route-map-route-metrics span{font-size:11px;padding:7px 9px}.journal-route-metrics b,.route-map-route-metrics b{color:var(--ana-text);font-weight:800}.journal-route-metrics.is-pending span,.route-map-route-metrics.is-pending span{border-color:rgba(248,251,255,.16);background:rgba(255,255,255,.045);color:rgba(248,251,255,.58)}' +
       '.route-map-modal{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(4,6,10,.72);backdrop-filter:blur(10px)}' +
@@ -1126,7 +1134,7 @@ function renderDriveAnalytics(entries, yr, panel) {
       '.route-map-yandex-btn .route-map-yandex-label{display:block;transition:transform .28s ease,opacity .28s ease}.route-map-yandex-btn .route-map-yandex-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;transition:transform .28s ease}.route-map-yandex-btn svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transform-origin:center;transition:transform .28s ease}' +
       '.route-map-yandex-btn:hover{background:linear-gradient(135deg,#5d8cff 0%,#3a6df0 100%);box-shadow:0 14px 34px rgba(66,133,244,.32);transform:translateY(-1px)}.route-map-yandex-btn:hover .route-map-yandex-icon{animation:sendFloat .62s ease-in-out infinite alternate}.route-map-yandex-btn:hover svg{transform:translateX(13px) rotate(42deg) scale(1.08)}.route-map-yandex-btn:hover .route-map-yandex-label{transform:translateX(72px);opacity:0}.route-map-yandex-btn:active{transform:scale(.97)}' +
       '.analytics-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:16px}' +
-      '@media(max-width:430px){.analytics-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-tabs button:first-child{grid-column:1 / -1}.journal-card-inner{padding:12px}.journal-summary{grid-template-columns:1fr}.journal-stat{border-right:0;border-bottom:1px solid rgba(57,217,138,.18)}.journal-stat:last-child{border-bottom:0}.journal-delete{width:42px;height:42px}.route-map-dialog{padding:13px}.route-map-head{display:block}.route-map-sum{margin-top:6px}.route-map-large{min-height:280px}.route-map-large iframe{height:280px}.route-map-state{min-height:170px}}' +
+      '@media(max-width:430px){.analytics-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-tabs button:first-child{grid-column:1 / -1}.overview-year-card{grid-template-columns:1fr;gap:9px}.overview-year-money{text-align:left}.journal-card-inner{padding:12px}.journal-summary{grid-template-columns:1fr}.journal-stat{border-right:0;border-bottom:1px solid rgba(57,217,138,.18)}.journal-stat:last-child{border-bottom:0}.journal-delete{width:42px;height:42px}.route-map-dialog{padding:13px}.route-map-head{display:block}.route-map-sum{margin-top:6px}.route-map-large{min-height:280px}.route-map-large iframe{height:280px}.route-map-state{min-height:170px}}' +
     '</style>' +
     '<div class="dc" style="--acc:' + ANALYTICS_GREEN + ';--ana:' + ANALYTICS_GREEN + ';--ana2:' + ANALYTICS_GREEN_DARK + ';--ana-bg:#171022;--ana-card:#211733;--ana-card2:#2b2140;--ana-text:#f8fbff;--ana-muted:#a99bc8;padding:18px;margin-bottom:0;background:radial-gradient(circle at 12% 0%,rgba(57,217,138,.11),transparent 30%),linear-gradient(180deg,#1a1128,#130f1d);border-color:rgba(137,104,190,.28);box-shadow:0 22px 54px rgba(0,0,0,.24)">' +
       '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:14px">' +
@@ -1245,6 +1253,29 @@ function monthBar(value, max, label) {
   return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0">' +
     '<div title="' + value + '" style="width:100%;height:' + h + 'px;background:' + (value ? 'linear-gradient(180deg,var(--ana),var(--ana2))' : 'rgba(255,255,255,.06)') + ';border-radius:6px 6px 2px 2px;box-shadow:' + (value ? '0 8px 18px rgba(57,217,138,.12)' : 'none') + ';transition:height .28s ease"></div>' +
     '<div style="font-size:8px;color:var(--mut);margin-top:3px">' + label + '</div>' +
+  '</div>';
+}
+
+function overviewYearsChart(rows, maxAmount) {
+  if (!rows.length) return emptyAnalyticsText('По годам пока нет данных.');
+  return '<div class="overview-year-chart">' +
+    rows.map(row => {
+      const width = Math.max(8, Math.round((row.amount || 0) / (maxAmount || 1) * 100));
+      return '<div class="overview-year-card">' +
+        '<div class="overview-year-name">' + aEsc(row.name) + '</div>' +
+        '<div class="overview-year-main">' +
+          '<div class="overview-year-bar"><div class="overview-year-fill" style="--w:' + width + '%"></div></div>' +
+          '<div class="overview-year-meta">' +
+            '<span>' + aEsc(row.count) + ' рейсов</span>' +
+            '<span>чистая ' + aEsc(money(row.net)) + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="overview-year-money">' +
+          '<b>' + aEsc(money(row.amount)) + '</b>' +
+          '<span>оборот</span>' +
+        '</div>' +
+      '</div>';
+    }).join('') +
   '</div>';
 }
 
