@@ -35,7 +35,7 @@ function getTokenClient() {
 
 function setAuthLockState(locked) {
   const lock = document.getElementById('authLockToggle');
-  if (lock) lock.checked = !!locked;
+  if (lock) lock.classList.toggle('is-authorized', !!locked);
 }
 
 function requestAuth(prompt, resolve, reject) {

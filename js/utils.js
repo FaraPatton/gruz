@@ -150,8 +150,31 @@ function amountToWords(n) {
     return (result.trim() + ' ' + rubles(n % 1000 || (n===0?0:n))).trim();
 }
 
+function applyAppTheme(theme) {
+    const nextTheme = theme === 'light' ? 'light' : 'dark';
+    document.body.dataset.theme = nextTheme;
+    const toggle = document.getElementById('authLockToggle');
+    if (toggle) toggle.checked = nextTheme === 'light';
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', nextTheme === 'light' ? '#f4f0e7' : '#e8c84a');
+}
+
+function initThemeSwitch() {
+    const saved = localStorage.getItem('gruzTheme') || 'dark';
+    applyAppTheme(saved);
+    const toggle = document.getElementById('authLockToggle');
+    if (!toggle || toggle.dataset.themeBound === '1') return;
+    toggle.dataset.themeBound = '1';
+    toggle.addEventListener('change', () => {
+          const theme = toggle.checked ? 'light' : 'dark';
+          localStorage.setItem('gruzTheme', theme);
+          applyAppTheme(theme);
+    });
+}
+
 // ── Stamp init on DOMContentLoaded ──
 document.addEventListener('DOMContentLoaded', () => {
+    initThemeSwitch();
     // Set today for empty date fields
                             loadTpl();
     const t = today();
