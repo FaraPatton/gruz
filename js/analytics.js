@@ -1,12 +1,17 @@
 // Analytics: fast Drive registry + one-time PDF archive scan
 
 const TRIPS_REGISTRY_NAME = 'trips.json';
-const TRIPS_REGISTRY_VERSION = 5;
+const TRIPS_REGISTRY_VERSION = 6;
 const EXECUTOR_MARKERS = ['Карпов', '771313296859', '40802810438000085714', 'Керамический', 'СБЕРБАНК'];
 const ANALYTICS_GREEN = '#39d98a';
 const ANALYTICS_GREEN_DARK = '#1f9d63';
 const DEFAULT_FUEL_PRICE_RUB = 60;
 const DEFAULT_FUEL_LITERS_PER_100KM = 25;
+const PAYMENT_TYPES = {
+  bank: 'Банковский перевод',
+  cash: 'Наличные',
+  unknown: 'Не указано'
+};
 
 let analyticsRegistryFileId = null;
 let analyticsView = 'overview';
@@ -70,6 +75,17 @@ function fuelEstimate(trip) {
 
 function netProfit(trip) {
   return fuelEstimate(trip).net;
+}
+
+function normalizePaymentType(value) {
+  const raw = String(value || '').trim().toLowerCase();
+  if (['cash', 'nal', 'нал', 'наличные', 'наличка'].includes(raw)) return 'cash';
+  if (['bank', 'transfer', 'wire', 'перевод', 'банковский перевод', 'безнал', 'безналичные'].includes(raw)) return 'bank';
+  return 'unknown';
+}
+
+function paymentLabel(type) {
+  return PAYMENT_TYPES[normalizePaymentType(type)] || PAYMENT_TYPES.unknown;
 }
 
 function toggleAnalytics() {
@@ -433,6 +449,8 @@ function normalizeTrip(trip) {
     month,
     year,
     amount: Math.round(Number(trip.amount) || 0),
+    paymentType: normalizePaymentType(trip.paymentType || trip.payment || ''),
+    paymentUpdatedAt: trip.paymentUpdatedAt || '',
     customerName,
     customerInn: String(trip.customerInn || '').trim(),
     customerKpp: String(trip.customerKpp || '').trim(),
@@ -477,6 +495,9 @@ function mergeTrips(trips) {
     Object.keys(trip).forEach(k => {
       if (!merged[k] && trip[k]) merged[k] = trip[k];
     });
+    if (normalizePaymentType(merged.paymentType) === 'unknown' && normalizePaymentType(trip.paymentType) !== 'unknown') {
+      merged.paymentType = normalizePaymentType(trip.paymentType);
+    }
     if (trip.invoiceFileId) {
       merged.invoiceFileId = trip.invoiceFileId;
       merged.docType = 'invoice';
@@ -954,6 +975,48 @@ function saveManualRouteKmEncoded(encodedTripId) {
   saveManualRouteKm(decodeURIComponent(encodedTripId));
 }
 
+async function setTripPaymentType(tripId, paymentType) {
+  const type = normalizePaymentType(paymentType);
+  if (type === 'unknown') return;
+
+  const currentTrips = (driveCache || []).map(normalizeTrip).filter(Boolean);
+  const trip = currentTrips.find(item => item.id === tripId);
+  if (!trip) return;
+
+  const updatedTrip = normalizeTrip({
+    ...trip,
+    paymentType: type,
+    paymentUpdatedAt: new Date().toISOString()
+  });
+
+  try {
+    const registry = await loadTripsRegistry();
+    const trips = mergeTrips([...(registry.trips || []), updatedTrip]).sort((a, b) => {
+      const da = a.date || String(a.year || '');
+      const db = b.date || String(b.year || '');
+      return db.localeCompare(da);
+    });
+
+    await saveTripsRegistry({
+      ...registry,
+      version: TRIPS_REGISTRY_VERSION,
+      updatedAt: new Date().toISOString(),
+      source: 'payment-type',
+      trips
+    });
+
+    driveCache = trips;
+    renderDriveAnalytics(driveCache, analyticsYear, document.getElementById('analyticsPanel'));
+    showToast('✓ Оплата: ' + paymentLabel(type));
+  } catch (e) {
+    showToast('Не удалось сохранить тип оплаты: ' + e.message);
+  }
+}
+
+function setTripPaymentTypeEncoded(encodedTripId, paymentType) {
+  setTripPaymentType(decodeURIComponent(encodedTripId), paymentType);
+}
+
 async function deleteTripFromRegistry(tripId) {
   const currentTrips = (driveCache || []).map(normalizeTrip).filter(Boolean);
   const trip = currentTrips.find(item => item.id === tripId);
@@ -1023,6 +1086,7 @@ function renderDriveAnalytics(entries, yr, panel) {
   const totalAmt = filtered.reduce((sum, e) => sum + e.amount, 0);
   const totalNet = filtered.reduce((sum, e) => sum + netProfit(e), 0);
   const avgAmt = totalRides ? Math.round(totalAmt / totalRides) : 0;
+  const paymentStats = paymentSummary(filtered);
   const monthly = Array(12).fill(0);
   filtered.forEach(e => { if (e.month >= 1 && e.month <= 12) monthly[e.month - 1]++; });
   const maxM = Math.max(...monthly, 1);
@@ -1058,6 +1122,8 @@ function renderDriveAnalytics(entries, yr, panel) {
       statCard(money(totalNet), 'Чистая прибыль') +
       statCard(money(totalAmt), 'Оборот') +
     '</div>' +
+    sectionTitle('Оплата') +
+    paymentSummaryHtml(paymentStats) +
     sectionTitle('Рейсы по месяцам') +
     '<div style="display:flex;align-items:flex-end;gap:5px;height:76px;margin-bottom:20px;padding:6px 2px 0;border-bottom:1px solid rgba(255,255,255,.08)">' +
       monthly.map((v, i) => monthBar(v, maxM, monthNames[i])).join('') +
@@ -1093,6 +1159,7 @@ function renderDriveAnalytics(entries, yr, panel) {
       '@keyframes analyticsViewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}' +
       '@keyframes yearChartIn{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes yearBarGrow{from{transform:scaleX(.04);filter:saturate(.8)}to{transform:scaleX(1);filter:saturate(1.1)}}@keyframes yearCardShine{from{transform:translateX(-130%)}to{transform:translateX(130%)}}' +
       '.journal-trip-list{display:grid;gap:14px}.journal-trip-card{position:relative;overflow:hidden;border:1px solid rgba(79,124,255,.34);border-radius:19px;padding:14px;background:linear-gradient(145deg,rgba(35,25,54,.98),rgba(15,12,24,.98));box-shadow:0 16px 34px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.05);cursor:pointer;transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}.journal-trip-card:before{content:"";position:absolute;inset:-1px;background:radial-gradient(circle at 88% 12%,rgba(79,124,255,.18),transparent 32%);opacity:.72;pointer-events:none}.journal-trip-card:hover{transform:translateY(-1px);border-color:rgba(79,124,255,.54);box-shadow:0 18px 34px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.06)}.journal-trip-card:focus-visible{outline:3px solid rgba(79,124,255,.32);outline-offset:3px}.journal-trip-main,.journal-trip-strip,.journal-trip-more{position:relative;z-index:1}.journal-trip-main{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:52px;align-items:start;padding-right:56px}.journal-trip-kicker{color:var(--ana);font-family:monospace;font-size:10px;letter-spacing:0;font-weight:800;text-transform:uppercase}.journal-trip-title{margin-top:5px;color:var(--ana-text);font-size:14px;font-weight:820;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.journal-trip-route{margin-top:5px;color:var(--ana-muted);font-size:11px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.journal-trip-money{text-align:right;min-width:96px}.journal-trip-money b{display:block;color:#fff;font-size:16px;line-height:1.1;white-space:nowrap}.journal-trip-money span{display:block;margin-top:4px;color:var(--ana-muted);font-size:10px}.journal-trip-strip{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px;padding-right:52px}.journal-trip-strip span{border:1px solid rgba(79,124,255,.22);border-radius:999px;background:rgba(79,124,255,.08);color:var(--ana-muted);font-size:10px;line-height:1;padding:6px 8px;white-space:nowrap}.journal-trip-strip b{color:var(--ana-text);font-weight:820}.journal-trip-strip span:first-child{border-color:rgba(57,217,138,.28);background:rgba(57,217,138,.08);color:rgba(224,255,241,.78)}.journal-trip-more{margin-top:10px;color:rgba(248,251,255,.6);font-size:10px;font-family:monospace;letter-spacing:0;line-height:1.45;padding-right:52px}.journal-trip-more b{display:inline;color:var(--ana);font-family:inherit;font-size:11px;margin-right:8px}.journal-trip-delete{position:absolute;z-index:2;right:14px;top:14px;width:42px;height:42px;border-radius:50%;background-color:rgb(20,20,20);border:none;font-weight:600;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px rgba(0,0,0,.24);cursor:pointer;transition-duration:.3s;overflow:hidden}.journal-trip-delete svg{width:12px;transition-duration:.3s}.journal-trip-delete svg path{fill:#fff}.journal-trip-delete:hover{width:118px;border-radius:50px;background-color:rgb(255,69,69);align-items:center}.journal-trip-delete:hover svg{width:42px;transform:translateY(58%)}.journal-trip-delete:before{position:absolute;top:-20px;content:"Удалить";color:#fff;transition-duration:.3s;font-size:2px}.journal-trip-delete:hover:before{font-size:12px;opacity:1;transform:translateY(29px)}.journal-trip-delete:active{transform:scale(.96)}' +
+      '.payment-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin-bottom:16px}.payment-summary-card{border:1px solid rgba(79,124,255,.22);border-radius:9px;background:linear-gradient(135deg,rgba(79,124,255,.08),rgba(57,217,138,.045));padding:11px 10px;min-width:0}.payment-summary-card b{display:block;color:var(--ana-text);font-size:14px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.payment-summary-card span{display:block;margin-top:5px;color:var(--ana-muted);font-size:10px}.payment-summary-card small{display:block;margin-top:4px;color:rgba(248,251,255,.5);font-size:9px}.journal-payment{position:relative;z-index:1;display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;padding-right:52px}.journal-payment button{border:1px solid rgba(79,124,255,.24);border-radius:999px;background:rgba(255,255,255,.045);color:var(--ana-muted);font-size:10px;line-height:1;padding:7px 9px;cursor:pointer;transition:.16s ease}.journal-payment button:hover{border-color:rgba(79,124,255,.52);color:#fff}.journal-payment button.is-active{border-color:rgba(57,217,138,.46);background:rgba(57,217,138,.12);color:#dfffee;box-shadow:0 0 18px rgba(57,217,138,.08)}' +
       '.journal-card{position:relative;overflow:hidden;border-radius:18px;padding:1px;background:linear-gradient(135deg,rgba(57,217,138,.65),rgba(137,104,190,.35),rgba(255,255,255,.08));box-shadow:0 18px 34px rgba(0,0,0,.24),0 0 24px rgba(57,217,138,.06);transition:transform .22s ease,box-shadow .22s ease}' +
       '.journal-card:hover{transform:translateY(-2px);box-shadow:0 24px 42px rgba(0,0,0,.3),0 0 30px rgba(57,217,138,.11)}' +
       '.journal-card:before{content:"";position:absolute;width:110px;height:110px;right:-48px;top:-46px;background:radial-gradient(circle,rgba(57,217,138,.28),transparent 62%);transition:transform .35s ease,opacity .35s ease;opacity:.74}' +
@@ -1199,6 +1266,33 @@ function statCard(value, label) {
   '</div>';
 }
 
+function paymentSummary(rows) {
+  return rows.reduce((stat, trip) => {
+    const type = normalizePaymentType(trip.paymentType);
+    stat.total += trip.amount || 0;
+    stat[type] += trip.amount || 0;
+    stat.counts[type] += 1;
+    return stat;
+  }, { total: 0, bank: 0, cash: 0, unknown: 0, counts: { bank: 0, cash: 0, unknown: 0 } });
+}
+
+function paymentSummaryHtml(stat) {
+  return '<div class="payment-summary">' +
+    paymentSummaryCard('Всего', stat.total, '') +
+    paymentSummaryCard('Перевод', stat.bank, stat.counts.bank + ' рейс.') +
+    paymentSummaryCard('Наличные', stat.cash, stat.counts.cash + ' рейс.') +
+    paymentSummaryCard('Не указано', stat.unknown, stat.counts.unknown + ' рейс.') +
+  '</div>';
+}
+
+function paymentSummaryCard(label, value, hint) {
+  return '<div class="payment-summary-card">' +
+    '<b>' + aEsc(money(value)) + '</b>' +
+    '<span>' + aEsc(label) + '</span>' +
+    (hint ? '<small>' + aEsc(hint) + '</small>' : '') +
+  '</div>';
+}
+
 function sectionTitle(text) {
   return '<div style="font-family:monospace;font-size:10px;letter-spacing:0;color:var(--ana-muted);margin:16px 0 9px">' + text + '</div>';
 }
@@ -1249,6 +1343,7 @@ function analyticsJournal(rows) {
         const fuel = fuelEstimate(trip);
         const totalKm = formatKm(trip.totalDistanceMeters);
         const perKm = grossPerKm(trip);
+        const paymentType = normalizePaymentType(trip.paymentType);
         const customer = trip.customerName || 'Заказчик не указан';
         const route = trip.route || 'Маршрут не указан';
         const encodedId = routeMapId(trip.id);
@@ -1272,6 +1367,11 @@ function analyticsJournal(rows) {
             '<span>топливо <b>' + aEsc(money(fuel.cost)) + '</b></span>' +
             '<span>' + (totalKm ? 'круг <b>' + aEsc(totalKm) + '</b>' : 'км не указан') + '</span>' +
             (perKm ? '<span><b>' + aEsc(perKm.toLocaleString('ru-RU')) + ' ₽/км</b></span>' : '') +
+            '<span>оплата <b>' + aEsc(paymentLabel(paymentType)) + '</b></span>' +
+          '</div>' +
+          '<div class="journal-payment" onclick="event.stopPropagation()">' +
+            '<button class="' + (paymentType === 'bank' ? 'is-active' : '') + '" onclick="setTripPaymentTypeEncoded(&quot;' + encodedId + '&quot;,&quot;bank&quot;)">Перевод</button>' +
+            '<button class="' + (paymentType === 'cash' ? 'is-active' : '') + '" onclick="setTripPaymentTypeEncoded(&quot;' + encodedId + '&quot;,&quot;cash&quot;)">Наличные</button>' +
           '</div>' +
           '<div class="journal-trip-more"><b>Детали рейса</b>' + aEsc(files) + (trip.car ? ' · ' + aEsc(trip.car) : '') + '</div>' +
           '<button class="journal-trip-delete" title="Удалить рейс" aria-label="Удалить рейс" onclick="event.stopPropagation();deleteTripFromRegistryEncoded(&quot;' + encodeURIComponent(trip.id) + '&quot;)">' +
@@ -1322,6 +1422,8 @@ window.openRouteMapModal = openRouteMapModal;
 window.openRouteMapModalEncoded = openRouteMapModalEncoded;
 window.saveManualRouteKm = saveManualRouteKm;
 window.saveManualRouteKmEncoded = saveManualRouteKmEncoded;
+window.setTripPaymentType = setTripPaymentType;
+window.setTripPaymentTypeEncoded = setTripPaymentTypeEncoded;
 window.closeRouteMapModal = closeRouteMapModal;
 
 if (document.readyState === 'loading') {
