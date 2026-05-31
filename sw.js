@@ -1,11 +1,11 @@
 // Service Worker
-const CACHE = 'gruz-v68';
+const CACHE = 'gruz-v69';
 const ASSETS = [
-  '/gruz/', '/gruz/index.html', '/gruz/analytics.html', '/gruz/css/bb8.css?v=1', '/gruz/css/style.css?v=26',
+  '/gruz/', '/gruz/index.html', '/gruz/analytics.html', '/gruz/css/bb8.css?v=1', '/gruz/css/style.css?v=27',
   '/gruz/js/stamp.js?v=3',
-  '/gruz/js/config.js?v=5', '/gruz/js/utils.js?v=9', '/gruz/js/auth.js?v=7',
+  '/gruz/js/config.js?v=6', '/gruz/js/utils.js?v=9', '/gruz/js/auth.js?v=7',
   '/gruz/js/pdf.js?v=4', '/gruz/js/drive.js?v=5', '/gruz/js/email.js?v=12',
-  '/gruz/js/sign.js?v=2', '/gruz/js/analytics.js?v=40', '/gruz/js/analytics_page.js?v=2',
+  '/gruz/js/sign.js?v=2', '/gruz/js/analytics.js?v=40', '/gruz/js/analytics_page.js?v=3',
   '/gruz/fonts/liberation.js',
   '/gruz/manifest.json', '/gruz/img/route-card-map.png', '/gruz/img/truck-neon-hero.png',
   '/gruz/img/icon-192.png', '/gruz/img/icon-512.png'

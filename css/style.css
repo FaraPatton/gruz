@@ -976,6 +976,81 @@ body[data-theme="light"] .app-slogan span {
 .google-overlay-sub { font-family: monospace; font-size: 10px; color: #444; letter-spacing: 3px; }
 .hg-svg-wrap { animation: hgRotate 2.4s ease-in-out infinite, hgGlow 2.4s ease-in-out infinite; }
 .hg-svg { width: 56px; height: 84px; }
+.google-truck-loader {
+  width: 190px;
+  height: 106px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(79,124,255,.32);
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(79,124,255,.14), rgba(57,217,138,.08));
+  box-shadow: 0 22px 54px rgba(0,0,0,.32), 0 0 34px rgba(79,124,255,.16), inset 0 1px 0 rgba(255,255,255,.08);
+  overflow: hidden;
+}
+.google-truck-wrapper {
+  width: 146px;
+  height: 76px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-items: center;
+  justify-content: flex-end;
+  overflow: hidden;
+}
+.google-truck-body {
+  width: 104px;
+  height: 50px;
+  margin-bottom: 7px;
+  display: block;
+  animation: routeTruckMotion 1s linear infinite;
+}
+.google-truck-body svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.google-truck-tires {
+  width: 104px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 0 12px;
+  position: absolute;
+  bottom: 2px;
+}
+.google-truck-tires svg {
+  width: 20px;
+  height: 20px;
+}
+.google-loader-road {
+  width: 100%;
+  height: 2px;
+  background: #d7d7d7;
+  position: relative;
+  bottom: 0;
+  align-self: flex-end;
+  border-radius: 3px;
+}
+.google-loader-road:before,
+.google-loader-road:after {
+  content: "";
+  position: absolute;
+  height: 100%;
+  background: #d7d7d7;
+  border-radius: 3px;
+  animation: routeRoadAnimation 1.4s linear infinite;
+}
+.google-loader-road:before {
+  width: 24px;
+  right: -50%;
+  border-left: 12px solid rgba(10,10,14,.95);
+}
+.google-loader-road:after {
+  width: 12px;
+  right: -66%;
+  border-left: 5px solid rgba(10,10,14,.95);
+}
 
 /* ── Scrollbar ─────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -987,6 +1062,8 @@ body[data-theme="light"] .app-slogan span {
 @keyframes textPulse  { 0%,100%{opacity:.5;} 50%{opacity:1;} }
 @keyframes hgRotate   { 0%,42%{transform:rotate(0deg);} 50%,92%{transform:rotate(180deg);} 100%{transform:rotate(360deg);} }
 @keyframes hgGlow     { 0%,100%{filter:drop-shadow(0 0 4px rgba(232,128,58,.3));} 50%{filter:drop-shadow(0 0 10px rgba(232,128,58,.6));} }
+@keyframes routeTruckMotion { 0%,100%{transform:translateY(0);} 50%{transform:translateY(3px);} }
+@keyframes routeRoadAnimation { 0%{transform:translateX(0);} 100%{transform:translateX(-220px);} }
 @keyframes fadeInUp   { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
 @keyframes loginPulse { 0%{box-shadow:0 0 0 0 rgba(232,128,58,.7);} 70%{box-shadow:0 0 0 7px rgba(232,128,58,0);} 100%{box-shadow:0 0 0 0 rgba(232,128,58,0);} }
 @keyframes appHeaderIn { from{opacity:0;transform:translateY(-10px);} to{opacity:1;transform:translateY(0);} }

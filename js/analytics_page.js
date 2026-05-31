@@ -31,16 +31,25 @@ function isAnalyticsAllowed(profile) {
   return allowed.includes(String(profile?.email || '').toLowerCase());
 }
 
-async function analyticsLogin() {
+function setGoogleOverlayState(visible, title, sub) {
   const overlay = document.getElementById('googleOverlay');
+  const text = overlay?.querySelector('.google-overlay-text');
+  const small = overlay?.querySelector('.google-overlay-sub');
+  if (text && title) text.textContent = title;
+  if (small && sub) small.textContent = sub;
+  if (overlay) overlay.style.display = visible ? 'flex' : 'none';
+}
+
+async function analyticsLogin() {
   const btn = document.getElementById('loginBtn');
   const status = document.getElementById('loginStatus');
-  if (overlay) overlay.style.display = 'flex';
+  setGoogleOverlayState(true, 'ПЕРЕХОД В GOOGLE', 'АВТОРИЗАЦИЯ...');
   if (btn) btn.disabled = true;
   if (status) status.textContent = '';
 
   try {
     if (!gAccessToken) await new Promise((res, rej) => requestAuth('consent', res, rej));
+    setGoogleOverlayState(true, 'ПРОВЕРЯЮ ДОСТУП', 'WHITELIST EMAIL...');
     analyticsProfile = await fetchGoogleProfile();
 
     const allowed = analyticsAllowedEmails();
@@ -60,11 +69,12 @@ async function analyticsLogin() {
     setAnalyticsGate('open');
     const panel = document.getElementById('analyticsPanel');
     if (panel) panel.style.display = 'block';
+    setGoogleOverlayState(true, 'ЗАГРУЖАЮ РЕЙСЫ', 'TRIPS.JSON...');
     await loadDriveAnalytics(true);
   } catch (e) {
     setAnalyticsGate('closed', 'Ошибка авторизации: ' + e.message);
   } finally {
-    if (overlay) overlay.style.display = 'none';
+    setGoogleOverlayState(false);
     if (btn) btn.disabled = false;
   }
 }

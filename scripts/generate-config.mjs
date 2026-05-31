@@ -3,6 +3,12 @@ import { writeFileSync } from 'node:fs';
 const read = (name) => process.env[name] || '';
 const readTrim = (name) => read(name).trim();
 const jsString = (value) => JSON.stringify(String(value));
+const jsStringArray = (value) => JSON.stringify(
+  String(value || '')
+    .split(/[\n,;]/)
+    .map(item => item.trim())
+    .filter(Boolean)
+);
 
 const config = `// App Config. Generated at deploy time.
 
@@ -16,6 +22,7 @@ const ARCHIVE_ROOT = ${jsString(readTrim('ARCHIVE_ROOT'))};
 
 // Private route analytics base address
 const ROUTE_BASE_ADDRESS = ${jsString(readTrim('ROUTE_BASE_ADDRESS'))};
+const ANALYTICS_ALLOWED_EMAILS = ${jsStringArray(read('ANALYTICS_ALLOWED_EMAILS'))};
 
 // Email defaults
 const EMAIL_SUBJECT = ${jsString(read('EMAIL_SUBJECT'))};
