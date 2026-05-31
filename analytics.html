@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#101523">
+<title>Архив Drive — Аналитика</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="img/icon-192.png">
+<link rel="stylesheet" href="css/bb8.css?v=1">
+<link rel="stylesheet" href="css/style.css?v=26">
+<style>
+  body.analytics-page {
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 18% 0%, rgba(57,217,138,.16), transparent 28%),
+      radial-gradient(circle at 88% 18%, rgba(79,124,255,.14), transparent 28%),
+      #0d111d;
+    color: #f8fbff;
+  }
+  .analytics-shell {
+    width: min(1120px, calc(100% - 28px));
+    margin: 0 auto;
+    padding: 22px 0 36px;
+  }
+  .analytics-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .analytics-brand {
+    min-width: 0;
+  }
+  .analytics-brand h1 {
+    margin: 0;
+    font-size: clamp(22px, 4vw, 34px);
+    line-height: 1.05;
+    letter-spacing: 0;
+  }
+  .analytics-brand p {
+    margin: 7px 0 0;
+    color: rgba(248,251,255,.58);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .16em;
+  }
+  .analytics-auth {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .analytics-auth .google-auth-btn {
+    margin: 0;
+  }
+  .analytics-status {
+    min-width: 0;
+    color: rgba(248,251,255,.6);
+    font-size: 11px;
+    font-family: monospace;
+    letter-spacing: 0;
+    text-align: right;
+  }
+  .analytics-gate {
+    min-height: 58vh;
+    display: grid;
+    place-items: center;
+  }
+  .analytics-gate-card {
+    width: min(560px, 100%);
+    border: 1px solid rgba(79,124,255,.28);
+    border-radius: 18px;
+    padding: 24px;
+    background: linear-gradient(145deg, rgba(28,35,56,.92), rgba(17,14,27,.96));
+    box-shadow: 0 24px 60px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .analytics-gate-card h2 {
+    margin: 0 0 10px;
+    font-size: 22px;
+  }
+  .analytics-gate-card p {
+    margin: 0 0 16px;
+    color: rgba(248,251,255,.64);
+    line-height: 1.5;
+    font-size: 13px;
+  }
+  .analytics-gate-card .google-auth-btn {
+    width: auto;
+    min-width: 210px;
+  }
+  #analyticsApp {
+    display: none;
+  }
+  #analyticsPanel {
+    display: block;
+    margin-bottom: 0;
+  }
+  #analyticsPanel > .dc {
+    margin-bottom: 0;
+  }
+  .analytics-links {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+    margin-top: 16px;
+    color: rgba(248,251,255,.58);
+    font-size: 12px;
+  }
+  .analytics-links a {
+    color: #39d98a;
+    text-decoration: none;
+  }
+  @media (max-width: 720px) {
+    .analytics-shell {
+      width: min(100% - 18px, 1120px);
+      padding-top: 16px;
+    }
+    .analytics-topbar {
+      display: grid;
+    }
+    .analytics-auth {
+      justify-content: flex-start;
+    }
+    .analytics-status {
+      text-align: left;
+    }
+    .analytics-gate-card {
+      padding: 18px;
+      border-radius: 14px;
+    }
+  }
+</style>
+</head>
+<body class="analytics-page" data-theme="dark">
+<main class="analytics-shell">
+  <header class="analytics-topbar">
+    <div class="analytics-brand">
+      <h1>Архив Drive</h1>
+      <p>Аналитика рейсов</p>
+    </div>
+    <div class="analytics-auth">
+      <button id="loginBtn" class="google-auth-btn" type="button">
+        <span id="loginBtnText">Войти в Google</span>
+        <span id="loginBtnIcon"></span>
+      </button>
+      <div id="loginStatus" class="analytics-status"></div>
+    </div>
+  </header>
+
+  <section id="analyticsGate" class="analytics-gate">
+    <div class="analytics-gate-card">
+      <h2>Закрытая аналитика</h2>
+      <p id="analyticsGateMsg">Войдите через разрешенный Google-аккаунт. Данные рейсов загрузятся только после проверки email.</p>
+      <button class="google-auth-btn" type="button" onclick="analyticsLogin()">
+        <span>Открыть аналитику</span>
+        <span>→</span>
+      </button>
+      <div class="analytics-links">
+        <a href="index.html">← Документы</a>
+        <span>Доступ по whitelist</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="analyticsApp">
+    <div id="analyticsPanel">
+      <div class="dc">
+        <p style="font-size:12px;text-align:center;color:var(--mut);padding:10px">Загружаю аналитику...</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="google-overlay" id="googleOverlay">
+  <div class="hg-svg-wrap">
+    <svg class="hg-svg" viewBox="0 0 80 120" xmlns="http://www.w3.org/2000/svg">
+      <rect x="8" y="2" width="64" height="6" rx="3" fill="#e8803a"/>
+      <rect x="8" y="112" width="64" height="6" rx="3" fill="#e8803a"/>
+      <path d="M14,8 C14,8 14,28 40,58 C66,28 66,8 66,8 Z" fill="rgba(232,128,58,0.09)" stroke="#e8803a" stroke-width="1.5"/>
+      <path d="M14,112 C14,112 14,92 40,62 C66,92 66,112 66,112 Z" fill="rgba(232,128,58,0.09)" stroke="#e8803a" stroke-width="1.5"/>
+      <line x1="40" y1="58" x2="40" y2="62" stroke="#e8803a" stroke-width="2" opacity="0.5" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <div class="google-overlay-text">ПЕРЕХОД В GOOGLE</div>
+  <div class="google-overlay-sub">АВТОРИЗАЦИЯ...</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="js/config.js?v=5"></script>
+<script src="js/auth.js?v=7"></script>
+<script src="js/analytics.js?v=40"></script>
+<script src="js/analytics_page.js?v=2"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(e => console.log('SW error:', e));
+  });
+}
+</script>
+</body>
+</html>

@@ -4,7 +4,7 @@ function getTokenClient() {
   if (!gTokenClient) {
     gTokenClient = google.accounts.oauth2.initTokenClient({
       client_id: GCLIENT_ID,
-      scope: 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/gmail.send',
+      scope: 'openid email profile https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/gmail.send',
       callback: (r) => {
         if (r.error) {
           console.error('Auth error:', r.error);
