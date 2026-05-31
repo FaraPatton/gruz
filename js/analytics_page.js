@@ -40,6 +40,56 @@ function setGoogleOverlayState(visible, title, sub) {
   if (overlay) overlay.style.display = visible ? 'flex' : 'none';
 }
 
+function getRememberedAnalyticsSession() {
+  try {
+    const token = sessionStorage.getItem('gruzAnalyticsAccessToken');
+    const email = sessionStorage.getItem('gruzAnalyticsEmail');
+    const checkedAt = Number(sessionStorage.getItem('gruzAnalyticsCheckedAt') || 0);
+    const isFresh = checkedAt && Date.now() - checkedAt < 55 * 60 * 1000;
+    if (!token || !email || !isFresh) return null;
+    return { token, email };
+  } catch (e) {
+    return null;
+  }
+}
+
+function clearRememberedAnalyticsSession() {
+  try {
+    sessionStorage.removeItem('gruzAnalyticsAccessToken');
+    sessionStorage.removeItem('gruzAnalyticsEmail');
+    sessionStorage.removeItem('gruzAnalyticsCheckedAt');
+    sessionStorage.removeItem('gruzAnalyticsOpenIntent');
+  } catch (e) {}
+}
+
+async function openAnalyticsFromRememberedSession() {
+  const remembered = getRememberedAnalyticsSession();
+  if (!remembered) return false;
+
+  const allowed = analyticsAllowedEmails();
+  if (!allowed.length || !allowed.includes(remembered.email)) {
+    clearRememberedAnalyticsSession();
+    return false;
+  }
+
+  gAccessToken = remembered.token;
+  analyticsProfile = { email: remembered.email };
+  setAnalyticsGate('open');
+  const panel = document.getElementById('analyticsPanel');
+  if (panel) panel.style.display = 'block';
+  setGoogleOverlayState(true, 'ЗАГРУЖАЮ РЕЙСЫ', 'TRIPS.JSON...');
+  try {
+    await loadDriveAnalytics(true);
+    return true;
+  } catch (e) {
+    clearRememberedAnalyticsSession();
+    setAnalyticsGate('closed', 'Сессия устарела. Нажмите «Открыть аналитику», чтобы обновить доступ.');
+    return false;
+  } finally {
+    setGoogleOverlayState(false);
+  }
+}
+
 async function analyticsLogin() {
   const btn = document.getElementById('loginBtn');
   const status = document.getElementById('loginStatus');
@@ -90,4 +140,5 @@ function showToast(msg) {
 document.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('loginBtn');
   if (btn) btn.addEventListener('click', analyticsLogin);
+  openAnalyticsFromRememberedSession();
 });

@@ -57,6 +57,25 @@ function setGoogleOverlayState(visible, title, sub) {
   if (overlay) overlay.style.display = visible ? 'flex' : 'none';
 }
 
+function rememberAnalyticsSession(profile) {
+  if (!gAccessToken || !profile?.email) return;
+  try {
+    sessionStorage.setItem('gruzAnalyticsAccessToken', gAccessToken);
+    sessionStorage.setItem('gruzAnalyticsEmail', String(profile.email).trim().toLowerCase());
+    sessionStorage.setItem('gruzAnalyticsCheckedAt', String(Date.now()));
+  } catch (e) {
+    console.warn('Analytics session save skipped:', e);
+  }
+}
+
+function clearAnalyticsSession() {
+  try {
+    sessionStorage.removeItem('gruzAnalyticsAccessToken');
+    sessionStorage.removeItem('gruzAnalyticsEmail');
+    sessionStorage.removeItem('gruzAnalyticsCheckedAt');
+  } catch (e) {}
+}
+
 function setAnalyticsAccessState(state, profile, error) {
   const banner = document.getElementById('analyticsAccessBanner');
   const title = document.getElementById('analyticsAccessTitle');
@@ -99,6 +118,8 @@ async function checkAnalyticsWhitelistSilent() {
     const profile = await authFetchGoogleProfile();
     const email = String(profile?.email || '').trim().toLowerCase();
     const ok = !!allowed.length && allowed.includes(email);
+    if (ok) rememberAnalyticsSession(profile);
+    else clearAnalyticsSession();
     setAnalyticsAccessState(ok ? 'allowed' : 'denied', profile, allowed.length ? '' : 'whitelist не настроен');
     return ok;
   } catch (e) {
@@ -111,6 +132,9 @@ async function checkAnalyticsWhitelistSilent() {
 function openProtectedAnalytics() {
   const banner = document.getElementById('analyticsAccessBanner');
   if (!banner || banner.disabled || !banner.classList.contains('is-allowed')) return;
+  try {
+    sessionStorage.setItem('gruzAnalyticsOpenIntent', '1');
+  } catch (e) {}
   window.location.href = 'analytics.html';
 }
 
