@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="img/icon-192.png">
 <link rel="stylesheet" href="css/bb8.css?v=1">
-<link rel="stylesheet" href="css/style.css?v=27">
+<link rel="stylesheet" href="css/style.css?v=28">
 <style>
   body.analytics-page {
     min-height: 100vh;
@@ -21,51 +21,60 @@
   .analytics-shell {
     width: min(1120px, calc(100% - 28px));
     margin: 0 auto;
-    padding: 22px 0 36px;
+    min-height: 100vh;
+    padding: 22px 0 34px;
+    display: flex;
+    flex-direction: column;
   }
   .analytics-topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-    margin-bottom: 18px;
+    display: grid;
+    place-items: center;
+    margin: 4px auto 18px;
+    width: min(560px, 100%);
   }
   .analytics-brand {
+    position: relative;
+    width: 100%;
     min-width: 0;
+    overflow: hidden;
+    text-align: center;
+    border: 1px solid rgba(79,124,255,.26);
+    border-radius: 22px;
+    padding: 20px 18px 18px;
+    background:
+      radial-gradient(circle at 18% 0%, rgba(57,217,138,.2), transparent 36%),
+      radial-gradient(circle at 88% 24%, rgba(255,71,232,.13), transparent 32%),
+      linear-gradient(145deg, rgba(20,28,48,.92), rgba(13,17,29,.74));
+    box-shadow: 0 22px 54px rgba(0,0,0,.28), 0 0 34px rgba(57,217,138,.08), inset 0 1px 0 rgba(255,255,255,.08);
+    animation: analyticsBannerIn .62s cubic-bezier(.2,.8,.2,1) both;
+  }
+  .analytics-brand:before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent, rgba(255,255,255,.12), transparent);
+    transform: translateX(-120%);
+    animation: analyticsBannerSweep 5.2s ease-in-out infinite 1s;
   }
   .analytics-brand h1 {
+    position: relative;
     margin: 0;
-    font-size: clamp(22px, 4vw, 34px);
+    font-size: clamp(28px, 6vw, 44px);
     line-height: 1.05;
     letter-spacing: 0;
+    text-shadow: 0 0 24px rgba(81,210,255,.16);
   }
   .analytics-brand p {
+    position: relative;
     margin: 7px 0 0;
     color: rgba(248,251,255,.58);
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: .16em;
   }
-  .analytics-auth {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-  .analytics-auth .google-auth-btn {
-    margin: 0;
-  }
-  .analytics-status {
-    min-width: 0;
-    color: rgba(248,251,255,.6);
-    font-size: 11px;
-    font-family: monospace;
-    letter-spacing: 0;
-    text-align: right;
-  }
   .analytics-gate {
-    min-height: 58vh;
+    flex: 1;
+    min-height: 48vh;
     display: grid;
     place-items: center;
   }
@@ -114,19 +123,21 @@
     color: #39d98a;
     text-decoration: none;
   }
+  .analytics-slogan {
+    margin-top: auto;
+  }
+  @keyframes analyticsBannerIn {
+    from { opacity: 0; transform: translateY(-14px) scale(.98); filter: blur(6px); }
+    to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  }
+  @keyframes analyticsBannerSweep {
+    0%, 42% { transform: translateX(-120%); }
+    60%, 100% { transform: translateX(120%); }
+  }
   @media (max-width: 720px) {
     .analytics-shell {
       width: min(100% - 18px, 1120px);
       padding-top: 16px;
-    }
-    .analytics-topbar {
-      display: grid;
-    }
-    .analytics-auth {
-      justify-content: flex-start;
-    }
-    .analytics-status {
-      text-align: left;
     }
     .analytics-gate-card {
       padding: 18px;
@@ -141,13 +152,6 @@
     <div class="analytics-brand">
       <h1>Архив Drive</h1>
       <p>Аналитика рейсов</p>
-    </div>
-    <div class="analytics-auth">
-      <button id="loginBtn" class="google-auth-btn" type="button">
-        <span id="loginBtnText">Войти в Google</span>
-        <span id="loginBtnIcon"></span>
-      </button>
-      <div id="loginStatus" class="analytics-status"></div>
     </div>
   </header>
 
@@ -173,6 +177,10 @@
       </div>
     </div>
   </section>
+
+  <footer class="app-slogan analytics-slogan" aria-label="Слоган">
+    <span>Мы едем туда, где будет лучше</span>
+  </footer>
 </main>
 
 <div class="google-overlay" id="googleOverlay">
@@ -208,7 +216,7 @@
 <script src="js/config.js?v=6"></script>
 <script src="js/auth.js?v=7"></script>
 <script src="js/analytics.js?v=40"></script>
-<script src="js/analytics_page.js?v=3"></script>
+<script src="js/analytics_page.js?v=4"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
