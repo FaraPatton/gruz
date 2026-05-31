@@ -25,12 +25,93 @@ function getTokenClient() {
         if (status)  { status.textContent = 'АВТОРИЗОВАН'; status.style.color = 'var(--acc)'; }
         const overlay = document.getElementById('googleOverlay');
         if (overlay) overlay.style.display = 'none';
+        checkAnalyticsWhitelistSilent();
         if (gAuthCallback) gAuthCallback(r.access_token, null);
         gAuthCallback = null;
       }
     });
   }
   return gTokenClient;
+}
+
+function authAllowedEmails() {
+  return (typeof ANALYTICS_ALLOWED_EMAILS !== 'undefined' ? ANALYTICS_ALLOWED_EMAILS : [])
+    .map(email => String(email || '').trim().toLowerCase())
+    .filter(Boolean);
+}
+
+async function authFetchGoogleProfile() {
+  const resp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+    headers: { Authorization: 'Bearer ' + gAccessToken }
+  });
+  if (!resp.ok) throw new Error('Google userinfo HTTP ' + resp.status);
+  return resp.json();
+}
+
+function setGoogleOverlayState(visible, title, sub) {
+  const overlay = document.getElementById('googleOverlay');
+  const text = overlay?.querySelector('.google-overlay-text');
+  const small = overlay?.querySelector('.google-overlay-sub');
+  if (text && title) text.textContent = title;
+  if (small && sub) small.textContent = sub;
+  if (overlay) overlay.style.display = visible ? 'flex' : 'none';
+}
+
+function setAnalyticsAccessState(state, profile, error) {
+  const banner = document.getElementById('analyticsAccessBanner');
+  const title = document.getElementById('analyticsAccessTitle');
+  const text = document.getElementById('analyticsAccessText');
+  if (!banner) return;
+
+  banner.classList.remove('is-checking', 'is-allowed', 'is-denied', 'is-hidden');
+  banner.disabled = true;
+
+  if (state === 'hidden') {
+    banner.classList.add('is-hidden');
+    return;
+  }
+
+  banner.classList.add('is-' + state);
+  if (state === 'checking') {
+    if (title) title.textContent = 'Проверяем ваш email на whitelist';
+    if (text) text.textContent = 'доступ к закрытой аналитике';
+    return;
+  }
+
+  if (state === 'allowed') {
+    banner.disabled = false;
+    if (title) title.textContent = 'Открыть аналитику рейсов';
+    if (text) text.textContent = profile?.email ? 'доступ разрешен: ' + profile.email : 'доступ разрешен';
+    return;
+  }
+
+  if (title) title.textContent = 'Аналитика недоступна';
+  if (text) text.textContent = error || (profile?.email ? 'email не найден в whitelist: ' + profile.email : 'email не прошел whitelist');
+}
+
+async function checkAnalyticsWhitelistSilent() {
+  const banner = document.getElementById('analyticsAccessBanner');
+  if (!banner || !gAccessToken) return false;
+
+  setAnalyticsAccessState('checking');
+  try {
+    const allowed = authAllowedEmails();
+    const profile = await authFetchGoogleProfile();
+    const email = String(profile?.email || '').trim().toLowerCase();
+    const ok = !!allowed.length && allowed.includes(email);
+    setAnalyticsAccessState(ok ? 'allowed' : 'denied', profile, allowed.length ? '' : 'whitelist не настроен');
+    return ok;
+  } catch (e) {
+    setAnalyticsAccessState('denied', null, 'не удалось проверить email');
+    console.error('Analytics whitelist:', e);
+    return false;
+  }
+}
+
+function openProtectedAnalytics() {
+  const banner = document.getElementById('analyticsAccessBanner');
+  if (!banner || banner.disabled || !banner.classList.contains('is-allowed')) return;
+  window.location.href = 'analytics.html';
 }
 
 function setAuthLockState(locked) {
@@ -56,18 +137,19 @@ async function googleLogin() {
     setAuthLockState(true);
     if (typeof syncAuthDependentUi === 'function') syncAuthDependentUi();
     if (typeof loadDriveStamp === 'function') loadDriveStamp();
+    checkAnalyticsWhitelistSilent();
     status.textContent = 'УЖЕ АВТОРИЗОВАН';
     status.style.color = 'var(--acc)';
     return;
   }
-  overlay.style.display = 'flex';
+  setGoogleOverlayState(true, 'ПЕРЕХОД В GOOGLE', 'АВТОРИЗАЦИЯ...');
   btn.disabled = true;
   setAuthLockState(false);
   status.textContent = '';
   try {
     await new Promise((res, rej) => requestAuth('', res, rej));
   } catch(e) {
-    overlay.style.display = 'none';
+    setGoogleOverlayState(false);
     btn.disabled = false;
     setAuthLockState(false);
     if (typeof syncAuthDependentUi === 'function') syncAuthDependentUi();

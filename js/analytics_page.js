@@ -49,7 +49,7 @@ async function analyticsLogin() {
 
   try {
     if (!gAccessToken) await new Promise((res, rej) => requestAuth('consent', res, rej));
-    setGoogleOverlayState(true, 'ПРОВЕРЯЮ ДОСТУП', 'WHITELIST EMAIL...');
+    setGoogleOverlayState(true, 'ПРОВЕРЯЕМ ВАШ EMAIL НА WHITELIST', 'ДОСТУП К АНАЛИТИКЕ...');
     analyticsProfile = await fetchGoogleProfile();
 
     const allowed = analyticsAllowedEmails();

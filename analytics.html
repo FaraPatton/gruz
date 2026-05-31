@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="img/icon-192.png">
 <link rel="stylesheet" href="css/bb8.css?v=1">
-<link rel="stylesheet" href="css/style.css?v=28">
+<link rel="stylesheet" href="css/style.css?v=29">
 <style>
   body.analytics-page {
     min-height: 100vh;
@@ -29,8 +29,30 @@
   .analytics-topbar {
     display: grid;
     place-items: center;
+    gap: 12px;
     margin: 4px auto 18px;
     width: min(560px, 100%);
+  }
+  .analytics-back-btn {
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgba(57,217,138,.32);
+    border-radius: 999px;
+    padding: 8px 13px;
+    background: rgba(57,217,138,.08);
+    color: #dfffee;
+    font-size: 12px;
+    font-weight: 750;
+    text-decoration: none;
+    box-shadow: 0 10px 24px rgba(0,0,0,.14);
+    transition: transform .18s ease, border-color .18s ease, background .18s ease;
+  }
+  .analytics-back-btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(57,217,138,.58);
+    background: rgba(57,217,138,.13);
   }
   .analytics-brand {
     position: relative;
@@ -149,6 +171,7 @@
 <body class="analytics-page" data-theme="dark">
 <main class="analytics-shell">
   <header class="analytics-topbar">
+    <a class="analytics-back-btn" href="index.html">← Вернуться</a>
     <div class="analytics-brand">
       <h1>Архив Drive</h1>
       <p>Аналитика рейсов</p>
@@ -214,9 +237,9 @@
 <script src="https://accounts.google.com/gsi/client"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="js/config.js?v=6"></script>
-<script src="js/auth.js?v=7"></script>
+<script src="js/auth.js?v=8"></script>
 <script src="js/analytics.js?v=40"></script>
-<script src="js/analytics_page.js?v=4"></script>
+<script src="js/analytics_page.js?v=5"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

@@ -245,6 +245,112 @@ body[data-theme="light"] .auth-row {
   border-color: rgba(184,139,8,.18);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 8px 22px rgba(113,83,45,.08);
 }
+.analytics-access-banner {
+  display: none;
+  width: min(520px, 100%);
+  margin: 16px auto 0;
+  border: 1px solid rgba(79,124,255,.32);
+  border-radius: 18px;
+  padding: 10px 16px 10px 12px;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: var(--txt);
+  background: linear-gradient(135deg, rgba(79,124,255,.13), rgba(57,217,138,.07));
+  box-shadow: 0 16px 38px rgba(0,0,0,.22), 0 0 28px rgba(79,124,255,.08), inset 0 1px 0 rgba(255,255,255,.07);
+  cursor: pointer;
+  text-align: left;
+  overflow: hidden;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.analytics-access-banner.is-checking,
+.analytics-access-banner.is-allowed,
+.analytics-access-banner.is-denied {
+  display: flex;
+  animation: fadeInUp .32s ease both;
+}
+.analytics-access-banner.is-hidden {
+  display: none;
+}
+.analytics-access-banner.is-checking {
+  cursor: wait;
+  pointer-events: none;
+  border-color: rgba(87,244,255,.38);
+}
+.analytics-access-banner.is-allowed {
+  border-color: rgba(57,217,138,.42);
+  background: linear-gradient(135deg, rgba(57,217,138,.18), rgba(79,124,255,.1));
+}
+.analytics-access-banner.is-allowed:hover {
+  transform: translateY(-2px);
+  border-color: rgba(57,217,138,.68);
+  box-shadow: 0 20px 44px rgba(0,0,0,.27), 0 0 30px rgba(57,217,138,.12), inset 0 1px 0 rgba(255,255,255,.09);
+}
+.analytics-access-banner.is-denied {
+  cursor: default;
+  border-color: rgba(255,95,95,.28);
+  background: linear-gradient(135deg, rgba(255,95,95,.1), rgba(79,124,255,.06));
+}
+.analytics-access-loader {
+  width: 96px;
+  height: 52px;
+  flex: 0 0 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.analytics-access-loader .google-truck-wrapper {
+  width: 96px;
+  height: 52px;
+}
+.analytics-access-loader .google-truck-body {
+  width: 70px;
+  height: 34px;
+  margin-bottom: 5px;
+}
+.analytics-access-loader .google-truck-tires {
+  width: 70px;
+  padding: 0 6px 0 8px;
+  bottom: 1px;
+}
+.analytics-access-loader .google-truck-tires svg {
+  width: 14px;
+  height: 14px;
+}
+.analytics-access-copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+.analytics-access-copy b {
+  color: #fff;
+  font-size: 15px;
+  line-height: 1.12;
+}
+.analytics-access-copy small {
+  color: var(--mut);
+  font-size: 11px;
+  line-height: 1.25;
+}
+.analytics-access-banner.is-checking .analytics-access-copy b:after {
+  content: "";
+  animation: routeDots 1.2s steps(4,end) infinite;
+}
+.analytics-access-banner.is-allowed .analytics-access-copy b {
+  color: #dfffee;
+}
+.analytics-access-banner.is-denied .analytics-access-copy b {
+  color: #ffd3d3;
+}
+body[data-theme="light"] .analytics-access-banner {
+  background: linear-gradient(135deg, rgba(255,255,255,.76), rgba(57,217,138,.08));
+  border-color: rgba(184,139,8,.2);
+  box-shadow: 0 16px 34px rgba(113,83,45,.12), inset 0 1px 0 rgba(255,255,255,.7);
+}
+body[data-theme="light"] .analytics-access-copy b {
+  color: #241d17;
+}
 #loginStatus {
   font-size: 10px;
   color: var(--mut);
