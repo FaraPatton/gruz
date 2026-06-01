@@ -1127,10 +1127,6 @@ function renderDriveAnalytics(entries, yr, panel) {
   if (!['overview', 'years', 'customers', 'routes', 'journal'].includes(analyticsView)) analyticsView = 'overview';
 
   const overviewHtml =
-    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px;margin-bottom:16px">' +
-      statCard(totalRides, 'Рейсов') +
-      statCard(money(avgAmt), 'Средний чек') +
-      statCard(money(totalNet), 'Чистая прибыль') +
     '<div class="dash-hero-grid">' +
       dashboardHeroCard('Оборот', money(totalAmt), 'по выбранному периоду', '↗') +
       dashboardHeroCard('Чистая прибыль', money(totalNet), 'после топлива', '↗') +
