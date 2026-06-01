@@ -1085,11 +1085,21 @@ function renderDriveAnalytics(entries, yr, panel) {
   const totalRides = filtered.length;
   const totalAmt = filtered.reduce((sum, e) => sum + e.amount, 0);
   const totalNet = filtered.reduce((sum, e) => sum + netProfit(e), 0);
+  const totalFuel = filtered.reduce((sum, e) => sum + fuelEstimate(e).cost, 0);
   const avgAmt = totalRides ? Math.round(totalAmt / totalRides) : 0;
+  const profitRate = totalAmt ? Math.round(totalNet / totalAmt * 1000) / 10 : 0;
+  const profitPerTrip = totalRides ? Math.round(totalNet / totalRides) : 0;
   const paymentStats = paymentSummary(filtered);
   const monthly = Array(12).fill(0);
-  filtered.forEach(e => { if (e.month >= 1 && e.month <= 12) monthly[e.month - 1]++; });
+  const monthlyMoney = Array(12).fill(0);
+  filtered.forEach(e => {
+    if (e.month >= 1 && e.month <= 12) {
+      monthly[e.month - 1]++;
+      monthlyMoney[e.month - 1] += e.amount || 0;
+    }
+  });
   const maxM = Math.max(...monthly, 1);
+  const maxMonthMoney = Math.max(...monthlyMoney, 1);
   const monthNames = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
 
   const customerRows = filtered.filter(e => e.customerName && !isExecutorCustomer(e.customerName, e.customerInn));
@@ -1097,6 +1107,7 @@ function renderDriveAnalytics(entries, yr, panel) {
   const topByTrips = customerStats.slice().sort((a, b) => b.count - a.count).slice(0, 5);
   const topByMoney = customerStats.slice().sort((a, b) => b.amount - a.amount).slice(0, 5);
   const routeStats = groupStats(filtered.filter(e => e.route), e => e.route).sort((a, b) => b.count - a.count).slice(0, 5);
+  const topRoutesByMoney = groupStats(filtered.filter(e => e.route), e => e.route).sort((a, b) => b.amount - a.amount).slice(0, 3);
   const yearStats = years.map(y => {
     const rows = trips.filter(e => e.year === y);
     return {
@@ -1120,14 +1131,28 @@ function renderDriveAnalytics(entries, yr, panel) {
       statCard(totalRides, 'Рейсов') +
       statCard(money(avgAmt), 'Средний чек') +
       statCard(money(totalNet), 'Чистая прибыль') +
-      statCard(money(totalAmt), 'Оборот') +
+    '<div class="dash-hero-grid">' +
+      dashboardHeroCard('Оборот', money(totalAmt), 'по выбранному периоду', '↗') +
+      dashboardHeroCard('Чистая прибыль', money(totalNet), 'после топлива', '↗') +
+      dashboardHeroCard('Рентабельность', (profitRate ? profitRate.toLocaleString('ru-RU') : '0') + '%', 'чистая / оборот', '↑') +
+    '</div>' +
+    '<div class="dash-mini-grid">' +
+      dashboardMetricCard('🚚', totalRides, 'рейсов', 'закрыто в периоде') +
+      dashboardMetricCard('🧾', money(avgAmt), 'средний чек', 'оборот / рейсы') +
+      dashboardMetricCard('⛽', money(totalFuel), 'бензин', '25л/100км, 60 руб/л') +
+      dashboardMetricCard('📈', money(profitPerTrip), 'прибыль с рейса', 'чистая / рейсы') +
+    '</div>' +
+    aiAnalyticsPanel(filtered, topByMoney, topRoutesByMoney, profitRate, avgAmt) +
+    '<div class="dash-grid-2">' +
+      dashboardTurnoverChart(monthlyMoney, maxMonthMoney, monthNames) +
+      expenseStructureCard(totalFuel, totalNet) +
+    '</div>' +
+    '<div class="dash-grid-2">' +
+      dashboardTopList('Топ заказчики', topByMoney.slice(0, 3), row => row.count + ' рейс.', row => money(row.amount)) +
+      dashboardTopList('Топ маршруты', topRoutesByMoney, row => row.count + ' рейс.', row => money(row.amount)) +
     '</div>' +
     sectionTitle('Оплата') +
     paymentSummaryHtml(paymentStats) +
-    sectionTitle('Рейсы по месяцам') +
-    '<div style="display:flex;align-items:flex-end;gap:5px;height:76px;margin-bottom:20px;padding:6px 2px 0;border-bottom:1px solid rgba(255,255,255,.08)">' +
-      monthly.map((v, i) => monthBar(v, maxM, monthNames[i])).join('') +
-    '</div>' +
     sectionTitle('Кратко по годам') +
     overviewYearsChart(yearStats.slice(0, 4), maxYearAmount);
 
@@ -1158,6 +1183,7 @@ function renderDriveAnalytics(entries, yr, panel) {
     '<style>' +
       '@keyframes analyticsViewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}' +
       '@keyframes yearChartIn{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes yearBarGrow{from{transform:scaleX(.04);filter:saturate(.8)}to{transform:scaleX(1);filter:saturate(1.1)}}@keyframes yearCardShine{from{transform:translateX(-130%)}to{transform:translateX(130%)}}' +
+      '.dash-hero-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;overflow:hidden;border:1px solid rgba(79,124,255,.28);border-radius:12px;background:linear-gradient(135deg,rgba(57,217,138,.18),rgba(79,124,255,.08));box-shadow:0 16px 38px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.06);margin-bottom:12px}.dash-hero-card{position:relative;min-width:0;padding:18px 18px 17px;background:linear-gradient(145deg,rgba(30,39,62,.72),rgba(19,17,31,.9));overflow:hidden}.dash-hero-card:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 12% 0%,rgba(57,217,138,.22),transparent 48%);opacity:.72}.dash-hero-card span,.dash-hero-card b,.dash-hero-card small{position:relative;z-index:1}.dash-hero-card span{display:block;color:var(--ana-muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em}.dash-hero-card b{display:block;margin-top:9px;color:#fff;font-size:22px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dash-hero-card small{display:block;margin-top:10px;color:rgba(248,251,255,.62);font-size:10px;line-height:1.35}.dash-hero-card i{font-style:normal;color:var(--ana);font-weight:900}.dash-mini-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}.dash-metric-card,.dash-panel,.dash-ai-panel{position:relative;overflow:hidden;border:1px solid rgba(79,124,255,.22);border-radius:12px;background:linear-gradient(145deg,rgba(28,35,56,.7),rgba(18,15,29,.9));box-shadow:0 14px 30px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.045)}.dash-metric-card{padding:14px 12px;min-width:0}.dash-metric-icon{font-size:20px;margin-bottom:10px;filter:drop-shadow(0 0 14px rgba(57,217,138,.22))}.dash-metric-card b{display:block;color:#fff;font-size:17px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dash-metric-card span{display:block;margin-top:7px;color:var(--ana-text);font-size:11px;font-weight:750}.dash-metric-card small{display:block;margin-top:5px;color:var(--ana-muted);font-size:9px;line-height:1.28}.dash-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}.dash-panel{padding:14px}.dash-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}.dash-panel-head b{color:#fff;font-size:12px;text-transform:uppercase;letter-spacing:.04em}.dash-panel-head span{border:1px solid rgba(248,251,255,.1);border-radius:999px;padding:4px 8px;color:var(--ana-muted);font-size:9px}.dash-bars{height:168px;display:flex;align-items:flex-end;gap:8px;padding:12px 4px 0;border-bottom:1px solid rgba(255,255,255,.08)}.dash-bar-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:7px}.dash-bar-col em{position:relative;width:100%;max-width:28px;min-height:3px;border-radius:8px 8px 3px 3px;background:linear-gradient(180deg,#57f4a8,#27b36f);box-shadow:0 10px 22px rgba(57,217,138,.18);transform-origin:bottom;animation:yearBarGrow .8s cubic-bezier(.2,.8,.2,1) both}.dash-bar-col strong{position:absolute;left:50%;top:-16px;transform:translateX(-50%);font-size:8px;color:var(--ana);font-style:normal;white-space:nowrap}.dash-bar-col small{color:var(--ana-muted);font-size:9px}.dash-expense{display:grid;grid-template-columns:146px minmax(0,1fr);gap:14px;align-items:center}.dash-donut{width:138px;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;text-align:center;background:conic-gradient(#39d98a 0 var(--fuel),#4f7cff var(--fuel) 100%);box-shadow:0 0 28px rgba(57,217,138,.14);position:relative}.dash-donut:before{content:"";position:absolute;inset:20px;border-radius:50%;background:#151426;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}.dash-donut b,.dash-donut span{position:relative;z-index:1}.dash-donut b{color:#fff;font-size:15px;line-height:1.1}.dash-donut span{display:block;margin-top:3px;color:var(--ana-muted);font-size:10px}.dash-expense-list{display:grid;gap:9px}.dash-expense-row{display:grid;grid-template-columns:9px minmax(0,1fr) auto 34px;align-items:center;gap:8px;color:var(--ana-muted);font-size:10px}.dash-expense-row i{width:7px;height:7px;border-radius:50%}.dash-expense-row span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dash-expense-row b{color:var(--ana-text);font-size:11px;white-space:nowrap}.dash-expense-row small{text-align:right;color:var(--ana-muted)}.dash-ai-panel{display:grid;grid-template-columns:minmax(0,1.2fr) 190px;gap:14px;padding:14px;margin:12px 0}.dash-ai-copy{min-width:0}.dash-ai-row{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;align-items:start;margin-top:12px}.dash-ai-row i{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(57,217,138,.11);color:var(--ana);font-style:normal;box-shadow:0 0 18px rgba(57,217,138,.08)}.dash-ai-row b{display:block;color:#fff;font-size:12px;line-height:1.25}.dash-ai-row small{display:block;margin-top:3px;color:var(--ana-muted);font-size:10px;line-height:1.35}.dash-ai-orb{display:grid;place-items:center;min-height:180px}.dash-ai-orb span{width:128px;height:128px;border-radius:48% 52% 45% 55%;background:radial-gradient(circle at 50% 64%,rgba(57,217,138,.9),rgba(57,217,138,.24) 42%,transparent 66%);box-shadow:0 0 36px rgba(57,217,138,.28),inset 0 0 36px rgba(79,124,255,.22);animation:analyticsViewIn .8s ease both,aiOrbPulse 3.8s ease-in-out infinite}.dash-top-list{display:grid;gap:10px}.dash-top-row{display:grid;grid-template-columns:25px minmax(0,1fr) auto;gap:10px;align-items:center}.dash-top-row em{width:25px;height:25px;border-radius:8px;display:grid;place-items:center;background:rgba(57,217,138,.14);color:var(--ana);font-style:normal;font-weight:850;font-size:11px}.dash-top-row span{min-width:0}.dash-top-row span b{display:block;color:#fff;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dash-top-row span small{display:block;margin-top:3px;color:var(--ana-muted);font-size:9px}.dash-top-row strong{color:#fff;font-size:11px;white-space:nowrap}@keyframes aiOrbPulse{0%,100%{transform:scale(1);filter:saturate(1)}50%{transform:scale(1.06) rotate(4deg);filter:saturate(1.25)}}' +
       '.journal-trip-list{display:grid;gap:14px}.journal-trip-card{position:relative;overflow:hidden;border:1px solid rgba(79,124,255,.34);border-radius:19px;padding:14px;background:linear-gradient(145deg,rgba(35,25,54,.98),rgba(15,12,24,.98));box-shadow:0 16px 34px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.05);cursor:pointer;transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}.journal-trip-card:before{content:"";position:absolute;inset:-1px;background:radial-gradient(circle at 88% 12%,rgba(79,124,255,.18),transparent 32%);opacity:.72;pointer-events:none}.journal-trip-card:hover{transform:translateY(-1px);border-color:rgba(79,124,255,.54);box-shadow:0 18px 34px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.06)}.journal-trip-card:focus-visible{outline:3px solid rgba(79,124,255,.32);outline-offset:3px}.journal-trip-main,.journal-trip-strip,.journal-trip-more{position:relative;z-index:1}.journal-trip-main{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:52px;align-items:start;padding-right:56px}.journal-trip-kicker{color:var(--ana);font-family:monospace;font-size:10px;letter-spacing:0;font-weight:800;text-transform:uppercase}.journal-trip-title{margin-top:5px;color:var(--ana-text);font-size:14px;font-weight:820;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.journal-trip-route{margin-top:5px;color:var(--ana-muted);font-size:11px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.journal-trip-money{text-align:right;min-width:96px}.journal-trip-money b{display:block;color:#fff;font-size:16px;line-height:1.1;white-space:nowrap}.journal-trip-money span{display:block;margin-top:4px;color:var(--ana-muted);font-size:10px}.journal-trip-strip{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px;padding-right:52px}.journal-trip-strip span{border:1px solid rgba(79,124,255,.22);border-radius:999px;background:rgba(79,124,255,.08);color:var(--ana-muted);font-size:10px;line-height:1;padding:6px 8px;white-space:nowrap}.journal-trip-strip b{color:var(--ana-text);font-weight:820}.journal-trip-strip span:first-child{border-color:rgba(57,217,138,.28);background:rgba(57,217,138,.08);color:rgba(224,255,241,.78)}.journal-trip-more{margin-top:10px;color:rgba(248,251,255,.6);font-size:10px;font-family:monospace;letter-spacing:0;line-height:1.45;padding-right:52px}.journal-trip-more b{display:inline;color:var(--ana);font-family:inherit;font-size:11px;margin-right:8px}.journal-trip-delete{position:absolute;z-index:2;right:14px;top:14px;width:42px;height:42px;border-radius:50%;background-color:rgb(20,20,20);border:none;font-weight:600;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px rgba(0,0,0,.24);cursor:pointer;transition-duration:.3s;overflow:hidden}.journal-trip-delete svg{width:12px;transition-duration:.3s}.journal-trip-delete svg path{fill:#fff}.journal-trip-delete:hover{width:118px;border-radius:50px;background-color:rgb(255,69,69);align-items:center}.journal-trip-delete:hover svg{width:42px;transform:translateY(58%)}.journal-trip-delete:before{position:absolute;top:-20px;content:"Удалить";color:#fff;transition-duration:.3s;font-size:2px}.journal-trip-delete:hover:before{font-size:12px;opacity:1;transform:translateY(29px)}.journal-trip-delete:active{transform:scale(.96)}' +
       '.payment-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin-bottom:16px}.payment-summary-card{border:1px solid rgba(79,124,255,.22);border-radius:9px;background:linear-gradient(135deg,rgba(79,124,255,.08),rgba(57,217,138,.045));padding:11px 10px;min-width:0}.payment-summary-card b{display:block;color:var(--ana-text);font-size:14px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.payment-summary-card span{display:block;margin-top:5px;color:var(--ana-muted);font-size:10px}.payment-summary-card small{display:block;margin-top:4px;color:rgba(248,251,255,.5);font-size:9px}.journal-payment{position:relative;z-index:1;display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;padding-right:52px}.journal-payment button{border:1px solid rgba(79,124,255,.24);border-radius:999px;background:rgba(255,255,255,.045);color:var(--ana-muted);font-size:10px;line-height:1;padding:7px 9px;cursor:pointer;transition:.16s ease}.journal-payment button:hover{border-color:rgba(79,124,255,.52);color:#fff}.journal-payment button.is-active{border-color:rgba(57,217,138,.46);background:rgba(57,217,138,.12);color:#dfffee;box-shadow:0 0 18px rgba(57,217,138,.08)}' +
       '.journal-card{position:relative;overflow:hidden;border-radius:18px;padding:1px;background:linear-gradient(135deg,rgba(57,217,138,.65),rgba(137,104,190,.35),rgba(255,255,255,.08));box-shadow:0 18px 34px rgba(0,0,0,.24),0 0 24px rgba(57,217,138,.06);transition:transform .22s ease,box-shadow .22s ease}' +
@@ -1201,7 +1227,8 @@ function renderDriveAnalytics(entries, yr, panel) {
       '.holo-save-check .holo-checkbox-input:checked + .holo-checkbox .holo-box{background:rgba(6,15,38,.52);border-color:rgba(255,255,255,.18);box-shadow:0 0 22px rgba(66,133,244,.46),inset 0 0 0 1px rgba(255,255,255,.1);transform:scale(1.03)}.holo-save-check .holo-checkbox-input:checked + .holo-checkbox .holo-inner{border-color:#fff;opacity:1;transform:rotate(40deg) scale(1)}' +
       '.manual-save-check{display:block;position:relative;cursor:pointer;font-size:34px;user-select:none;width:1.3em;height:1.3em;margin:0!important;transition:transform .18s ease}.manual-save-check:hover{transform:translateY(-1px)}.manual-save-check:active{transform:scale(.96)}.manual-save-check input{position:absolute;opacity:0;cursor:pointer;height:0;width:0}.manual-save-checkmark{position:relative;top:0;left:0;height:1.3em;width:1.3em;background:#000;border-radius:50px;transition:all .7s;--spread:20px;box-shadow:0 10px 24px rgba(0,0,0,.26),inset 0 0 0 2px rgba(255,255,255,.22)}.manual-save-check input:checked ~ .manual-save-checkmark,.manual-save-check.is-calculating .manual-save-checkmark{background:#000;box-shadow:-10px -10px var(--spread) 0 #5b51d8,0 -10px var(--spread) 0 #833ab4,10px -10px var(--spread) 0 #e1306c,10px 0 var(--spread) 0 #fd1d1d,10px 10px var(--spread) 0 #f77737,0 10px var(--spread) 0 #fcaf45,-10px 10px var(--spread) 0 #ffdc80}.manual-save-checkmark:after{content:"";position:absolute;display:none}.manual-save-check input:checked ~ .manual-save-checkmark:after,.manual-save-check.is-calculating .manual-save-checkmark:after{display:block}.manual-save-check .manual-save-checkmark:after{left:.45em;top:.25em;width:.25em;height:.5em;border:solid #f0f0f0;border-width:0 .15em .15em 0;transform:rotate(40deg)}.manual-save-check.is-calculating .manual-save-checkmark{animation:manualSavePulse .9s ease-in-out infinite}@keyframes manualSavePulse{0%,100%{filter:saturate(1);transform:scale(1)}50%{filter:saturate(1.35);transform:scale(1.04)}}' +
       '.analytics-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:16px}' +
-      '@media(max-width:430px){.analytics-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-tabs button:first-child{grid-column:1 / -1}.overview-year-card{grid-template-columns:1fr;gap:9px}.overview-year-money{text-align:left}.journal-trip-card{padding:11px;border-radius:16px}.journal-trip-main{grid-template-columns:1fr;gap:8px}.journal-trip-money{text-align:left;min-width:0;display:flex;align-items:baseline;gap:8px}.journal-trip-title{font-size:13px}.journal-trip-route{-webkit-line-clamp:1}.journal-trip-strip span{font-size:9px;padding:6px 7px}.journal-card-inner{padding:12px}.journal-summary{grid-template-columns:1fr}.journal-stat{border-right:0;border-bottom:1px solid rgba(57,217,138,.18)}.journal-stat:last-child{border-bottom:0}.journal-delete{width:42px;height:42px}.route-map-dialog{padding:13px}.route-map-head{display:block}.route-map-sum{margin-top:6px}.route-map-large{min-height:280px}.route-map-large iframe{height:280px}.route-map-state{min-height:170px}}' +
+      '@media(max-width:760px){.dash-hero-grid{grid-template-columns:1fr}.dash-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-grid-2{grid-template-columns:1fr}.dash-ai-panel{grid-template-columns:1fr}.dash-ai-orb{display:none}.dash-expense{grid-template-columns:1fr;justify-items:center}.dash-expense-list{width:100%}}' +
+      '@media(max-width:430px){.analytics-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-tabs button:first-child{grid-column:1 / -1}.dash-mini-grid{grid-template-columns:1fr}.dash-hero-card{padding:15px}.dash-hero-card b{font-size:20px}.dash-bars{gap:5px}.dash-top-row{grid-template-columns:24px minmax(0,1fr)}.dash-top-row strong{grid-column:2;text-align:left}.overview-year-card{grid-template-columns:1fr;gap:9px}.overview-year-money{text-align:left}.journal-trip-card{padding:11px;border-radius:16px}.journal-trip-main{grid-template-columns:1fr;gap:8px}.journal-trip-money{text-align:left;min-width:0;display:flex;align-items:baseline;gap:8px}.journal-trip-title{font-size:13px}.journal-trip-route{-webkit-line-clamp:1}.journal-trip-strip span{font-size:9px;padding:6px 7px}.journal-card-inner{padding:12px}.journal-summary{grid-template-columns:1fr}.journal-stat{border-right:0;border-bottom:1px solid rgba(57,217,138,.18)}.journal-stat:last-child{border-bottom:0}.journal-delete{width:42px;height:42px}.route-map-dialog{padding:13px}.route-map-head{display:block}.route-map-sum{margin-top:6px}.route-map-large{min-height:280px}.route-map-large iframe{height:280px}.route-map-state{min-height:170px}}' +
     '</style>' +
     '<div class="dc" style="--acc:' + ANALYTICS_GREEN + ';--ana:' + ANALYTICS_GREEN + ';--ana2:' + ANALYTICS_GREEN_DARK + ';--ana-bg:#171022;--ana-card:#211733;--ana-card2:#2b2140;--ana-text:#f8fbff;--ana-muted:#a99bc8;padding:18px;margin-bottom:0;background:radial-gradient(circle at 12% 0%,rgba(57,217,138,.11),transparent 30%),linear-gradient(180deg,#1a1128,#130f1d);border-color:rgba(137,104,190,.28);box-shadow:0 22px 54px rgba(0,0,0,.24)">' +
       '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:14px">' +
@@ -1264,6 +1291,116 @@ function statCard(value, label) {
     '<div style="font-size:16px;font-weight:750;color:var(--ana-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + value + '</div>' +
     '<div style="font-size:10px;color:var(--ana-muted);margin-top:4px">' + label + '</div>' +
   '</div>';
+}
+
+function dashboardHeroCard(label, value, hint, trend) {
+  return '<div class="dash-hero-card">' +
+    '<span>' + aEsc(label) + '</span>' +
+    '<b>' + aEsc(value) + '</b>' +
+    '<small><i>' + aEsc(trend) + '</i> ' + aEsc(hint) + '</small>' +
+  '</div>';
+}
+
+function dashboardMetricCard(icon, value, label, hint) {
+  return '<div class="dash-metric-card">' +
+    '<div class="dash-metric-icon">' + icon + '</div>' +
+    '<b>' + aEsc(value) + '</b>' +
+    '<span>' + aEsc(label) + '</span>' +
+    '<small>' + aEsc(hint) + '</small>' +
+  '</div>';
+}
+
+function dashboardTurnoverChart(values, max, labels) {
+  return '<div class="dash-panel">' +
+    '<div class="dash-panel-head"><b>Динамика оборота</b><span>месяц</span></div>' +
+    '<div class="dash-bars">' +
+      values.map((value, i) => {
+        const h = value ? Math.max(8, Math.round(value / (max || 1) * 118)) : 3;
+        return '<div class="dash-bar-col" title="' + aEsc(money(value)) + '">' +
+          '<em style="height:' + h + 'px"><strong>' + (value ? aEsc(shortMoney(value)) : '') + '</strong></em>' +
+          '<small>' + aEsc(labels[i]) + '</small>' +
+        '</div>';
+      }).join('') +
+    '</div>' +
+  '</div>';
+}
+
+function expenseStructureCard(fuel, net) {
+  const expenses = Math.max(0, fuel);
+  const total = expenses + Math.max(0, net);
+  const fuelPct = total ? Math.round(expenses / total * 100) : 0;
+  return '<div class="dash-panel">' +
+    '<div class="dash-panel-head"><b>Структура расходов</b><span>авто</span></div>' +
+    '<div class="dash-expense">' +
+      '<div class="dash-donut" style="--fuel:' + fuelPct + '%"><b>' + aEsc(money(expenses)) + '</b><span>бензин</span></div>' +
+      '<div class="dash-expense-list">' +
+        dashExpenseRow('Бензин', fuel, fuelPct, '#39d98a') +
+        dashExpenseRow('Чистая прибыль', net, 100 - fuelPct, '#4f7cff') +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function dashExpenseRow(label, value, pctValue, color) {
+  return '<div class="dash-expense-row">' +
+    '<i style="background:' + color + '"></i>' +
+    '<span>' + aEsc(label) + '</span>' +
+    '<b>' + aEsc(money(value)) + '</b>' +
+    '<small>' + aEsc(pctValue) + '%</small>' +
+  '</div>';
+}
+
+function dashboardTopList(title, rows, sub, val) {
+  if (!rows.length) return '<div class="dash-panel">' +
+    '<div class="dash-panel-head"><b>' + aEsc(title) + '</b><span>нет данных</span></div>' +
+    emptyAnalyticsText('Данные появятся после распознавания рейсов.') +
+  '</div>';
+  return '<div class="dash-panel">' +
+    '<div class="dash-panel-head"><b>' + aEsc(title) + '</b><span>топ</span></div>' +
+    '<div class="dash-top-list">' +
+      rows.map((row, i) => '<div class="dash-top-row">' +
+        '<em>' + (i + 1) + '</em>' +
+        '<span><b>' + aEsc(row.name) + '</b><small>' + aEsc(sub(row)) + '</small></span>' +
+        '<strong>' + aEsc(val(row)) + '</strong>' +
+      '</div>').join('') +
+    '</div>' +
+  '</div>';
+}
+
+function aiAnalyticsPanel(rows, customers, routes, profitRate, avgAmt) {
+  const bestCustomer = customers[0];
+  const bestRoute = routes[0];
+  const bestMonth = bestMonthByAmount(rows);
+  return '<div class="dash-ai-panel">' +
+    '<div class="dash-ai-copy">' +
+      '<div class="dash-panel-head"><b>AI-аналитика</b><span>обзор</span></div>' +
+      aiInsight('↗', profitRate ? 'Рентабельность периода ' + profitRate.toLocaleString('ru-RU') + '%' : 'Рентабельность пока не рассчитана', 'чистая прибыль после топлива') +
+      aiInsight('🏆', bestRoute ? 'Самый денежный маршрут' : 'Маршруты пока не распознаны', bestRoute ? bestRoute.name + ' · ' + money(bestRoute.amount) : 'появится после обновления реестра') +
+      aiInsight('▥', bestCustomer ? 'Ключевой заказчик: ' + bestCustomer.name : 'Заказчики пока не распознаны', bestCustomer ? money(bestCustomer.amount) + ' · ' + bestCustomer.count + ' рейс.' : 'проверь trips.json') +
+      aiInsight('◷', bestMonth ? 'Сильный месяц: ' + bestMonth.label : 'Месячная динамика без данных', bestMonth ? money(bestMonth.amount) + ', средний чек ' + money(avgAmt) : 'нужно больше рейсов') +
+    '</div>' +
+    '<div class="dash-ai-orb"><span></span></div>' +
+  '</div>';
+}
+
+function aiInsight(icon, title, text) {
+  return '<div class="dash-ai-row"><i>' + icon + '</i><span><b>' + aEsc(title) + '</b><small>' + aEsc(text) + '</small></span></div>';
+}
+
+function bestMonthByAmount(rows) {
+  const labels = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+  const values = Array(12).fill(0);
+  rows.forEach(row => { if (row.month >= 1 && row.month <= 12) values[row.month - 1] += row.amount || 0; });
+  const amount = Math.max(...values);
+  const index = values.indexOf(amount);
+  return amount > 0 ? { label: labels[index], amount } : null;
+}
+
+function shortMoney(value) {
+  const n = Number(value) || 0;
+  if (Math.abs(n) >= 1000000) return Math.round(n / 100000) / 10 + 'м';
+  if (Math.abs(n) >= 1000) return Math.round(n / 1000) + 'к';
+  return String(n);
 }
 
 function paymentSummary(rows) {
