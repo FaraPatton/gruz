@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="img/icon-192.png">
 <link rel="stylesheet" href="css/bb8.css?v=1">
-<link rel="stylesheet" href="css/style.css?v=30">
+<link rel="stylesheet" href="css/style.css?v=31">
 <style>
   body.analytics-page {
     min-height: 100vh;
@@ -158,9 +158,11 @@
   }
   @media (max-width: 720px) {
     .analytics-shell {
-      width: min(100% - 18px, 1120px);
-      padding-top: 16px;
+      width: 100%;
+      padding: 14px 6px 28px;
     }
+    .analytics-topbar { width: 100%; padding: 0 3px; }
+    #analyticsPanel > .dc { padding: 12px 8px !important; border-radius: 14px !important; }
     .analytics-gate-card {
       padding: 18px;
       border-radius: 14px;
@@ -238,7 +240,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="js/config.js?v=6"></script>
 <script src="js/auth.js?v=9"></script>
-<script src="js/analytics.js?v=43"></script>
+<script src="js/analytics.js?v=44"></script>
 <script src="js/analytics_page.js?v=6"></script>
 <script>
 if ('serviceWorker' in navigator) {
