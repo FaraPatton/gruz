@@ -143,6 +143,13 @@ async function finishPdf(doc, fileName, options, successText) {
   return null;
 }
 
+function requireStampIfEnabled() {
+  if (typeof isStampEnabled === 'function' && isStampEnabled() && !stampUrl) {
+    if (typeof loadDriveStamp === 'function') loadDriveStamp();
+    throw new Error('Печать не загружена. Проверьте STAMP_FILE_ID и доступ к файлу в Drive или загрузите печать вручную.');
+  }
+}
+
 async function genInvoice(options, folderId) {
   const pdfOptions = pdfOptionsFromArgs(options, folderId);
   const btn = document.querySelector('[onclick="genInvoice()"]');
@@ -151,6 +158,7 @@ async function genInvoice(options, folderId) {
     const d = getData(), doc = nDoc();
     const executor = executorProfile();
     requireExecutorProfile(executor, ['name', 'shortName', 'inn', 'address', 'phone', 'bank', 'bik', 'corrAccount', 'account']);
+    requireStampIfEnabled();
     const ml = 10, cw = 190; let y = 8;
     const c1 = 30, c2 = 60, c3 = 22, rh = 11;
     function hr(cells, ry, bg) {
@@ -214,6 +222,7 @@ async function genAct(options, folderId) {
     const d = getData(), doc = nDoc();
     const executor = executorProfile();
     requireExecutorProfile(executor, ['name', 'shortName', 'inn', 'ogrn', 'address', 'phone']);
+    requireStampIfEnabled();
     const ml = 10, cw = 190; let y = 8;
     const half = cw / 2, lW = 28;
     function mb(rows, bW) {

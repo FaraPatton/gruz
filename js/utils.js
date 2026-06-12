@@ -18,6 +18,14 @@ function isStampEnabled() {
     return !!gAccessToken && document.getElementById('stampToggle').checked;
 }
 
+function ensureStampLoadedForAction() {
+    if (!isStampEnabled()) return false;
+    if (stampUrl) return true;
+    if (typeof loadDriveStamp === 'function') loadDriveStamp();
+    showToast('Печать ещё не загружена');
+    return false;
+}
+
 function syncStampAuthState() {
     const toggle = document.getElementById('stampToggle');
     const zone = document.getElementById('stampZone');
@@ -38,16 +46,23 @@ function syncStampAuthState() {
         prev.src = stampUrl;
         prev.style.display = 'block';
         ph.style.display = 'none';
+    } else if (authorized && typeof loadDriveStamp === 'function') {
+        loadDriveStamp();
     }
 }
 
 function syncContractAuthState() {
     const input = document.getElementById('contractFile');
     const zone = document.getElementById('contractUploadZone');
+    const ph = document.getElementById('contractPh');
     if (!input || !zone) return;
     const authorized = !!gAccessToken;
     input.disabled = !authorized;
     zone.classList.toggle('stamp-zone-disabled', !authorized);
+    if (ph) {
+        const text = ph.querySelector('.uh');
+        if (text) text.textContent = authorized ? 'Выберите PDF договор' : 'Войдите в Google, чтобы загрузить PDF договор';
+    }
 }
 
 function syncAuthDependentUi() {

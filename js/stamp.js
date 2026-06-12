@@ -3,6 +3,21 @@
 (function() {
   let stampLoadPromise = null;
 
+  function setStampStatus(message, isError) {
+    const prev = document.getElementById('spPrev');
+    const ph = document.getElementById('spPh');
+    if (!ph) return;
+
+    if (!stampUrl && prev) prev.style.display = 'none';
+    ph.style.display = stampUrl ? 'none' : 'block';
+
+    const text = ph.querySelector('.uh');
+    if (text) {
+      text.innerHTML = message;
+      text.style.color = isError ? 'var(--dan)' : 'var(--mut)';
+    }
+  }
+
   function showStampPreview(dataUrl) {
     stampUrl = dataUrl;
 
@@ -40,9 +55,17 @@
   async function loadDriveStamp() {
     const fileId = normalizeDriveFileId(typeof STAMP_FILE_ID !== 'undefined' ? STAMP_FILE_ID : '');
     const token = typeof gAccessToken !== 'undefined' ? gAccessToken : '';
-    if (!fileId || !token) return null;
+    if (!fileId) {
+      setStampStatus('Печать не настроена<br><small>Добавьте STAMP_FILE_ID в Secrets или загрузите файл вручную</small>', true);
+      return null;
+    }
+    if (!token) {
+      setStampStatus('Войдите в Google<br><small>После входа печать загрузится из Drive</small>', false);
+      return null;
+    }
 
     if (!stampLoadPromise) {
+      setStampStatus('Загружаю печать из Drive...', false);
       stampLoadPromise = fetch(
         'https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(fileId) + '?alt=media',
         { headers: { Authorization: 'Bearer ' + token } }
@@ -59,6 +82,7 @@
         .catch(err => {
           stampLoadPromise = null;
           console.error('Drive stamp:', err);
+          setStampStatus('Не удалось загрузить печать<br><small>Проверьте STAMP_FILE_ID и доступ к файлу в Drive</small>', true);
           return null;
         });
     }

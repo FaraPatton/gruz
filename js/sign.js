@@ -7,12 +7,20 @@ let signPdfDoc     = null;
 let stampPos       = null;
 let stampPlaced    = false;
 
+function setSignMessage(text, color) {
+  const msg = document.getElementById('signMsg');
+  if (!msg) return;
+  msg.textContent = text || '';
+  msg.style.color = color || 'var(--mut)';
+}
+
 function toggleSign() {
   const panel = document.getElementById('signPanel');
   const open  = panel.style.display === 'none';
   panel.style.display = open ? 'block' : 'none';
   if (open) {
-    document.getElementById('signMsg').textContent = '';
+    if (typeof syncAuthDependentUi === 'function') syncAuthDependentUi();
+    setSignMessage(gAccessToken ? '' : 'Войдите в Google, чтобы загрузить договор и поставить печать.', gAccessToken ? 'var(--mut)' : 'var(--dan)');
     document.getElementById('signCanvas').style.display = 'none';
     document.getElementById('downloadSignBtn').style.display = 'none';
     document.getElementById('contractPh').style.display = 'block';
@@ -22,9 +30,17 @@ function toggleSign() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+  const contractZone = document.getElementById('contractUploadZone');
+  if (contractZone) {
+    contractZone.addEventListener('click', function () {
+      if (!gAccessToken) setSignMessage('Сначала войдите в Google, затем выберите PDF договор.', 'var(--dan)');
+    });
+  }
+
   document.getElementById('contractFile').addEventListener('change', async function (e) {
     if (!gAccessToken) {
       e.target.value = '';
+      setSignMessage('Сначала войдите в Google, затем выберите PDF договор.', 'var(--dan)');
       return;
     }
     const file = e.target.files[0];
@@ -33,8 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const nameEl = document.getElementById('contractName');
     nameEl.textContent = '📄 ' + file.name;
     nameEl.style.display = 'block';
-    document.getElementById('signMsg').textContent = 'Загружаю документ...';
-    document.getElementById('signMsg').style.color = 'var(--mut)';
+    setSignMessage('Загружаю документ...', 'var(--mut)');
     const buf = await file.arrayBuffer();
     signPdfBytes = new Uint8Array(buf);
     signCurrentPage = 1;
@@ -44,8 +59,7 @@ document.addEventListener('DOMContentLoaded', function () {
     await renderSignPage(signCurrentPage);
     document.getElementById('signCanvas').style.display = 'block';
     document.getElementById('downloadSignBtn').style.display = 'block';
-    document.getElementById('signMsg').textContent = 'Нажмите на документ чтобы поставить печать';
-    document.getElementById('signMsg').style.color = 'var(--mut)';
+    setSignMessage(stampUrl ? 'Нажмите на документ чтобы поставить печать' : 'Печать ещё не загружена. Проверьте блок печати выше.', stampUrl ? 'var(--mut)' : 'var(--dan)');
     document.getElementById('signEmailBlock').style.display = 'block';
   });
 
@@ -53,6 +67,11 @@ document.addEventListener('DOMContentLoaded', function () {
   if (viewport) {
     viewport.addEventListener('click', function (e) {
       if (!signPdfDoc) return;
+      if (!stampUrl) {
+        if (typeof loadDriveStamp === 'function') loadDriveStamp();
+        setSignMessage('Печать не загружена. Проверьте STAMP_FILE_ID и доступ к файлу в Drive или загрузите печать вручную.', 'var(--dan)');
+        return;
+      }
       const canvas  = document.getElementById('pdfCanvas');
       const rect    = canvas.getBoundingClientRect();
       const viewRect = viewport.getBoundingClientRect();
@@ -68,8 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
       overlay.style.left = (e.clientX - viewRect.left + viewport.scrollLeft - overlayW / 2) + 'px';
       overlay.style.top  = (e.clientY - viewRect.top  + viewport.scrollTop  - overlayH / 2) + 'px';
       stampPlaced = true;
-      document.getElementById('signMsg').textContent = 'Печать размещена. Нажмите ещё раз чтобы переместить.';
-      document.getElementById('signMsg').style.color = 'var(--acc)';
+      setSignMessage('Печать размещена. Нажмите ещё раз чтобы переместить.', 'var(--acc)');
     });
   }
 });
@@ -100,6 +118,7 @@ async function loadPdfLib() {
 }
 
 async function buildSignedPdf() {
+  if (stampPlaced && stampPos && !stampUrl) throw new Error('Печать не загружена');
   await loadPdfLib();
   const { PDFDocument } = PDFLib;
   const pdfDoc = await PDFDocument.load(signPdfBytes);
@@ -124,11 +143,9 @@ async function downloadSigned() {
     const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
     Object.assign(document.createElement('a'), { href: url, download: 'dogovor_podpisany.pdf' }).click();
     URL.revokeObjectURL(url);
-    document.getElementById('signMsg').textContent = '✅ Файл скачан!';
-    document.getElementById('signMsg').style.color = 'var(--acc)';
+    setSignMessage('✅ Файл скачан!', 'var(--acc)');
   } catch(e) {
-    document.getElementById('signMsg').textContent = 'Ошибка: ' + e.message;
-    document.getElementById('signMsg').style.color = 'var(--dan)';
+    setSignMessage('Ошибка: ' + e.message, 'var(--dan)');
   } finally {
     btn.disabled = false; btn.textContent = '⬇️ Скачать с печатью';
   }
@@ -137,8 +154,7 @@ async function downloadSigned() {
 async function sendSignedByEmail() {
   const to = document.getElementById('signEmailTo').value.trim();
   if (!to || !to.includes('@')) {
-    document.getElementById('signMsg').textContent = 'Введите корректный email';
-    document.getElementById('signMsg').style.color = 'var(--dan)';
+    setSignMessage('Введите корректный email', 'var(--dan)');
     return;
   }
   const btn = document.getElementById('sendSignedBtn');
@@ -166,12 +182,10 @@ async function sendSignedByEmail() {
       body: JSON.stringify({ raw: encoded })
     });
     if (!resp.ok) { const e = await resp.json(); throw new Error(e.error?.message || 'Ошибка'); }
-    document.getElementById('signMsg').textContent = '✅ Договор отправлен на ' + to;
-    document.getElementById('signMsg').style.color = 'var(--acc)';
+    setSignMessage('✅ Договор отправлен на ' + to, 'var(--acc)');
     showToast('✅ Договор отправлен!');
   } catch(e) {
-    document.getElementById('signMsg').textContent = 'Ошибка: ' + e.message;
-    document.getElementById('signMsg').style.color = 'var(--dan)';
+    setSignMessage('Ошибка: ' + e.message, 'var(--dan)');
   } finally {
     btn.disabled = false; btn.textContent = '✉️ Отправить договор на почту';
   }
