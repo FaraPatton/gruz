@@ -51,6 +51,14 @@ function formatKm(meters) {
   return value ? Math.round(value / 1000).toLocaleString('ru-RU') + ' км' : '';
 }
 
+function hasTripDistance(trip) {
+  return Number(trip.totalDistanceMeters) > 0;
+}
+
+function needsDistance(trip) {
+  return !hasTripDistance(trip) && Number(trip.amount) > 0;
+}
+
 function grossPerKm(trip) {
   const km = (Number(trip.totalDistanceMeters) || 0) / 1000;
   return km && trip.amount ? Math.round(trip.amount / km) : 0;
@@ -1117,17 +1125,27 @@ function renderDriveAnalytics(entries, yr, panel) {
   const totalAfterTax = sumNetAfterTax(taxRows);
   const taxHint = selectedYear ? 'УСН за ' + selectedYear : 'УСН с начала года';
   const afterTaxHint = selectedYear ? 'за ' + selectedYear : 'с начала года';
+  const missingDistanceRows = filtered.filter(needsDistance);
   const paymentStats = paymentSummary(filtered);
   const monthly = Array(12).fill(0);
   const monthlyMoney = Array(12).fill(0);
+  const monthlyTax = Array(12).fill(0);
+  const monthlyAfterTax = Array(12).fill(0);
   filtered.forEach(e => {
     if (e.month >= 1 && e.month <= 12) {
       monthly[e.month - 1]++;
       monthlyMoney[e.month - 1] += e.amount || 0;
     }
   });
+  taxRows.forEach(e => {
+    if (e.month >= 1 && e.month <= 12) {
+      monthlyTax[e.month - 1] += usnTax(e);
+      monthlyAfterTax[e.month - 1] += netAfterTax(e);
+    }
+  });
   const maxM = Math.max(...monthly, 1);
   const maxMonthMoney = Math.max(...monthlyMoney, 1);
+  const maxMonthTax = Math.max(...monthlyTax, 1);
   const monthNames = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
 
   const customerRows = filtered.filter(e => e.customerName && !isExecutorCustomer(e.customerName, e.customerInn));
@@ -1143,7 +1161,9 @@ function renderDriveAnalytics(entries, yr, panel) {
       count: rows.length,
       amount: rows.reduce((s, e) => s + e.amount, 0),
       net: rows.reduce((s, e) => s + netProfit(e), 0),
-      fuel: rows.reduce((s, e) => s + fuelEstimate(e).cost, 0)
+      fuel: rows.reduce((s, e) => s + fuelEstimate(e).cost, 0),
+      tax: rows.reduce((s, e) => s + usnTax(e), 0),
+      afterTax: rows.reduce((s, e) => s + netAfterTax(e), 0)
     };
   });
 
@@ -1166,11 +1186,13 @@ function renderDriveAnalytics(entries, yr, panel) {
       dashboardMetricCard('⛽', money(totalFuel), 'топливо', '28л/100км, 60 руб/л') +
       dashboardMetricCard('6%', money(totalTax), 'налоги', taxHint) +
     '</div>' +
+    distanceWarningPanel(missingDistanceRows) +
     aiAnalyticsPanel(filtered, topByMoney, topRoutesByMoney, totalNet, avgAmt) +
     '<div class="dash-grid-2">' +
       dashboardTurnoverChart(monthlyMoney, maxMonthMoney, monthNames) +
       expenseStructureCard(totalFuel, totalNet) +
     '</div>' +
+    dashboardTaxChart(monthlyTax, monthlyAfterTax, maxMonthTax, monthNames, selectedYear) +
     '<div class="dash-grid-2">' +
       dashboardTopList('Топ заказчики', topByMoney.slice(0, 3), row => row.count + ' рейс.', row => money(row.amount)) +
       dashboardTopList('Топ маршруты', topRoutesByMoney, row => row.count + ' рейс.', row => money(row.amount)) +
@@ -1352,6 +1374,38 @@ function dashboardTurnoverChart(values, max, labels) {
   '</div>';
 }
 
+function dashboardTaxChart(taxValues, afterTaxValues, max, labels, selectedYear) {
+  const totalTax = taxValues.reduce((sum, value) => sum + (Number(value) || 0), 0);
+  const totalAfterTax = afterTaxValues.reduce((sum, value) => sum + (Number(value) || 0), 0);
+  const caption = selectedYear ? 'УСН за ' + selectedYear : 'УСН с начала года';
+  return '<div class="dash-panel dash-tax-panel">' +
+    '<div class="dash-panel-head"><b>Налоги по месяцам</b><span>' + aEsc(caption) + '</span></div>' +
+    '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px">' +
+      '<span style="border:1px solid rgba(57,217,138,.24);border-radius:10px;background:rgba(57,217,138,.08);padding:10px;min-width:0"><b style="display:block;color:#fff;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + aEsc(money(totalTax)) + '</b><small style="display:block;margin-top:4px;color:var(--ana-muted);font-size:10px">УСН 6%</small></span>' +
+      '<span style="border:1px solid rgba(79,124,255,.24);border-radius:10px;background:rgba(79,124,255,.08);padding:10px;min-width:0"><b style="display:block;color:#fff;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + aEsc(money(totalAfterTax)) + '</b><small style="display:block;margin-top:4px;color:var(--ana-muted);font-size:10px">после налога</small></span>' +
+    '</div>' +
+    '<div class="dash-bars dash-tax-bars">' +
+      taxValues.map((value, i) => {
+        const h = value ? Math.max(8, Math.round(value / (max || 1) * 96)) : 3;
+        return '<div class="dash-bar-col" title="' + aEsc(money(value)) + '">' +
+          '<em style="height:' + h + 'px"><strong>' + (value ? aEsc(shortMoney(value)) : '') + '</strong></em>' +
+          '<small>' + aEsc(labels[i]) + '</small>' +
+        '</div>';
+      }).join('') +
+    '</div>' +
+  '</div>';
+}
+
+function distanceWarningPanel(rows) {
+  if (!rows.length) return '';
+  const examples = rows.slice(0, 3).map(row => '№' + (row.docNum || '—')).join(', ');
+  const more = rows.length > 3 ? ' +' + (rows.length - 3) : '';
+  return '<div style="border:1px solid rgba(255,190,90,.34);border-radius:12px;background:linear-gradient(135deg,rgba(255,190,90,.12),rgba(255,255,255,.035));padding:11px 12px;margin:0 0 12px;box-shadow:0 12px 26px rgba(0,0,0,.12)">' +
+    '<b style="display:block;color:#ffd79a;font-size:12px;line-height:1.25">Требуется километраж: ' + aEsc(rows.length) + '</b>' +
+    '<span style="display:block;margin-top:5px;color:rgba(248,251,255,.68);font-size:11px;line-height:1.4">У этих рейсов прибыль, налоги и “после налога” могут быть завышены: ' + aEsc(examples + more) + '</span>' +
+  '</div>';
+}
+
 function expenseStructureCard(fuel, net) {
   const expenses = Math.max(0, fuel);
   const total = expenses + Math.max(0, net);
@@ -1481,6 +1535,8 @@ function overviewYearsChart(rows, maxAmount) {
           '<div class="overview-year-meta">' +
             '<span>' + aEsc(row.count) + ' рейсов</span>' +
             '<span>чистая ' + aEsc(money(row.net)) + '</span>' +
+            '<span>УСН ' + aEsc(money(row.tax)) + '</span>' +
+            '<span>после налога ' + aEsc(money(row.afterTax)) + '</span>' +
             '<span>бензин ' + aEsc(money(row.fuel)) + '</span>' +
           '</div>' +
         '</div>' +
@@ -1506,10 +1562,12 @@ function analyticsJournal(rows) {
         const net = money(netProfit(trip));
         const tax = usnTax(trip);
         const afterTax = netAfterTax(trip);
+        const afterTaxMoney = money(afterTax);
         const fuel = fuelEstimate(trip);
         const totalKm = formatKm(trip.totalDistanceMeters);
         const perKm = grossPerKm(trip);
         const paymentType = normalizePaymentType(trip.paymentType);
+        const distanceMissing = needsDistance(trip);
         const customer = trip.customerName || 'Заказчик не указан';
         const route = trip.route || 'Маршрут не указан';
         const encodedId = routeMapId(trip.id);
@@ -1519,20 +1577,20 @@ function analyticsJournal(rows) {
           trip.actFileId ? 'акт PDF' : ''
         ].filter(Boolean).join(' · ') || 'PDF не привязаны';
 
-        return '<div class="journal-trip-card" role="button" tabindex="0" title="Открыть карту маршрута" onclick="openRouteMapModalEncoded(&quot;' + encodedId + '&quot;)" onkeydown="' + keyHandler + '">' +
+        return '<div class="journal-trip-card' + (distanceMissing ? ' needs-distance' : '') + '" ' + (distanceMissing ? 'style="border-color:rgba(255,190,90,.58);box-shadow:0 16px 34px rgba(0,0,0,.24),0 0 24px rgba(255,190,90,.1),inset 0 1px 0 rgba(255,255,255,.05)" ' : '') + 'role="button" tabindex="0" title="Открыть карту маршрута" onclick="openRouteMapModalEncoded(&quot;' + encodedId + '&quot;)" onkeydown="' + keyHandler + '">' +
           '<div class="journal-trip-main">' +
             '<div style="min-width:0">' +
               '<div class="journal-trip-kicker">№' + aEsc(num) + ' · ' + aEsc(date) + '</div>' +
               '<div class="journal-trip-title" title="' + aEsc(customer) + '">' + aEsc(customer) + '</div>' +
               '<div class="journal-trip-route" title="' + aEsc(route) + '">' + aEsc(route) + '</div>' +
             '</div>' +
-            '<div class="journal-trip-money"><b>' + aEsc(amount) + '</b><span>оборот</span></div>' +
+            '<div class="journal-trip-money"><b>' + aEsc(amount) + '</b><span>оборот</span><small style="display:block;margin-top:5px;color:var(--ana);font-size:10px;white-space:nowrap">после налога ' + aEsc(afterTaxMoney) + '</small></div>' +
           '</div>' +
           '<div class="journal-trip-strip">' +
+            '<span>топливо <b>' + aEsc(money(fuel.cost)) + '</b></span>' +
             '<span>чистая <b>' + aEsc(net) + '</b></span>' +
             '<span>УСН 6% <b>' + aEsc(money(tax)) + '</b></span>' +
-            '<span>после налога <b>' + aEsc(money(afterTax)) + '</b></span>' +
-            '<span>топливо <b>' + aEsc(money(fuel.cost)) + '</b></span>' +
+            '<span>итог <b>' + aEsc(afterTaxMoney) + '</b></span>' +
             '<span>' + (totalKm ? 'круг <b>' + aEsc(totalKm) + '</b>' : 'км не указан') + '</span>' +
             (perKm ? '<span><b>' + aEsc(perKm.toLocaleString('ru-RU')) + ' ₽/км</b></span>' : '') +
             '<span>оплата <b>' + aEsc(paymentLabel(paymentType)) + '</b></span>' +
@@ -1541,7 +1599,7 @@ function analyticsJournal(rows) {
             '<button class="' + (paymentType === 'bank' ? 'is-active' : '') + '" onclick="setTripPaymentTypeEncoded(&quot;' + encodedId + '&quot;,&quot;bank&quot;)">Перевод</button>' +
             '<button class="' + (paymentType === 'cash' ? 'is-active' : '') + '" onclick="setTripPaymentTypeEncoded(&quot;' + encodedId + '&quot;,&quot;cash&quot;)">Наличные</button>' +
           '</div>' +
-          '<div class="journal-trip-more"><b>Детали рейса</b>' + aEsc(files) + (trip.car ? ' · ' + aEsc(trip.car) : '') + '</div>' +
+          '<div class="journal-trip-more"><b>' + (distanceMissing ? 'Нужен км' : 'Детали рейса') + '</b>' + aEsc(files) + (trip.car ? ' · ' + aEsc(trip.car) : '') + (distanceMissing ? ' · прибыль рассчитана без топлива' : '') + '</div>' +
           '<button class="journal-trip-delete" title="Удалить рейс" aria-label="Удалить рейс" onclick="event.stopPropagation();deleteTripFromRegistryEncoded(&quot;' + encodeURIComponent(trip.id) + '&quot;)">' +
             '<svg viewBox="0 0 448 512" aria-hidden="true"><path d="M135.2 17.7 128 32H32C14.3 32 0 46.3 0 64s14.3 32 32 32h384c17.7 0 32-14.3 32-32s-14.3-32-32-32h-96l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32l21.2 339c1.6 25.3 22.6 45 47.9 45h245.8c25.3 0 46.3-19.7 47.9-45L416 128z"></path></svg>' +
           '</button>' +

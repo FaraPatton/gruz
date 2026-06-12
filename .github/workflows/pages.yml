@@ -39,6 +39,10 @@ jobs:
         run: |
           node scripts/generate-config.mjs
 
+      - name: Prepare deploy cache version
+        run: |
+          node scripts/prepare-deploy.mjs
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
