@@ -9,6 +9,7 @@ const version = (
 const versionedAssets = [
   'css/bb8.css',
   'css/style.css',
+  'css/analytics.css',
   'js/stamp.js',
   'js/config.js',
   'js/utils.js',
@@ -17,6 +18,7 @@ const versionedAssets = [
   'js/drive.js',
   'js/email.js',
   'js/sign.js',
+  'js/analytics_calc.js',
   'js/analytics.js',
   'js/analytics_page.js'
 ];
