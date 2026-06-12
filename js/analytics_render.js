@@ -17,7 +17,11 @@ function renderDriveAnalytics(entries, yr, panel) {
   const trips = (entries || []).map(normalizeTrip).filter(Boolean);
   const years = [...new Set(trips.map(e => e.year))].sort((a, b) => b - a);
   const selectedYear = years.includes(yr) ? yr : 0;
-  const filtered = selectedYear ? trips.filter(e => e.year === selectedYear) : trips;
+  const periodTrips = selectedYear ? trips.filter(e => e.year === selectedYear) : trips;
+  if (!['all', 'bank', 'cash', 'unknown'].includes(analyticsPaymentFilter)) analyticsPaymentFilter = 'all';
+  const filtered = analyticsPaymentFilter === 'all'
+    ? periodTrips
+    : periodTrips.filter(e => normalizePaymentType(e.paymentType) === analyticsPaymentFilter);
 
   if (!trips.length) {
     renderRegistryEmpty(panel);
@@ -29,13 +33,13 @@ function renderDriveAnalytics(entries, yr, panel) {
   const totalNet = filtered.reduce((sum, e) => sum + netProfit(e), 0);
   const totalFuel = filtered.reduce((sum, e) => sum + fuelEstimate(e).cost, 0);
   const avgAmt = totalRides ? Math.round(totalAmt / totalRides) : 0;
-  const taxRows = selectedYear ? filtered : currentYearTrips(trips);
+  const taxRows = selectedYear ? filtered : currentYearTrips(filtered);
   const totalTax = sumUsnTax(taxRows);
   const totalAfterTax = sumNetAfterTax(taxRows);
   const taxHint = selectedYear ? 'УСН за ' + selectedYear : 'УСН с начала года';
   const afterTaxHint = selectedYear ? 'за ' + selectedYear : 'с начала года';
   const missingDistanceRows = filtered.filter(needsDistance);
-  const paymentStats = paymentSummary(filtered);
+  const paymentStats = paymentSummary(periodTrips);
   const monthly = Array(12).fill(0);
   const monthlyMoney = Array(12).fill(0);
   const monthlyTax = Array(12).fill(0);
@@ -144,6 +148,7 @@ function renderDriveAnalytics(entries, yr, panel) {
         viewButton('overview', 'Обзор') +
         viewButton('journal', 'Журнал') +
       '</div>' +
+      paymentFilterControls(paymentStats) +
       '<div style="animation:analyticsViewIn .22s ease">' + viewHtml + '</div>' +
       '<button class="bd" onclick="driveCache=null;loadDriveAnalytics(true)" style="margin-top:14px;font-size:13px;padding:11px;border-radius:8px;background:linear-gradient(180deg,var(--ana),var(--ana2));color:#08140f;border:0">Обновить из trips.json</button>' +
     '</div>';
@@ -166,11 +171,32 @@ function setAnalyticsView(view) {
   renderDriveAnalytics(driveCache || [], analyticsYear, document.getElementById('analyticsPanel'));
 }
 
+function setAnalyticsPaymentFilter(type) {
+  analyticsPaymentFilter = ['all', 'bank', 'cash', 'unknown'].includes(type) ? type : 'all';
+  renderDriveAnalytics(driveCache || [], analyticsYear, document.getElementById('analyticsPanel'));
+}
+
 function viewButton(view, label) {
   const active = analyticsView === view;
   return '<button onclick="setAnalyticsView(&quot;' + view + '&quot;)" ' +
     'style="min-width:0;background:' + (active ? 'linear-gradient(180deg,rgba(57,217,138,.18),rgba(57,217,138,.08))' : 'rgba(255,255,255,.035)') + ';color:' + (active ? 'var(--ana)' : 'var(--ana-muted)') + ';border:1px solid ' + (active ? 'rgba(57,217,138,.42)' : 'rgba(137,104,190,.24)') + ';border-radius:8px;padding:8px 6px;font-size:11px;font-weight:650;cursor:pointer;transition:.18s ease;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' +
     label + '</button>';
+}
+
+function paymentFilterControls(stat) {
+  return '<div class="analytics-payment-filter">' +
+    paymentFilterButton('all', 'Все', stat.counts.bank + stat.counts.cash + stat.counts.unknown) +
+    paymentFilterButton('bank', 'Перевод', stat.counts.bank) +
+    paymentFilterButton('cash', 'Наличные', stat.counts.cash) +
+    paymentFilterButton('unknown', 'Не указано', stat.counts.unknown) +
+  '</div>';
+}
+
+function paymentFilterButton(type, label, count) {
+  const active = analyticsPaymentFilter === type;
+  return '<button onclick="setAnalyticsPaymentFilter(&quot;' + type + '&quot;)" ' +
+    'style="background:' + (active ? 'linear-gradient(180deg,rgba(57,217,138,.18),rgba(57,217,138,.08))' : 'rgba(255,255,255,.035)') + ';color:' + (active ? 'var(--ana)' : 'var(--ana-muted)') + ';border:1px solid ' + (active ? 'rgba(57,217,138,.42)' : 'rgba(137,104,190,.24)') + ';border-radius:999px;padding:6px 9px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">' +
+    aEsc(label) + ' <span style="opacity:.62">' + aEsc(count) + '</span></button>';
 }
 
 function emptyAnalyticsText(text) {

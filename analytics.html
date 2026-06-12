@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" href="img/icon-192.png">
 <link rel="stylesheet" href="css/bb8.css?v=1">
 <link rel="stylesheet" href="css/style.css?v=31">
-<link rel="stylesheet" href="css/analytics.css?v=1">
+<link rel="stylesheet" href="css/analytics.css?v=2">
 <style>
   body.analytics-page {
     min-height: 100vh;
@@ -234,17 +234,12 @@
 <script src="https://accounts.google.com/gsi/client"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="js/config.js?v=7"></script>
+<script src="js/config_diagnostics.js?v=2"></script>
 <script src="js/auth.js?v=9"></script>
 <script src="js/analytics_calc.js?v=1"></script>
-<script src="js/analytics_render.js?v=1"></script>
-<script src="js/analytics.js?v=52"></script>
+<script src="js/analytics_render.js?v=2"></script>
+<script src="js/analytics.js?v=53"></script>
 <script src="js/analytics_page.js?v=6"></script>
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(e => console.log('SW error:', e));
-  });
-}
-</script>
+<script src="js/pwa_update.js?v=2"></script>
 </body>
 </html>

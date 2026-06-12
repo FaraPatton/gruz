@@ -12,6 +12,7 @@ const versionedAssets = [
   'css/analytics.css',
   'js/stamp.js',
   'js/config.js',
+  'js/config_diagnostics.js',
   'js/utils.js',
   'js/auth.js',
   'js/pdf.js',
@@ -21,7 +22,8 @@ const versionedAssets = [
   'js/analytics_calc.js',
   'js/analytics_render.js',
   'js/analytics.js',
-  'js/analytics_page.js'
+  'js/analytics_page.js',
+  'js/pwa_update.js'
 ];
 
 function updateFile(path, updater) {

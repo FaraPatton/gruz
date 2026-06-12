@@ -1,11 +1,11 @@
 // Service Worker
-const CACHE = 'gruz-v86';
+const CACHE = 'gruz-v88';
 const ASSETS = [
-  '/gruz/', '/gruz/index.html', '/gruz/analytics.html', '/gruz/css/bb8.css?v=1', '/gruz/css/style.css?v=31', '/gruz/css/analytics.css?v=1',
+  '/gruz/', '/gruz/index.html', '/gruz/analytics.html', '/gruz/css/bb8.css?v=1', '/gruz/css/style.css?v=31', '/gruz/css/analytics.css?v=2',
   '/gruz/js/stamp.js?v=3',
-  '/gruz/js/config.js?v=7', '/gruz/js/utils.js?v=9', '/gruz/js/auth.js?v=9',
+  '/gruz/js/config.js?v=7', '/gruz/js/config_diagnostics.js?v=2', '/gruz/js/utils.js?v=9', '/gruz/js/auth.js?v=9',
   '/gruz/js/pdf.js?v=5', '/gruz/js/drive.js?v=5', '/gruz/js/email.js?v=13',
-  '/gruz/js/sign.js?v=3', '/gruz/js/analytics_calc.js?v=1', '/gruz/js/analytics_render.js?v=1', '/gruz/js/analytics.js?v=52', '/gruz/js/analytics_page.js?v=6',
+  '/gruz/js/sign.js?v=3', '/gruz/js/analytics_calc.js?v=1', '/gruz/js/analytics_render.js?v=2', '/gruz/js/analytics.js?v=53', '/gruz/js/analytics_page.js?v=6', '/gruz/js/pwa_update.js?v=2',
   '/gruz/fonts/liberation.js',
   '/gruz/manifest.json', '/gruz/img/route-card-map.png', '/gruz/img/truck-neon-hero.png',
   '/gruz/img/icon-192.png', '/gruz/img/icon-512.png'

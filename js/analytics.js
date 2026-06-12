@@ -2,6 +2,7 @@
 
 let analyticsRegistryFileId = null;
 let analyticsView = 'overview';
+let analyticsPaymentFilter = 'all';
 let yandexMapsLoadPromise = null;
 
 function toggleAnalytics() {
@@ -990,6 +991,7 @@ window.loadDriveAnalytics = loadDriveAnalytics;
 window.rebuildTripsRegistry = rebuildTripsRegistry;
 window.renderDriveAnalytics = renderDriveAnalytics;
 window.setAnalyticsView = setAnalyticsView;
+window.setAnalyticsPaymentFilter = setAnalyticsPaymentFilter;
 window.saveFormTripToRegistry = saveFormTripToRegistry;
 window.deleteTripFromRegistry = deleteTripFromRegistry;
 window.deleteTripFromRegistryEncoded = deleteTripFromRegistryEncoded;
