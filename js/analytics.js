@@ -518,7 +518,8 @@ function customerFromBlock(block) {
 
 function isExecutorCustomer(name, inn) {
   const value = (String(name || '') + ' ' + String(inn || '')).toLowerCase();
-  return EXECUTOR_MARKERS.some(marker => value.includes(marker.toLowerCase()));
+  const markers = typeof EXECUTOR_MARKERS !== 'undefined' && Array.isArray(EXECUTOR_MARKERS) ? EXECUTOR_MARKERS : [];
+  return markers.some(marker => value.includes(String(marker || '').toLowerCase()));
 }
 
 function cleanCustomer(value) {

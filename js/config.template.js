@@ -9,6 +9,7 @@ const ARCHIVE_ROOT = '';
 // Private route analytics base address
 const ROUTE_BASE_ADDRESS = '';
 const ANALYTICS_ALLOWED_EMAILS = [];
+const EXECUTOR_MARKERS = [];
 
 // Email defaults
 const EMAIL_SUBJECT = '';

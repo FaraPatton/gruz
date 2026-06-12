@@ -2,7 +2,6 @@
 
 const TRIPS_REGISTRY_NAME = 'trips.json';
 const TRIPS_REGISTRY_VERSION = 6;
-const EXECUTOR_MARKERS = ['Карпов', '771313296859', '40802810438000085714', 'Керамический', 'СБЕРБАНК'];
 const ANALYTICS_GREEN = '#39d98a';
 const ANALYTICS_GREEN_DARK = '#1f9d63';
 const DEFAULT_FUEL_PRICE_RUB = 60;
