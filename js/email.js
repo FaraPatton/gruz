@@ -18,8 +18,21 @@ function closeEmail() {
 function getEmailDriveFolderId() {
   const explicit = typeof EMAIL_DRIVE_FOLDER_ID !== 'undefined' ? String(EMAIL_DRIVE_FOLDER_ID || '').trim() : '';
   if (explicit) return explicit;
-  const match = String(EMAIL_BODY || '').match(/drive\.google\.com\/drive\/folders\/([A-Za-z0-9_-]+)/);
+  const body = typeof EMAIL_BODY !== 'undefined' ? String(EMAIL_BODY || '') : '';
+  const match = body.match(/drive\.google\.com\/drive\/folders\/([A-Za-z0-9_-]+)/);
   return match ? match[1] : '';
+}
+
+function requireEmailConfig() {
+  const subject = typeof EMAIL_SUBJECT !== 'undefined' ? String(EMAIL_SUBJECT || '').trim() : '';
+  const body = typeof EMAIL_BODY !== 'undefined' ? String(EMAIL_BODY || '').trim() : '';
+  const folderId = getEmailDriveFolderId();
+  const missing = [];
+  if (!subject) missing.push('EMAIL_SUBJECT');
+  if (!body) missing.push('EMAIL_BODY');
+  if (!folderId) missing.push('EMAIL_DRIVE_FOLDER_ID');
+  if (missing.length) throw new Error('Не заполнен runtime config для отправки: ' + missing.join(', '));
+  return { subject, body, folderId };
 }
 
 async function grantEmailFolderAccess(email) {
@@ -61,6 +74,7 @@ async function sendEmail() {
   if (btnLabel) btnLabel.textContent = 'Отправляю...';
   document.getElementById('emailMsg').textContent = '';
   try {
+    const emailConfig = requireEmailConfig();
     if (!gAccessToken) await new Promise((res, rej) => requestAuth('consent', res, rej));
     if (btnLabel) btnLabel.textContent = 'Открываю доступ...';
     document.getElementById('emailMsg').textContent = 'Открываю доступ к папке для ' + to + '...';
@@ -69,12 +83,12 @@ async function sendEmail() {
     if (btnLabel) btnLabel.textContent = 'Отправляю...';
     const lines = [
       'To: ' + to,
-      'Subject: =?UTF-8?B?' + btoa(unescape(encodeURIComponent(EMAIL_SUBJECT))) + '?=',
+      'Subject: =?UTF-8?B?' + btoa(unescape(encodeURIComponent(emailConfig.subject))) + '?=',
       'MIME-Version: 1.0',
       'Content-Type: text/plain; charset=UTF-8',
       'Content-Transfer-Encoding: base64',
       '',
-      btoa(unescape(encodeURIComponent(EMAIL_BODY)))
+      btoa(unescape(encodeURIComponent(emailConfig.body)))
     ].join('\r\n');
     const encoded = btoa(unescape(encodeURIComponent(lines))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
     const resp = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
