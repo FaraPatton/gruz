@@ -12,7 +12,6 @@ const versionedAssets = [
   'css/analytics.css',
   'js/stamp.js',
   'js/config.js',
-  'js/config_diagnostics.js',
   'js/utils.js',
   'js/auth.js',
   'js/pdf.js',

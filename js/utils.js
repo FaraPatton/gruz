@@ -21,6 +21,8 @@ function isStampEnabled() {
 function syncStampAuthState() {
     const toggle = document.getElementById('stampToggle');
     const zone = document.getElementById('stampZone');
+    const prev = document.getElementById('spPrev');
+    const ph = document.getElementById('spPh');
     if (!toggle || !zone) return;
     const authorized = !!gAccessToken;
     toggle.disabled = !authorized;
@@ -32,6 +34,11 @@ function syncStampAuthState() {
         toggle.dataset.authReady = '1';
     }
     zone.classList.toggle('stamp-zone-disabled', !authorized || !toggle.checked);
+    if (stampUrl && prev && ph) {
+        prev.src = stampUrl;
+        prev.style.display = 'block';
+        ph.style.display = 'none';
+    }
 }
 
 function syncContractAuthState() {
@@ -223,6 +230,8 @@ document.addEventListener('DOMContentLoaded', () => {
           r.onload = ev => {
                   stampUrl = ev.target.result;
                   document.getElementById('spPrev').src = ev.target.result;
+                  document.getElementById('spPrev').style.display = 'block';
+                  document.getElementById('spPh').style.display = 'none';
           };
           r.readAsDataURL(f);
     });
