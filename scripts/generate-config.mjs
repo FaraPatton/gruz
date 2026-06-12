@@ -9,6 +9,9 @@ const jsStringArray = (value) => JSON.stringify(
     .map(item => item.trim())
     .filter(Boolean)
 );
+const jsStringObject = (entries) => JSON.stringify(
+  Object.fromEntries(entries.map(([key, name]) => [key, readTrim(name)]))
+);
 
 const config = `// App Config. Generated at deploy time.
 
@@ -25,9 +28,25 @@ const ROUTE_BASE_ADDRESS = ${jsString(readTrim('ROUTE_BASE_ADDRESS'))};
 const ANALYTICS_ALLOWED_EMAILS = ${jsStringArray(read('ANALYTICS_ALLOWED_EMAILS'))};
 const EXECUTOR_MARKERS = ${jsStringArray(read('EXECUTOR_MARKERS'))};
 
+// Private executor profile for PDF documents
+const EXECUTOR_PROFILE = ${jsStringObject([
+  ['name', 'EXECUTOR_NAME'],
+  ['shortName', 'EXECUTOR_SHORT_NAME'],
+  ['inn', 'EXECUTOR_INN'],
+  ['ogrn', 'EXECUTOR_OGRN'],
+  ['address', 'EXECUTOR_ADDRESS'],
+  ['phone', 'EXECUTOR_PHONE'],
+  ['bank', 'EXECUTOR_BANK'],
+  ['bik', 'EXECUTOR_BIK'],
+  ['corrAccount', 'EXECUTOR_CORR_ACCOUNT'],
+  ['account', 'EXECUTOR_ACCOUNT']
+])};
+
 // Email defaults
 const EMAIL_SUBJECT = ${jsString(read('EMAIL_SUBJECT'))};
 const EMAIL_BODY = ${jsString(read('EMAIL_BODY'))};
+const SIGN_EMAIL_SUBJECT = ${jsString(read('SIGN_EMAIL_SUBJECT'))};
+const SIGN_EMAIL_BODY = ${jsString(read('SIGN_EMAIL_BODY'))};
 const EMAIL_DRIVE_FOLDER_ID = ${jsString(readTrim('EMAIL_DRIVE_FOLDER_ID'))};
 const STAMP_FILE_ID = ${jsString(readTrim('STAMP_FILE_ID'))};
 

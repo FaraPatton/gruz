@@ -33,8 +33,20 @@ jobs:
           ROUTE_BASE_ADDRESS: ${{ secrets.ROUTE_BASE_ADDRESS }}
           ANALYTICS_ALLOWED_EMAILS: ${{ secrets.ANALYTICS_ALLOWED_EMAILS }}
           EXECUTOR_MARKERS: ${{ secrets.EXECUTOR_MARKERS }}
+          EXECUTOR_NAME: ${{ secrets.EXECUTOR_NAME }}
+          EXECUTOR_SHORT_NAME: ${{ secrets.EXECUTOR_SHORT_NAME }}
+          EXECUTOR_INN: ${{ secrets.EXECUTOR_INN }}
+          EXECUTOR_OGRN: ${{ secrets.EXECUTOR_OGRN }}
+          EXECUTOR_ADDRESS: ${{ secrets.EXECUTOR_ADDRESS }}
+          EXECUTOR_PHONE: ${{ secrets.EXECUTOR_PHONE }}
+          EXECUTOR_BANK: ${{ secrets.EXECUTOR_BANK }}
+          EXECUTOR_BIK: ${{ secrets.EXECUTOR_BIK }}
+          EXECUTOR_CORR_ACCOUNT: ${{ secrets.EXECUTOR_CORR_ACCOUNT }}
+          EXECUTOR_ACCOUNT: ${{ secrets.EXECUTOR_ACCOUNT }}
           EMAIL_SUBJECT: ${{ secrets.EMAIL_SUBJECT }}
           EMAIL_BODY: ${{ secrets.EMAIL_BODY }}
+          SIGN_EMAIL_SUBJECT: ${{ secrets.SIGN_EMAIL_SUBJECT }}
+          SIGN_EMAIL_BODY: ${{ secrets.SIGN_EMAIL_BODY }}
           EMAIL_DRIVE_FOLDER_ID: ${{ secrets.EMAIL_DRIVE_FOLDER_ID }}
           STAMP_FILE_ID: ${{ secrets.STAMP_FILE_ID }}
         run: |

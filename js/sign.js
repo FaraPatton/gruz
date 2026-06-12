@@ -150,8 +150,10 @@ async function sendSignedByEmail() {
     const pdfBytes = await buildSignedPdf();
     btn.textContent = '⏳ Отправляю...';
     const boundary = 'bnd_' + Date.now();
-    const subj = '=?UTF-8?B?' + btoa(unescape(encodeURIComponent('Подписанный договор'))) + '?=';
-    const bodyB64 = btoa(unescape(encodeURIComponent('Добрый день!\nВо вложении подписанный договор.\n\n--\nКарпов Сергей | 89647851386 | АТИ: 2936939')));
+    const subjectText = typeof SIGN_EMAIL_SUBJECT !== 'undefined' && SIGN_EMAIL_SUBJECT ? SIGN_EMAIL_SUBJECT : 'Подписанный договор';
+    const bodyText = typeof SIGN_EMAIL_BODY !== 'undefined' && SIGN_EMAIL_BODY ? SIGN_EMAIL_BODY : 'Добрый день!\nВо вложении подписанный договор.';
+    const subj = '=?UTF-8?B?' + btoa(unescape(encodeURIComponent(subjectText))) + '?=';
+    const bodyB64 = btoa(unescape(encodeURIComponent(bodyText)));
     const arr = new Uint8Array(pdfBytes);
     let b64 = '';
     for (let i = 0; i < arr.length; i += 8192) b64 += String.fromCharCode(...arr.subarray(i, i + 8192));

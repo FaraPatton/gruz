@@ -11,9 +11,25 @@ const ROUTE_BASE_ADDRESS = '';
 const ANALYTICS_ALLOWED_EMAILS = [];
 const EXECUTOR_MARKERS = [];
 
+// Private executor profile for PDF documents
+const EXECUTOR_PROFILE = {
+  name: '',
+  shortName: '',
+  inn: '',
+  ogrn: '',
+  address: '',
+  phone: '',
+  bank: '',
+  bik: '',
+  corrAccount: '',
+  account: ''
+};
+
 // Email defaults
 const EMAIL_SUBJECT = '';
 const EMAIL_BODY = ``;
+const SIGN_EMAIL_SUBJECT = '';
+const SIGN_EMAIL_BODY = ``;
 const EMAIL_DRIVE_FOLDER_ID = '';
 const STAMP_FILE_ID = '';
 

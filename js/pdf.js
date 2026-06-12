@@ -32,7 +32,30 @@ function jl(doc, lines, x, y, mW, lH) {
   });
 }
 
+function executorProfile() {
+  const profile = typeof EXECUTOR_PROFILE !== 'undefined' && EXECUTOR_PROFILE ? EXECUTOR_PROFILE : {};
+  const value = key => String(profile[key] || '');
+  return {
+    name: value('name'),
+    shortName: value('shortName'),
+    inn: value('inn'),
+    ogrn: value('ogrn'),
+    address: value('address'),
+    phone: value('phone'),
+    bank: value('bank'),
+    bik: value('bik'),
+    corrAccount: value('corrAccount'),
+    account: value('account')
+  };
+}
+
+function executorAddressLine(profile) {
+  return [profile.address, profile.phone ? 'тел. ' + profile.phone : ''].filter(Boolean).join('  ');
+}
+
 function drawServiceBlock(doc, d, y, ml, cw, colHeader) {
+  const executor = executorProfile();
+  const executorInService = executor.shortName ? ', ' + executor.shortName : '';
   const tc = [8, 110, 16, 14, 22, 20];
   const tx = [ml];
   for (let i = 0; i < tc.length - 1; i++) tx.push(tx[i] + tc[i]);
@@ -49,7 +72,7 @@ function drawServiceBlock(doc, d, y, ml, cw, colHeader) {
   });
   doc.setTextColor(0, 0, 0); y += hdrH;
   const descText = 'Транспортные услуги по перевозке груза по маршруту: ' +
-    d.route + ', ' + d.car + ', Карпов С.В., дата загрузки - ' +
+    d.route + ', ' + d.car + executorInService + ', дата загрузки - ' +
     d.loadDate + ', дата выгрузки - ' + d.unloadDate + '.';
   sf(doc, 9.5, false);
   const descLines = doc.splitTextToSize(descText, tc[1] - 4);
@@ -119,6 +142,7 @@ async function genInvoice(options, folderId) {
   if (btn && !pdfOptions.silent) setDocButtonBusy(btn, true);
   try {
     const d = getData(), doc = nDoc();
+    const executor = executorProfile();
     const ml = 10, cw = 190; let y = 8;
     const c1 = 30, c2 = 60, c3 = 22, rh = 11;
     function hr(cells, ry, bg) {
@@ -135,13 +159,13 @@ async function genInvoice(options, folderId) {
         ll.forEach((l, j) => doc.text(l, cx + 2, ty + j * lh)); cx += ws[i];
       }); doc.setTextColor(0, 0, 0);
     }
-    hr([{t:'Получатель',b:true,col:[70,70,70],sz:10.5},{t:'ИП Карпов Сергей Викторович',b:true,sz:12},{t:'Банк',b:true,col:[70,70,70],sz:10.5},{t:'ПАО СБЕРБАНК г. Москва',sz:11}],y,[242,242,242]);y+=rh;
-    hr([{t:'ИНН',col:[100,100,100],sz:9.5},{t:'771313296859',sz:10},{t:'БИК',col:[100,100,100],sz:9.5},{t:'044525225',sz:10}],y);y+=rh;
-    hr([{t:'Сч.№',col:[100,100,100],sz:10.5},{t:'30101810400000000225',sz:11},{t:'Сч.№',col:[100,100,100],sz:10.5},{t:'40802810438000085714',sz:11}],y);y+=rh;
+    hr([{t:'Получатель',b:true,col:[70,70,70],sz:10.5},{t:executor.name,b:true,sz:12},{t:'Банк',b:true,col:[70,70,70],sz:10.5},{t:executor.bank,sz:11}],y,[242,242,242]);y+=rh;
+    hr([{t:'ИНН',col:[100,100,100],sz:9.5},{t:executor.inn,sz:10},{t:'БИК',col:[100,100,100],sz:9.5},{t:executor.bik,sz:10}],y);y+=rh;
+    hr([{t:'Сч.№',col:[100,100,100],sz:10.5},{t:executor.corrAccount,sz:11},{t:'Сч.№',col:[100,100,100],sz:10.5},{t:executor.account,sz:11}],y);y+=rh;
     doc.rect(ml,y,cw,rh);doc.line(ml+c1,y,ml+c1,y+rh);
     sf(doc,9.5,false);doc.setTextColor(100,100,100);doc.text('Адрес/Тел.',ml+2,y+rh/2+1.8);
     doc.setTextColor(0,0,0);sf(doc,10,false);
-    const aL=doc.splitTextToSize('127591 г. Москва, Керамический пр. д.65, к.2, кв.186  тел. 8-964-785-13-86',cw-c1-4);
+    const aL=doc.splitTextToSize(executorAddressLine(executor),cw-c1-4);
     jl(doc,aL,ml+c1+2,y+rh/2-aL.length*5/2+5*0.72,cw-c1-4,5);y+=rh+6;
     sf(doc,13,true);doc.text('Счёт на оплату №'+d.num+' от '+d.docDate,ml,y);
     y+=2;doc.setLineWidth(1);doc.line(ml,y+1,ml+cw,y+1);y+=8;
@@ -162,7 +186,7 @@ async function genInvoice(options, folderId) {
     const ss=ml+27,se=ml+80;sf(doc,10,false);doc.text('Исполнитель',ml,y);
     doc.setLineWidth(0.3);doc.line(ss,y+1,se,y+1);sf(doc,9,false);doc.setTextColor(130,130,130);
     tC(doc,'(подпись)',(ss+se)/2,y+5);
-    doc.setTextColor(0,0,0);sf(doc,10,true);doc.text('Карпов С.В.',se+3,y);
+    doc.setTextColor(0,0,0);sf(doc,10,true);doc.text(executor.shortName,se+3,y);
     if(stampUrl&&isStampEnabled()){try{doc.addImage(stampUrl,'PNG',(ss+se)/2-16,y-13,32,22,undefined,'FAST');}catch(e){}}
     return await finishPdf(
       doc,
@@ -180,6 +204,7 @@ async function genAct(options, folderId) {
   if (btn && !pdfOptions.silent) setDocButtonBusy(btn, true);
   try {
     const d = getData(), doc = nDoc();
+    const executor = executorProfile();
     const ml = 10, cw = 190; let y = 8;
     const half = cw / 2, lW = 28;
     function mb(rows, bW) {
@@ -188,11 +213,11 @@ async function genAct(options, folderId) {
       return h + 4;
     }
     const eR = [
-      {label:'Исполнитель',value:'ИП Карпов Сергей Викторович',big:true},
-      {label:'ИНН',value:'771313296859'},
-      {label:'ОГРН',value:'318774600201147'},
-      {label:'Адрес',value:'127591 г. Москва, Керамический пр. д.65, к.2, кв.186'},
-      {label:'Тел.',value:'8-964-785-13-86'}
+      {label:'Исполнитель',value:executor.name,big:true},
+      {label:'ИНН',value:executor.inn},
+      {label:'ОГРН',value:executor.ogrn},
+      {label:'Адрес',value:executor.address},
+      {label:'Тел.',value:executor.phone}
     ];
     const cR = [
       {label:'Заказчик',value:d.customerName,big:true},
@@ -229,7 +254,7 @@ async function genAct(options, folderId) {
     const ss=ml+27,se=ml+82;sf(doc,10,false);doc.text('Исполнитель',ml,y);
     doc.setLineWidth(0.3);doc.line(ss,y+1,se,y+1);sf(doc,9,false);doc.setTextColor(130,130,130);
     tC(doc,'(подпись)',(ss+se)/2,y+5);doc.setTextColor(0,0,0);
-    sf(doc,10,true);doc.text('Карпов С.В.',se+3,y);
+    sf(doc,10,true);doc.text(executor.shortName,se+3,y);
     if(stampUrl&&isStampEnabled()){try{doc.addImage(stampUrl,'PNG',(ss+se)/2-16,y-13,32,22,undefined,'FAST');}catch(e){}}
     const rx=ml+cw/2+20;sf(doc,10,false);doc.setTextColor(0,0,0);doc.text('Заказчик',rx,y);
     doc.setLineWidth(0.3);doc.line(rx+22,y+1,ml+cw,y+1);sf(doc,9,false);doc.setTextColor(130,130,130);
