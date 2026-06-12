@@ -53,6 +53,13 @@ function executorAddressLine(profile) {
   return [profile.address, profile.phone ? 'тел. ' + profile.phone : ''].filter(Boolean).join('  ');
 }
 
+function requireExecutorProfile(profile, fields) {
+  const missing = fields.filter(field => !String(profile[field] || '').trim());
+  if (missing.length) {
+    throw new Error('Не заполнены реквизиты исполнителя в runtime config: ' + missing.join(', '));
+  }
+}
+
 function drawServiceBlock(doc, d, y, ml, cw, colHeader) {
   const executor = executorProfile();
   const executorInService = executor.shortName ? ', ' + executor.shortName : '';
@@ -143,6 +150,7 @@ async function genInvoice(options, folderId) {
   try {
     const d = getData(), doc = nDoc();
     const executor = executorProfile();
+    requireExecutorProfile(executor, ['name', 'shortName', 'inn', 'address', 'phone', 'bank', 'bik', 'corrAccount', 'account']);
     const ml = 10, cw = 190; let y = 8;
     const c1 = 30, c2 = 60, c3 = 22, rh = 11;
     function hr(cells, ry, bg) {
@@ -205,6 +213,7 @@ async function genAct(options, folderId) {
   try {
     const d = getData(), doc = nDoc();
     const executor = executorProfile();
+    requireExecutorProfile(executor, ['name', 'shortName', 'inn', 'ogrn', 'address', 'phone']);
     const ml = 10, cw = 190; let y = 8;
     const half = cw / 2, lW = 28;
     function mb(rows, bW) {
