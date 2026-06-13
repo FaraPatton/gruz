@@ -94,10 +94,10 @@ function renderDriveAnalytics(entries, yr, panel) {
       dashboardHeroCard('После налога', money(totalAfterTax), afterTaxHint, '6%', 'rate') +
     '</div>' +
     '<div class="dash-mini-grid">' +
-      dashboardMetricCard('🚚', totalRides, 'рейсов', 'закрыто в периоде') +
-      dashboardMetricCard('🧾', money(avgAmt), 'средний чек', 'оборот / рейсы') +
-      dashboardMetricCard('⛽', money(totalFuel), 'топливо', '28л/100км, 60 руб/л') +
-      dashboardMetricCard('6%', money(totalTax), 'налоги', taxHint) +
+      dashboardMetricCard('rides', totalRides, 'рейсов', 'закрыто в периоде', '↗') +
+      dashboardMetricCard('avg', money(avgAmt), 'средний чек', 'оборот / рейсы', '₽') +
+      dashboardMetricCard('fuel', money(totalFuel), 'топливо', '28л/100км, 60 руб/л', 'л') +
+      dashboardMetricCard('tax', money(totalTax), 'налоги', taxHint, '6%') +
     '</div>' +
     distanceWarningPanel(missingDistanceRows) +
     aiAnalyticsPanel(filtered, topByMoney, topRoutesByMoney, totalNet, avgAmt) +
@@ -232,9 +232,16 @@ function dashboardHeroCard(label, value, hint, trend, tone) {
   '</div>';
 }
 
-function dashboardMetricCard(icon, value, label, hint) {
-  return '<div class="dash-metric-card">' +
-    '<div class="dash-metric-icon">' + icon + '</div>' +
+function dashboardMetricCard(tone, value, label, hint, badge) {
+  const sticker = {
+    rides: '<i></i><i></i><i></i>',
+    avg: '<i></i><i></i><span></span>',
+    fuel: '<i></i><span></span>',
+    tax: '<i></i><i></i><i></i>'
+  }[tone] || '';
+  return '<div class="dash-metric-card ' + aEsc(tone || '') + '">' +
+    '<div class="dash-metric-sticker" aria-hidden="true">' + sticker + '</div>' +
+    '<div class="dash-metric-badge">' + aEsc(badge || '') + '</div>' +
     '<b>' + aEsc(value) + '</b>' +
     '<span>' + aEsc(label) + '</span>' +
     '<small>' + aEsc(hint) + '</small>' +

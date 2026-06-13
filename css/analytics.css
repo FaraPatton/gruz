@@ -25,11 +25,31 @@
 .dash-hero-scale{position:absolute;z-index:13;right:20px;bottom:22px;min-width:72px;height:34px;padding:0 10px;display:flex;align-items:center;justify-content:center;border-radius:9px;background:rgba(255,255,255,.06);backdrop-filter:blur(8px);color:rgba(248,251,255,.66);font-weight:800;font-size:12px}
 .dash-mini-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}
 .dash-metric-card,.dash-panel,.dash-ai-panel{position:relative;overflow:hidden;border:1px solid rgba(79,124,255,.22);border-radius:12px;background:linear-gradient(145deg,rgba(28,35,56,.7),rgba(18,15,29,.9));box-shadow:0 14px 30px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.045)}
-.dash-metric-card{padding:14px 12px;min-width:0}
-.dash-metric-icon{font-size:20px;margin-bottom:10px;filter:drop-shadow(0 0 14px rgba(57,217,138,.22))}
-.dash-metric-card b{display:block;color:#fff;font-size:17px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dash-metric-card span{display:block;margin-top:7px;color:var(--ana-text);font-size:11px;font-weight:750}
-.dash-metric-card small{display:block;margin-top:5px;color:var(--ana-muted);font-size:9px;line-height:1.28}
+.dash-metric-card{min-width:0;min-height:118px;padding:14px 12px;background:radial-gradient(120% 95% at 20% 100%,rgba(57,217,138,.11),transparent 60%),linear-gradient(145deg,rgba(28,35,56,.82),rgba(17,14,25,.96));border-color:rgba(79,124,255,.26);box-shadow:0 16px 34px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.055);transition:transform .42s cubic-bezier(.2,.8,.2,1),border-color .42s ease,box-shadow .42s ease}
+.dash-metric-card:hover{transform:translateY(-2px);border-color:rgba(57,217,138,.34);box-shadow:0 22px 40px rgba(0,0,0,.22),0 0 26px rgba(57,217,138,.08),inset 0 1px 0 rgba(255,255,255,.07)}
+.dash-metric-card:before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent,rgba(255,255,255,.08),transparent);transform:translateX(-130%);transition:transform .7s ease;pointer-events:none}
+.dash-metric-card:hover:before{transform:translateX(130%)}
+.dash-metric-sticker{position:absolute;right:12px;top:11px;width:54px;height:54px;z-index:1;opacity:.92}
+.dash-metric-badge{position:relative;z-index:2;width:max-content;max-width:54px;min-height:25px;margin-bottom:13px;color:rgba(248,251,255,.82);font-size:18px;line-height:1;font-weight:780}
+.dash-metric-card b{position:relative;z-index:2;display:block;color:#fff;font-size:19px;line-height:1.08;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash-metric-card span{position:relative;z-index:2;display:block;margin-top:8px;color:var(--ana-text);font-size:11px;font-weight:780}
+.dash-metric-card small{position:relative;z-index:2;display:block;margin-top:6px;color:var(--ana-muted);font-size:9px;line-height:1.28}
+.dash-metric-card.rides .dash-metric-sticker i{position:absolute;border-radius:4px;background:linear-gradient(180deg,#57f4a8,#2fc57c);box-shadow:0 10px 20px rgba(57,217,138,.18);animation:metricStickerFloat 2.8s ease-in-out infinite}
+.dash-metric-card.rides .dash-metric-sticker i:nth-child(1){left:6px;bottom:8px;width:10px;height:20px}
+.dash-metric-card.rides .dash-metric-sticker i:nth-child(2){left:22px;bottom:8px;width:10px;height:32px;animation-delay:.15s}
+.dash-metric-card.rides .dash-metric-sticker i:nth-child(3){left:38px;bottom:8px;width:10px;height:42px;animation-delay:.3s}
+.dash-metric-card.avg .dash-metric-sticker i{position:absolute;width:34px;height:22px;border-radius:6px;background:linear-gradient(135deg,#baff6b,#39d98a);border:1px solid rgba(255,255,255,.32);box-shadow:0 8px 18px rgba(57,217,138,.16);animation:dashBillsRustle 3s ease-in-out infinite}
+.dash-metric-card.avg .dash-metric-sticker i:nth-child(1){--r:-10deg;left:7px;top:15px}
+.dash-metric-card.avg .dash-metric-sticker i:nth-child(2){--r:9deg;left:15px;top:22px;animation-delay:.2s}
+.dash-metric-card.avg .dash-metric-sticker span{position:absolute;left:22px;top:25px;width:10px;height:8px;border-radius:999px;border:1px solid rgba(8,20,15,.35);margin:0}
+.dash-metric-card.fuel .dash-metric-sticker:before{content:"";position:absolute;left:18px;top:8px;width:24px;height:39px;border:2px solid rgba(255,255,255,.38);border-radius:7px 7px 9px 9px;background:rgba(255,255,255,.04)}
+.dash-metric-card.fuel .dash-metric-sticker i{position:absolute;left:22px;right:16px;bottom:8px;height:22px;border-radius:0 0 7px 7px;background:linear-gradient(180deg,#57f4ff,#39d98a);box-shadow:0 0 18px rgba(87,244,255,.4);animation:dashFuelFill 3s ease-in-out infinite}
+.dash-metric-card.fuel .dash-metric-sticker span{position:absolute;right:7px;top:17px;width:12px;height:15px;border:2px solid rgba(255,255,255,.32);border-left:0;border-radius:0 8px 8px 0;margin:0}
+.dash-metric-card.tax .dash-metric-sticker{display:flex;align-items:flex-end;justify-content:center;gap:5px}
+.dash-metric-card.tax .dash-metric-sticker i{width:10px;border-radius:8px 8px 3px 3px;background:linear-gradient(180deg,#57f4ff,#4f7cff);box-shadow:0 8px 18px rgba(79,124,255,.24);animation:dashChartRise 2.6s ease-in-out infinite}
+.dash-metric-card.tax .dash-metric-sticker i:nth-child(1){height:22px}
+.dash-metric-card.tax .dash-metric-sticker i:nth-child(2){height:34px;animation-delay:.15s}
+.dash-metric-card.tax .dash-metric-sticker i:nth-child(3){height:46px;animation-delay:.3s}
 .dash-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
 .dash-panel{padding:14px}
 .dash-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}
@@ -304,11 +324,13 @@
 .dash-chart-visual i:nth-child(3){height:48px;animation-delay:.3s}
 .dash-chart-visual span{position:absolute;inset:6px;border-radius:50%;border:1px solid rgba(87,244,255,.16)}
 .dash-mini-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-.dash-metric-card{min-height:92px;padding:11px 10px;border-radius:11px}
-.dash-metric-icon{font-size:17px;margin-bottom:7px}
-.dash-metric-card b{font-size:15px}
+.dash-metric-card{min-height:116px;padding:13px 12px;border-radius:16px}
+.dash-metric-sticker{right:10px;top:10px;transform:scale(.86);transform-origin:top right}
+.dash-metric-badge{font-size:18px;margin-bottom:12px}
+.dash-metric-card b{font-size:18px}
 .dash-metric-card span{margin-top:5px;font-size:10px}
 .dash-metric-card small{margin-top:4px;font-size:8px}
+@keyframes metricStickerFloat{0%,100%{transform:translateY(0);filter:saturate(1)}50%{transform:translateY(-4px);filter:saturate(1.18)}}
 @keyframes dashBillsRustle{0%,100%{transform:translateY(0) rotate(var(--r,0deg))}50%{transform:translateY(-3px) rotate(calc(var(--r,0deg) + 5deg))}}
 @keyframes dashFuelFill{0%{height:8px}55%{height:32px}100%{height:8px}}
 @keyframes dashChartRise{0%,100%{transform:scaleY(.72);filter:saturate(.9)}50%{transform:scaleY(1);filter:saturate(1.3)}}
@@ -350,8 +372,9 @@
 .dash-hero-value{left:10px;right:40px;bottom:11px;font-size:clamp(15px,4.6vw,17px);letter-spacing:0}
 .dash-hero-scale{right:7px;bottom:9px;width:26px;height:24px;min-width:26px}
 .dash-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
-.dash-metric-card{min-height:78px;padding:10px 9px}
-.dash-metric-icon{font-size:14px;margin-bottom:4px}
+.dash-metric-card{min-height:104px;padding:10px 9px}
+.dash-metric-sticker{right:5px;top:5px;transform:scale(.66);transform-origin:top right}
+.dash-metric-badge{font-size:15px;margin-bottom:10px}
 .dash-metric-card b{font-size:clamp(14px,4.2vw,17px)}
 .dash-metric-card span{font-size:10px}
 .dash-metric-card small{font-size:8.5px;line-height:1.25}

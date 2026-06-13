@@ -21,6 +21,7 @@ const versionedAssets = [
   'js/analytics_calc.js',
   'js/analytics_trips.js',
   'js/analytics_registry.js',
+  'js/analytics_routes.js',
   'js/analytics_render.js',
   'js/analytics.js',
   'js/analytics_page.js',
