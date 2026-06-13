@@ -34,6 +34,11 @@ function getTokenClient() {
   return gTokenClient;
 }
 
+async function ensureTokenClient() {
+  await ensureGoogleIdentityLib();
+  return getTokenClient();
+}
+
 function authAllowedEmails() {
   return (typeof ANALYTICS_ALLOWED_EMAILS !== 'undefined' ? ANALYTICS_ALLOWED_EMAILS : [])
     .map(email => String(email || '').trim().toLowerCase())
@@ -144,11 +149,15 @@ function setAuthLockState(locked) {
 }
 
 function requestAuth(prompt, resolve, reject) {
-  gAuthCallback = (token, err) => {
-    if (err) reject(new Error(err));
-    else resolve(token);
-  };
-  getTokenClient().requestAccessToken({ prompt: prompt || '' });
+  ensureTokenClient()
+    .then(client => {
+      gAuthCallback = (token, err) => {
+        if (err) reject(new Error(err));
+        else resolve(token);
+      };
+      client.requestAccessToken({ prompt: prompt || '' });
+    })
+    .catch(reject);
 }
 
 async function googleLogin() {

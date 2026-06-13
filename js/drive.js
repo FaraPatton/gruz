@@ -9,7 +9,8 @@ function dMsg(text, type) {
 
 function initPicker() {
   if (gPickerReady) return Promise.resolve();
-  return new Promise(res => { gapi.load('picker', () => { gPickerReady = true; res(); }); });
+  return ensureGoogleApiLib()
+    .then(() => new Promise(res => { gapi.load('picker', () => { gPickerReady = true; res(); }); }));
 }
 
 async function openDrivePicker() {
@@ -261,7 +262,3 @@ async function archiveToDrive() {
     btn.disabled = false; btn.textContent = '📤 Загрузить документы в архив';
   }
 }
-
-window.addEventListener('load', () => {
-  if (typeof gapi !== 'undefined') gapi.load('picker', () => { gPickerReady = true; });
-});

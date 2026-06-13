@@ -66,6 +66,20 @@ function ensurePdfFontLib() {
   );
 }
 
+function ensureGoogleIdentityLib() {
+  return loadExternalScriptOnce(
+    'https://accounts.google.com/gsi/client',
+    () => !!window.google?.accounts?.oauth2
+  );
+}
+
+function ensureGoogleApiLib() {
+  return loadExternalScriptOnce(
+    'https://apis.google.com/js/api.js',
+    () => typeof window.gapi !== 'undefined'
+  );
+}
+
 function ensurePdfJsLib() {
   return loadExternalScriptOnce(
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',

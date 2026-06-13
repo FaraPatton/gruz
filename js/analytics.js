@@ -241,9 +241,9 @@ function bindAnalyticsButton() {
 window.toggleAnalytics = toggleAnalytics;
 window.loadDriveAnalytics = loadDriveAnalytics;
 window.rebuildTripsRegistry = rebuildTripsRegistry;
-window.renderDriveAnalytics = renderDriveAnalytics;
-window.setAnalyticsView = setAnalyticsView;
-window.setAnalyticsPaymentFilter = setAnalyticsPaymentFilter;
+if (typeof renderDriveAnalytics === 'function') window.renderDriveAnalytics = renderDriveAnalytics;
+if (typeof setAnalyticsView === 'function') window.setAnalyticsView = setAnalyticsView;
+if (typeof setAnalyticsPaymentFilter === 'function') window.setAnalyticsPaymentFilter = setAnalyticsPaymentFilter;
 window.saveFormTripToRegistry = saveFormTripToRegistry;
 window.deleteTripFromRegistry = deleteTripFromRegistry;
 window.deleteTripFromRegistryEncoded = deleteTripFromRegistryEncoded;
