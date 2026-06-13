@@ -343,7 +343,11 @@ function aiAnalyticsPanel(rows, customers, routes, totalNet, avgAmt) {
       aiInsight('▥', bestCustomer ? 'Ключевой заказчик: ' + bestCustomer.name : 'Заказчики пока не распознаны', bestCustomer ? money(bestCustomer.amount) + ' · ' + bestCustomer.count + ' рейс.' : 'проверь trips.json') +
       aiInsight('◷', bestMonth ? 'Сильный месяц: ' + bestMonth.label : 'Месячная динамика без данных', bestMonth ? money(bestMonth.amount) + ', средний чек ' + money(avgAmt) : 'нужно больше рейсов') +
     '</div>' +
-    '<div class="dash-ai-orb"><span></span></div>' +
+    '<div class="dash-ai-aside">' +
+      '<span><b>' + aEsc(rows.length) + '</b><small>рейсов в выборке</small></span>' +
+      '<span><b>' + aEsc(money(avgAmt)) + '</b><small>средний чек</small></span>' +
+      '<span><b>' + aEsc(bestMonth ? bestMonth.label : '—') + '</b><small>лучший месяц</small></span>' +
+    '</div>' +
   '</div>';
 }
 
