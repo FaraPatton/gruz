@@ -10,6 +10,12 @@ function notifyPwaUpdate(message) {
 
 function registerPwaUpdater() {
   if (!('serviceWorker' in navigator)) return;
+  if (['localhost', '127.0.0.1', '::1'].includes(window.location.hostname)) {
+    navigator.serviceWorker.getRegistrations()
+      .then(registrations => registrations.forEach(registration => registration.unregister()))
+      .catch(e => console.log('Local SW cleanup skipped:', e));
+    return;
+  }
 
   let refreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {

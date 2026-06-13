@@ -7,7 +7,8 @@ function ensureFont(doc) {
   setupFonts(doc);
 }
 
-function nDoc() {
+async function nDoc() {
+  await ensureJsPdfLib();
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   ensureFont(doc);
@@ -155,7 +156,7 @@ async function genInvoice(options, folderId) {
   const btn = document.querySelector('[onclick="genInvoice()"]');
   if (btn && !pdfOptions.silent) setDocButtonBusy(btn, true);
   try {
-    const d = getData(), doc = nDoc();
+    const d = getData(), doc = await nDoc();
     const executor = executorProfile();
     requireExecutorProfile(executor, ['name', 'shortName', 'inn', 'address', 'phone', 'bank', 'bik', 'corrAccount', 'account']);
     requireStampIfEnabled();
@@ -219,7 +220,7 @@ async function genAct(options, folderId) {
   const btn = document.querySelector('[onclick="genAct()"]');
   if (btn && !pdfOptions.silent) setDocButtonBusy(btn, true);
   try {
-    const d = getData(), doc = nDoc();
+    const d = getData(), doc = await nDoc();
     const executor = executorProfile();
     requireExecutorProfile(executor, ['name', 'shortName', 'inn', 'ogrn', 'address', 'phone']);
     requireStampIfEnabled();

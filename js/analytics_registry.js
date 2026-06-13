@@ -146,7 +146,7 @@ async function readTripFromPdf(file) {
     if (!resp.ok) return null;
 
     const buf = await resp.arrayBuffer();
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    await ensurePdfJsLib();
     const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
     const page = await pdf.getPage(1);
     const text = (await page.getTextContent()).items.map(i => i.str).join(' ').replace(/\s+/g, ' ');

@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const buf = await file.arrayBuffer();
     signPdfBytes = new Uint8Array(buf);
     signCurrentPage = 1;
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    await ensurePdfJsLib();
     signPdfDoc = await pdfjsLib.getDocument({ data: signPdfBytes.buffer.slice(0) }).promise;
     signTotalPages = signPdfDoc.numPages;
     await renderSignPage(signCurrentPage);

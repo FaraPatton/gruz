@@ -57,7 +57,7 @@ async function readAndParse(fileId, fileName) {
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const buf = await resp.arrayBuffer();
     dMsg('Извлекаю текст...', 'info');
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    await ensurePdfJsLib();
     const pdfDoc = await pdfjsLib.getDocument({ data: buf }).promise;
     let fullText = '';
     for (let p = 1; p <= pdfDoc.numPages; p++) {
