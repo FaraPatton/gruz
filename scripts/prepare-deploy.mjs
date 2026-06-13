@@ -19,6 +19,7 @@ const versionedAssets = [
   'js/email.js',
   'js/sign.js',
   'js/analytics_calc.js',
+  'js/analytics_registry.js',
   'js/analytics_render.js',
   'js/analytics.js',
   'js/analytics_page.js',
