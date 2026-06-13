@@ -72,6 +72,28 @@
 .dash-expense-row span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dash-expense-row b{color:var(--ana-text);font-size:11px;white-space:nowrap}
 .dash-expense-row small{grid-column:2 / 4;text-align:left;color:var(--ana-muted);font-size:9px}
+.dash-turnover-panel,.dash-money-panel{background:radial-gradient(90% 90% at 12% 0%,rgba(79,124,255,.12),transparent 58%),linear-gradient(145deg,rgba(28,35,56,.76),rgba(18,15,29,.94))}
+.dash-turnover-summary{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:13px;padding:10px 12px;border:1px solid rgba(248,251,255,.08);border-radius:12px;background:rgba(255,255,255,.035)}
+.dash-turnover-summary b{min-width:0;color:#fff;font-size:18px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash-turnover-summary small{flex:0 0 auto;color:var(--ana-muted);font-size:10px;line-height:1.2}
+.dash-month-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.dash-month-cell{min-width:0;border:1px solid rgba(79,124,255,.16);border-radius:10px;background:rgba(255,255,255,.028);padding:8px;transition:border-color .18s ease,background .18s ease}
+.dash-month-cell:hover{border-color:rgba(57,217,138,.28);background:rgba(57,217,138,.045)}
+.dash-month-cell div{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.dash-month-cell span{color:var(--ana-muted);font-size:10px;line-height:1}
+.dash-month-cell b{min-width:0;color:#fff;font-size:11px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash-month-cell em{display:block;height:4px;margin-top:8px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}
+.dash-month-cell i{display:block;height:100%;min-width:0;border-radius:inherit;background:linear-gradient(90deg,#39d98a,#57f4ff);box-shadow:0 0 14px rgba(57,217,138,.18);transition:width .35s ease}
+.dash-money-panel .dash-expense{display:grid;grid-template-columns:1fr;gap:12px}
+.dash-money-total{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid rgba(248,251,255,.08);border-radius:12px;background:rgba(255,255,255,.035)}
+.dash-money-total b{min-width:0;color:#fff;font-size:18px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash-money-total span{flex:0 0 auto;color:var(--ana-muted);font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+.dash-money-split{height:13px;border-radius:999px;overflow:hidden;background:#4f7cff;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+.dash-money-split i{display:block;float:left;width:var(--fuel);height:100%;background:linear-gradient(90deg,#39d98a,#57f4a8)}
+.dash-money-split span{display:block;height:100%;background:linear-gradient(90deg,#4f7cff,#6f8fff)}
+.dash-money-panel .dash-expense-list{gap:8px}
+.dash-money-panel .dash-expense-row{grid-template-columns:10px minmax(0,1fr) auto auto;padding:10px 11px}
+.dash-money-panel .dash-expense-row small{grid-column:auto;text-align:right}
 .dash-ai-panel{display:grid;grid-template-columns:minmax(0,1fr) minmax(168px,220px);gap:14px;padding:16px;margin:12px 0;border-color:rgba(57,217,138,.26);background:radial-gradient(90% 120% at 100% 0%,rgba(57,217,138,.13),transparent 58%),linear-gradient(145deg,rgba(29,37,59,.82),rgba(18,15,29,.96))}
 .dash-ai-copy{min-width:0}
 .dash-ai-row{display:grid;grid-template-columns:40px minmax(0,1fr);gap:11px;align-items:start;margin-top:12px;padding:9px;border:1px solid rgba(248,251,255,.07);border-radius:12px;background:rgba(255,255,255,.035)}
@@ -362,6 +384,7 @@
 .dash-hero-card{min-height:122px}
 .dash-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 .dash-grid-2{grid-template-columns:1fr}
+.dash-month-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 .dash-ai-panel{grid-template-columns:1fr}
 .dash-ai-aside{grid-template-columns:repeat(3,minmax(0,1fr))}
 .dash-expense{grid-template-columns:1fr;justify-items:center}
@@ -384,6 +407,9 @@
 .dash-metric-card small{font-size:8px;line-height:1.2}
 .dash-bars{gap:5px}
 .dash-ai-aside{grid-template-columns:1fr}
+.dash-month-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.dash-money-panel .dash-expense-row{grid-template-columns:10px minmax(0,1fr) auto}
+.dash-money-panel .dash-expense-row small{grid-column:2 / 4;text-align:left}
 .dash-ai-row b{white-space:normal}
 .dash-top-row{grid-template-columns:24px minmax(0,1fr)}
 .dash-top-row strong{grid-column:2;text-align:left}

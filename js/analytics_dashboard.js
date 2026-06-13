@@ -31,14 +31,19 @@ function dashboardMetricCard(tone, value, label, hint, badge) {
 
 function dashboardTurnoverChart(values, max, labels) {
   const total = values.reduce((sum, value) => sum + (Number(value) || 0), 0);
-  return '<div class="dash-panel">' +
+  const active = values.filter(value => Number(value) > 0).length;
+  return '<div class="dash-panel dash-turnover-panel">' +
     '<div class="dash-panel-head"><b>Динамика оборота</b><span>' + aEsc(money(total)) + '</span></div>' +
-    '<div class="dash-bars">' +
+    '<div class="dash-turnover-summary">' +
+      '<b>' + aEsc(money(total)) + '</b>' +
+      '<small>' + aEsc(active ? active + ' мес. с оборотом' : 'нет оборота') + '</small>' +
+    '</div>' +
+    '<div class="dash-month-grid">' +
       values.map((value, i) => {
-        const h = value ? Math.max(8, Math.round(value / (max || 1) * 118)) : 3;
-        return '<div class="dash-bar-col" title="' + aEsc(money(value)) + '">' +
-          '<em style="height:' + h + 'px"><strong>' + (value ? aEsc(shortMoney(value)) : '') + '</strong></em>' +
-          '<small>' + aEsc(labels[i]) + '</small>' +
+        const width = value ? Math.max(4, Math.round(value / (max || 1) * 100)) : 0;
+        return '<div class="dash-month-cell" title="' + aEsc(labels[i] + ': ' + money(value)) + '">' +
+          '<div><span>' + aEsc(labels[i]) + '</span><b>' + (value ? aEsc(shortMoney(value)) : '—') + '</b></div>' +
+          '<em><i style="width:' + width + '%"></i></em>' +
         '</div>';
       }).join('') +
     '</div>' +
@@ -81,13 +86,15 @@ function expenseStructureCard(fuel, net) {
   const expenses = Math.max(0, fuel);
   const total = expenses + Math.max(0, net);
   const fuelPct = total ? Math.round(expenses / total * 100) : 0;
-  return '<div class="dash-panel">' +
+  const netPct = total ? 100 - fuelPct : 0;
+  return '<div class="dash-panel dash-money-panel">' +
     '<div class="dash-panel-head"><b>Структура денег</b><span>топливо / чистая</span></div>' +
     '<div class="dash-expense">' +
-      '<div class="dash-donut" style="--fuel:' + fuelPct + '%"><b>' + aEsc(money(total)) + '</b><span>всего</span></div>' +
+      '<div class="dash-money-total"><b>' + aEsc(money(total)) + '</b><span>распределено</span></div>' +
+      '<div class="dash-money-split" style="--fuel:' + fuelPct + '%"><i></i><span></span></div>' +
       '<div class="dash-expense-list">' +
         dashExpenseRow('Топливо', fuel, fuelPct, '#39d98a') +
-        dashExpenseRow('Чистая прибыль', net, 100 - fuelPct, '#4f7cff') +
+        dashExpenseRow('Чистая прибыль', net, netPct, '#4f7cff') +
       '</div>' +
     '</div>' +
   '</div>';
