@@ -98,16 +98,7 @@ function renderDriveAnalytics(entries, yr, panel) {
     '<div class="dash-grid-2">' +
       dashboardTurnoverChart(monthlyMoney, maxMonthMoney, monthNames) +
       expenseStructureCard(totalFuel, totalNet) +
-    '</div>' +
-    dashboardTaxChart(monthlyTax, monthlyAfterTax, maxMonthTax, monthNames, selectedYear) +
-    '<div class="dash-grid-2">' +
-      dashboardTopList('Топ заказчики', topByMoney.slice(0, 3), row => row.count + ' рейс.', row => money(row.amount)) +
-      dashboardTopList('Топ маршруты', topRoutesByMoney, row => row.count + ' рейс.', row => money(row.amount)) +
-    '</div>' +
-    sectionTitle('Оплата') +
-    paymentSummaryHtml(paymentStats) +
-    sectionTitle('Кратко по годам') +
-    overviewYearsChart(yearStats.slice(0, 4), maxYearAmount);
+    '</div>';
 
   const yearsHtml =
     sectionTitle('Динамика по годам') +
