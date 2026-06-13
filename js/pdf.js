@@ -1,6 +1,7 @@
 // ══ PDF Generation — кириллица через Liberation Sans ═════════════════
 
-function ensureFont(doc) {
+async function ensureFont(doc) {
+  await ensurePdfFontLib();
   if (typeof setupFonts !== 'function') {
     throw new Error('PDF fonts are not loaded');
   }
@@ -11,7 +12,7 @@ async function nDoc() {
   await ensureJsPdfLib();
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-  ensureFont(doc);
+  await ensureFont(doc);
   return doc;
 }
 function sf(doc, s, b) {

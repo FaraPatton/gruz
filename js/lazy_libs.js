@@ -59,6 +59,13 @@ function ensureJsPdfLib() {
   );
 }
 
+function ensurePdfFontLib() {
+  return loadExternalScriptOnce(
+    'fonts/liberation.js',
+    () => typeof window.setupFonts === 'function'
+  );
+}
+
 function ensurePdfJsLib() {
   return loadExternalScriptOnce(
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',

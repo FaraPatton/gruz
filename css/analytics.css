@@ -172,7 +172,7 @@
 .journal-delete:hover .journal-delete-top{transform:rotate(32deg) translate(2px,-2px)}
 .journal-delete:hover .journal-delete-bottom:before,.journal-delete:hover .journal-delete-bottom:after{background:rgb(255,38,38)}
 .journal-delete:active{transform:scale(.95)}
-.journal-map-thumb{position:relative;width:100%;aspect-ratio:3.52/1;border:1px solid rgba(57,217,138,.26);border-radius:8px;overflow:hidden;background:#080b12 url("img/route-card-map.png") center/100% 100% no-repeat;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 10px 26px rgba(0,0,0,.18);transition:transform .18s ease,border-color .2s ease,box-shadow .2s ease}
+.journal-map-thumb{position:relative;width:100%;aspect-ratio:3.52/1;border:1px solid rgba(57,217,138,.26);border-radius:8px;overflow:hidden;background:#080b12 url("../img/route-card-map.jpg?v=1") center/100% 100% no-repeat;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 10px 26px rgba(0,0,0,.18);transition:transform .18s ease,border-color .2s ease,box-shadow .2s ease}
 .overview-year-chart{display:grid;gap:9px;margin:4px 0 20px}
 .overview-year-card{position:relative;overflow:hidden;display:grid;grid-template-columns:74px minmax(0,1fr) minmax(128px,auto);gap:12px;align-items:center;padding:12px;border:1px solid rgba(137,104,190,.22);border-radius:10px;background:linear-gradient(135deg,rgba(255,255,255,.045),rgba(57,217,138,.035));animation:yearChartIn .56s cubic-bezier(.2,.8,.2,1) both;animation-timeline:view();animation-range:entry 0% cover 34%}
 .overview-year-card:before{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent,rgba(255,255,255,.09),transparent);transform:translateX(-130%)}
