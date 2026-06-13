@@ -25,30 +25,31 @@
 .dash-hero-scale{position:absolute;z-index:13;right:20px;bottom:22px;min-width:72px;height:34px;padding:0 10px;display:flex;align-items:center;justify-content:center;border-radius:9px;background:rgba(255,255,255,.06);backdrop-filter:blur(8px);color:rgba(248,251,255,.66);font-weight:800;font-size:12px}
 .dash-mini-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}
 .dash-metric-card,.dash-panel,.dash-ai-panel{position:relative;overflow:hidden;border:1px solid rgba(79,124,255,.22);border-radius:12px;background:linear-gradient(145deg,rgba(28,35,56,.7),rgba(18,15,29,.9));box-shadow:0 14px 30px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.045)}
-.dash-metric-card{min-width:0;min-height:68px;padding:9px 10px;background:radial-gradient(95% 80% at 15% 100%,rgba(57,217,138,.08),transparent 62%),linear-gradient(145deg,rgba(28,35,56,.72),rgba(17,14,25,.95));border-color:rgba(79,124,255,.24);box-shadow:0 10px 22px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.045);transition:transform .32s cubic-bezier(.2,.8,.2,1),border-color .32s ease,box-shadow .32s ease}
+.dash-metric-card{min-width:0;min-height:68px;padding:11px 10px 9px;background:radial-gradient(95% 80% at 15% 100%,rgba(57,217,138,.08),transparent 62%),linear-gradient(145deg,rgba(28,35,56,.72),rgba(17,14,25,.95));border-color:rgba(79,124,255,.24);box-shadow:0 10px 22px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.045);transition:transform .32s cubic-bezier(.2,.8,.2,1),border-color .32s ease,box-shadow .32s ease}
 .dash-metric-card:hover{transform:translateY(-1px);border-color:rgba(57,217,138,.3);box-shadow:0 14px 28px rgba(0,0,0,.18),0 0 18px rgba(57,217,138,.06),inset 0 1px 0 rgba(255,255,255,.06)}
 .dash-metric-card:before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent,rgba(255,255,255,.08),transparent);transform:translateX(-130%);transition:transform .7s ease;pointer-events:none}
 .dash-metric-card:hover:before{transform:translateX(130%)}
 .dash-metric-sticker{position:absolute;right:9px;top:8px;width:30px;height:30px;z-index:1;opacity:.82}
-.dash-metric-badge{position:relative;z-index:2;width:max-content;max-width:34px;min-height:14px;margin-bottom:7px;color:rgba(248,251,255,.74);font-size:12px;line-height:1;font-weight:780}
 .dash-metric-card b{position:relative;z-index:2;display:block;color:#fff;font-size:15px;line-height:1.08;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dash-metric-card span{position:relative;z-index:2;display:block;margin-top:4px;color:var(--ana-text);font-size:9px;font-weight:780}
 .dash-metric-card small{position:relative;z-index:2;display:block;margin-top:3px;color:var(--ana-muted);font-size:8px;line-height:1.22}
-.dash-metric-card.rides .dash-metric-sticker:before{content:"";position:absolute;left:4px;right:4px;top:14px;height:1px;background:rgba(87,244,255,.3);transform:rotate(-20deg)}
-.dash-metric-card.rides .dash-metric-sticker i{position:absolute;width:7px;height:7px;border-radius:50%;background:#57f4ff;box-shadow:0 0 14px rgba(87,244,255,.32);animation:metricStickerFloat 2.9s ease-in-out infinite}
-.dash-metric-card.rides .dash-metric-sticker i:nth-child(1){left:3px;top:17px}
-.dash-metric-card.rides .dash-metric-sticker i:nth-child(2){left:12px;top:11px;animation-delay:.15s}
-.dash-metric-card.rides .dash-metric-sticker i:nth-child(3){right:3px;top:7px;animation-delay:.3s}
-.dash-metric-card.avg .dash-metric-sticker i{position:absolute;inset:5px;border-radius:50%;border:2px solid rgba(57,217,138,.62);box-shadow:0 0 18px rgba(57,217,138,.18);animation:dashMetricPulse 3s ease-in-out infinite}
-.dash-metric-card.avg .dash-metric-sticker i:nth-child(2){inset:11px;border-width:1px;animation-delay:.25s}
-.dash-metric-card.avg .dash-metric-sticker span{position:absolute;left:13px;top:7px;width:4px;height:16px;border-radius:999px;background:linear-gradient(180deg,#baff6b,#39d98a);margin:0}
-.dash-metric-card.fuel .dash-metric-sticker:before{content:"";position:absolute;left:12px;top:4px;width:10px;height:19px;border-radius:10px 10px 12px 12px;background:linear-gradient(180deg,#57f4ff,#39d98a);box-shadow:0 0 16px rgba(87,244,255,.28);animation:dashFuelDrop 3s ease-in-out infinite}
-.dash-metric-card.fuel .dash-metric-sticker i{position:absolute;left:8px;right:6px;bottom:4px;height:3px;border-radius:999px;background:rgba(87,244,255,.28)}
-.dash-metric-card.fuel .dash-metric-sticker span{position:absolute;left:5px;right:3px;bottom:0;height:1px;border-radius:999px;background:rgba(57,217,138,.34);margin:0}
-.dash-metric-card.tax .dash-metric-sticker i{position:absolute;border-radius:50%;background:rgba(79,124,255,.16);border:1px solid rgba(87,244,255,.38);animation:dashMetricPulse 2.8s ease-in-out infinite}
-.dash-metric-card.tax .dash-metric-sticker i:nth-child(1){left:3px;top:8px;width:11px;height:11px}
-.dash-metric-card.tax .dash-metric-sticker i:nth-child(2){right:3px;bottom:6px;width:11px;height:11px;animation-delay:.2s}
-.dash-metric-card.tax .dash-metric-sticker i:nth-child(3){left:7px;right:7px;top:15px;height:2px;border-radius:999px;background:linear-gradient(90deg,#57f4ff,#4f7cff);border:0;transform:rotate(-35deg);animation:none}
+.dash-metric-card.rides .dash-metric-sticker i{position:absolute;bottom:4px;width:11px;height:11px;border:2px solid rgba(87,244,255,.72);border-radius:50%;box-shadow:0 0 12px rgba(87,244,255,.22);animation:dashWheelSpin 2.4s linear infinite}
+.dash-metric-card.rides .dash-metric-sticker i:before{content:"";position:absolute;inset:3px;border-radius:50%;background:#57f4ff}
+.dash-metric-card.rides .dash-metric-sticker i:nth-child(1){left:3px}
+.dash-metric-card.rides .dash-metric-sticker i:nth-child(2){right:3px}
+.dash-metric-card.rides .dash-metric-sticker span{position:absolute;left:5px;right:5px;bottom:16px;height:8px;border-radius:8px 8px 3px 3px;background:linear-gradient(135deg,rgba(57,217,138,.72),rgba(79,124,255,.56));margin:0;animation:metricStickerFloat 2.8s ease-in-out infinite}
+.dash-metric-card.avg .dash-metric-sticker i{position:absolute;left:6px;top:3px;width:18px;height:24px;border-radius:3px;background:linear-gradient(180deg,#f8fbff,#b7c2d8);box-shadow:0 8px 18px rgba(255,255,255,.08);animation:dashReceiptWave 3s ease-in-out infinite}
+.dash-metric-card.avg .dash-metric-sticker i:before{content:"";position:absolute;left:4px;right:4px;top:7px;height:2px;background:#39d98a;box-shadow:0 5px 0 rgba(79,124,255,.65),0 10px 0 rgba(57,217,138,.45)}
+.dash-metric-card.avg .dash-metric-sticker span{position:absolute;left:7px;right:7px;bottom:1px;height:4px;background:linear-gradient(135deg,transparent 35%,#151b2a 35% 65%,transparent 65%);margin:0;opacity:.8}
+.dash-metric-card.fuel .dash-metric-sticker i{position:absolute;left:5px;top:5px;width:17px;height:22px;border-radius:3px 3px 5px 5px;background:linear-gradient(180deg,#ff5d5d,#d53131);box-shadow:0 0 16px rgba(255,93,93,.2);animation:dashFuelCan 3s ease-in-out infinite}
+.dash-metric-card.fuel .dash-metric-sticker i:before{content:"";position:absolute;right:-5px;top:4px;width:8px;height:9px;border:2px solid rgba(255,255,255,.48);border-left:0;border-radius:0 6px 6px 0}
+.dash-metric-card.fuel .dash-metric-sticker span{position:absolute;left:10px;top:11px;width:7px;height:7px;border-radius:50%;border:1px solid rgba(255,255,255,.62);margin:0}
+.dash-metric-card.tax .dash-metric-sticker:before{content:"";position:absolute;left:2px;right:2px;top:8px;height:5px;clip-path:polygon(50% 0,100% 100%,0 100%);background:linear-gradient(180deg,#f8fbff,#7f8aa3)}
+.dash-metric-card.tax .dash-metric-sticker i{position:absolute;top:14px;width:3px;height:11px;border-radius:2px;background:linear-gradient(180deg,#dfe8ff,#8a96b4);animation:dashCourtGlow 2.8s ease-in-out infinite}
+.dash-metric-card.tax .dash-metric-sticker i:nth-child(1){left:7px}
+.dash-metric-card.tax .dash-metric-sticker i:nth-child(2){left:14px;animation-delay:.15s}
+.dash-metric-card.tax .dash-metric-sticker i:nth-child(3){right:7px;animation-delay:.3s}
+.dash-metric-card.tax .dash-metric-sticker span{position:absolute;left:4px;right:4px;bottom:3px;height:3px;border-radius:2px;background:linear-gradient(90deg,#4f7cff,#57f4ff);margin:0}
 .dash-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
 .dash-panel{padding:14px}
 .dash-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}
@@ -325,7 +326,6 @@
 .dash-mini-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .dash-metric-card{min-height:68px;padding:9px 10px;border-radius:12px}
 .dash-metric-sticker{right:9px;top:8px;transform:none}
-.dash-metric-badge{font-size:12px;margin-bottom:7px}
 .dash-metric-card b{font-size:15px}
 .dash-metric-card span{margin-top:4px;font-size:9px}
 .dash-metric-card small{margin-top:3px;font-size:8px}
@@ -335,6 +335,10 @@
 @keyframes dashChartRise{0%,100%{transform:scaleY(.72);filter:saturate(.9)}50%{transform:scaleY(1);filter:saturate(1.3)}}
 @keyframes dashMetricPulse{0%,100%{transform:scale(.9);opacity:.58}50%{transform:scale(1);opacity:1}}
 @keyframes dashFuelDrop{0%,100%{transform:translateY(0) scaleY(.9);filter:saturate(.9)}50%{transform:translateY(2px) scaleY(1.08);filter:saturate(1.2)}}
+@keyframes dashWheelSpin{to{transform:rotate(360deg)}}
+@keyframes dashReceiptWave{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-2px) rotate(2deg)}}
+@keyframes dashFuelCan{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-2px) rotate(-4deg)}}
+@keyframes dashCourtGlow{0%,100%{filter:saturate(.8);opacity:.72}50%{filter:saturate(1.25);opacity:1}}
 .dash-panel{animation:dashPanelReveal .68s cubic-bezier(.2,.8,.2,1) both;animation-timeline:view();animation-range:entry 0% cover 30%}
 .dash-panel-head b{font-size:13px;letter-spacing:.02em}
 .dash-panel-head span{font-size:10px}
@@ -375,7 +379,6 @@
 .dash-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
 .dash-metric-card{min-height:76px;padding:9px}
 .dash-metric-sticker{right:6px;top:6px;transform:scale(.88);transform-origin:top right}
-.dash-metric-badge{font-size:12px;margin-bottom:8px}
 .dash-metric-card b{font-size:clamp(13px,3.6vw,15px)}
 .dash-metric-card span{font-size:9px}
 .dash-metric-card small{font-size:8px;line-height:1.2}

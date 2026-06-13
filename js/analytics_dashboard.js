@@ -16,14 +16,13 @@ function dashboardHeroCard(label, value, hint, trend, tone) {
 
 function dashboardMetricCard(tone, value, label, hint, badge) {
   const sticker = {
-    rides: '<i></i><i></i><i></i>',
-    avg: '<i></i><i></i><span></span>',
+    rides: '<i></i><i></i><span></span>',
+    avg: '<i></i><span></span>',
     fuel: '<i></i><span></span>',
-    tax: '<i></i><i></i><i></i>'
+    tax: '<i></i><i></i><i></i><span></span>'
   }[tone] || '';
   return '<div class="dash-metric-card ' + aEsc(tone || '') + '">' +
     '<div class="dash-metric-sticker" aria-hidden="true">' + sticker + '</div>' +
-    '<div class="dash-metric-badge">' + aEsc(badge || '') + '</div>' +
     '<b>' + aEsc(value) + '</b>' +
     '<span>' + aEsc(label) + '</span>' +
     '<small>' + aEsc(hint) + '</small>' +
@@ -205,4 +204,3 @@ function overviewYearsChart(rows, maxAmount) {
     }).join('') +
   '</div>';
 }
-
