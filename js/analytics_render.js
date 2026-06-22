@@ -36,12 +36,14 @@ function renderDriveAnalytics(entries, yr, panel) {
   const paymentStats = paymentSummary(periodTrips);
   const monthly = Array(12).fill(0);
   const monthlyNet = Array(12).fill(0);
+  const monthlyNetTax = Array(12).fill(0);
   const monthlyTax = Array(12).fill(0);
   const monthlyAfterTax = Array(12).fill(0);
   filtered.forEach(e => {
     if (e.month >= 1 && e.month <= 12) {
       monthly[e.month - 1]++;
       monthlyNet[e.month - 1] += netProfit(e);
+      monthlyNetTax[e.month - 1] += usnTax(e);
     }
   });
   taxRows.forEach(e => {
@@ -94,7 +96,7 @@ function renderDriveAnalytics(entries, yr, panel) {
       dashboardMetricCard('tax', money(totalTax), 'налоги', taxHint, '6%') +
     '</div>' +
     distanceWarningPanel(missingDistanceRows) +
-    dashboardMonthlyNetChart(monthlyNet, maxMonthNet, monthNames, selectedYear) +
+    dashboardMonthlyNetChart(monthlyNet, monthlyNetTax, maxMonthNet, monthNames, selectedYear) +
     aiAnalyticsPanel(filtered, topByMoney, topRoutesByMoney, totalNet, avgAmt) +
     expenseStructureCard(totalFuel, totalNet);
 

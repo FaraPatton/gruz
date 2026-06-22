@@ -29,7 +29,7 @@ function dashboardMetricCard(tone, value, label, hint, badge) {
   '</div>';
 }
 
-function dashboardMonthlyNetChart(values, max, labels, selectedYear) {
+function dashboardMonthlyNetChart(values, taxValues, max, labels, selectedYear) {
   const total = values.reduce((sum, value) => sum + (Number(value) || 0), 0);
   const active = values.filter(value => Number(value) !== 0).length;
   const period = selectedYear ? String(selectedYear) : 'все годы';
@@ -45,6 +45,7 @@ function dashboardMonthlyNetChart(values, max, labels, selectedYear) {
         const tone = value < 0 ? ' is-negative' : '';
         return '<div class="dash-month-cell' + tone + '" title="' + aEsc(labels[i] + ': ' + money(value)) + '">' +
           '<div><span>' + aEsc(labels[i]) + '</span><b>' + (value ? aEsc(shortMoney(value)) : '—') + '</b></div>' +
+          '<small class="dash-month-tax">(налог ~' + aEsc(money(taxValues[i] || 0)) + ')</small>' +
           '<em><i style="width:' + width + '%"></i></em>' +
         '</div>';
       }).join('') +
