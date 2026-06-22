@@ -34,7 +34,7 @@ function dashboardMonthlyNetChart(values, max, labels, selectedYear) {
   const active = values.filter(value => Number(value) !== 0).length;
   const period = selectedYear ? String(selectedYear) : 'все годы';
   return '<div class="dash-panel dash-turnover-panel dash-net-panel">' +
-    '<div class="dash-panel-head"><b>Чистая прибыль по месяцам</b><span>' + aEsc(period) + '</span></div>' +
+    '<div class="dash-panel-head"><b>Прибыль с учетом трат на топливо (без налога)</b><span>' + aEsc(period) + '</span></div>' +
     '<div class="dash-turnover-summary">' +
       '<b>' + aEsc(money(total)) + '</b>' +
       '<small>' + aEsc(active ? active + ' мес. с результатом' : 'нет данных') + '</small>' +
