@@ -35,13 +35,13 @@ function renderDriveAnalytics(entries, yr, panel) {
   const missingDistanceRows = filtered.filter(needsDistance);
   const paymentStats = paymentSummary(periodTrips);
   const monthly = Array(12).fill(0);
-  const monthlyMoney = Array(12).fill(0);
+  const monthlyNet = Array(12).fill(0);
   const monthlyTax = Array(12).fill(0);
   const monthlyAfterTax = Array(12).fill(0);
   filtered.forEach(e => {
     if (e.month >= 1 && e.month <= 12) {
       monthly[e.month - 1]++;
-      monthlyMoney[e.month - 1] += e.amount || 0;
+      monthlyNet[e.month - 1] += netProfit(e);
     }
   });
   taxRows.forEach(e => {
@@ -51,7 +51,7 @@ function renderDriveAnalytics(entries, yr, panel) {
     }
   });
   const maxM = Math.max(...monthly, 1);
-  const maxMonthMoney = Math.max(...monthlyMoney, 1);
+  const maxMonthNet = Math.max(...monthlyNet.map(value => Math.abs(value)), 1);
   const maxMonthTax = Math.max(...monthlyTax, 1);
   const monthNames = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
 
@@ -94,11 +94,9 @@ function renderDriveAnalytics(entries, yr, panel) {
       dashboardMetricCard('tax', money(totalTax), 'налоги', taxHint, '6%') +
     '</div>' +
     distanceWarningPanel(missingDistanceRows) +
+    dashboardMonthlyNetChart(monthlyNet, maxMonthNet, monthNames, selectedYear) +
     aiAnalyticsPanel(filtered, topByMoney, topRoutesByMoney, totalNet, avgAmt) +
-    '<div class="dash-grid-2">' +
-      dashboardTurnoverChart(monthlyMoney, maxMonthMoney, monthNames) +
-      expenseStructureCard(totalFuel, totalNet) +
-    '</div>';
+    expenseStructureCard(totalFuel, totalNet);
 
   const yearsHtml =
     sectionTitle('Динамика по годам') +
