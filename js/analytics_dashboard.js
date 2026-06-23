@@ -4,6 +4,7 @@ function dashboardHeroCard(label, value, hint, trend, tone) {
   const visual = {
     turnover: '<div class="dash-money-visual"><i></i><i></i><i></i></div>',
     profit: '<div class="dash-fuel-visual"><i></i><span></span></div>',
+    tax: '<div class="dash-tax-visual"><i></i><i></i><i></i><span></span></div>',
     rate: '<div class="dash-chart-visual"><i></i><i></i><i></i><span></span></div>'
   }[tone] || '';
   return '<div class="dash-hero-card ' + aEsc(tone || '') + '">' +

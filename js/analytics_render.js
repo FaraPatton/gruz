@@ -30,7 +30,6 @@ function renderDriveAnalytics(entries, yr, panel) {
   const taxRows = selectedYear ? filtered : currentYearTrips(filtered);
   const totalTax = sumUsnTax(taxRows);
   const totalAfterTax = sumNetAfterTax(taxRows);
-  const taxHint = selectedYear ? 'УСН за ' + selectedYear : 'УСН с начала года';
   const afterTaxHint = selectedYear ? 'за ' + selectedYear : 'с начала года';
   const missingDistanceRows = filtered.filter(needsDistance);
   const paymentStats = paymentSummary(periodTrips);
@@ -88,13 +87,13 @@ function renderDriveAnalytics(entries, yr, panel) {
     '<div class="dash-hero-grid">' +
       dashboardHeroCard('Оборот', money(totalAmt), 'по выбранному периоду', '↗', 'turnover') +
       dashboardHeroCard('Чистая прибыль', money(totalNet), 'после топлива', '↗', 'profit') +
-      dashboardHeroCard('После налога', money(totalAfterTax), afterTaxHint, '6%', 'rate') +
+      dashboardHeroCard('Налоги', money(totalTax), 'УСН 6%, без наличных', '6%', 'tax') +
+      dashboardHeroCard('После налога', money(totalAfterTax), afterTaxHint, '₽', 'rate') +
     '</div>' +
     '<div class="dash-mini-grid">' +
       dashboardMetricCard('rides', totalRides, 'рейсов', 'закрыто в периоде', '↗') +
       dashboardMetricCard('avg', money(avgAmt), 'средний чек', 'оборот / рейсы', '₽') +
       dashboardMetricCard('fuel', money(totalFuel), 'топливо', '28л/100км, 60 руб/л', 'л') +
-      dashboardMetricCard('tax', money(totalTax), 'налоги', taxHint, '6%') +
     '</div>' +
     distanceWarningPanel(missingDistanceRows) +
     aiAnalyticsPanel(filtered, topByMoney, topRoutesByMoney, avgAmt) +

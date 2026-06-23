@@ -3,7 +3,7 @@
 @keyframes yearChartIn{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes yearBarGrow{from{transform:scaleX(.04);filter:saturate(.8)}to{transform:scaleX(1);filter:saturate(1.1)}}
 @keyframes yearCardShine{from{transform:translateX(-130%)}to{transform:translateX(130%)}}
-.dash-hero-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:12px}
+.dash-hero-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px}
 .dash-hero-card{position:relative;min-height:214px;padding:22px;border:1px solid rgba(79,124,255,.24);border-radius:23px;background:radial-gradient(160% 105% at 24% 105%,rgba(255,247,177,.22) 0%,rgba(255,255,255,0) 68%),linear-gradient(145deg,rgba(28,36,58,.94),rgba(15,13,24,.98));box-shadow:0 30px 54px rgba(0,0,0,.18),0 10px 22px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.06);overflow:hidden;cursor:default;transition:transform .8s cubic-bezier(.15,.83,.66,1),box-shadow .8s cubic-bezier(.15,.83,.66,1),border-color .8s cubic-bezier(.15,.83,.66,1)}
 .dash-hero-card:hover{transform:scale(1.035);border-color:rgba(255,247,177,.38);box-shadow:0 40px 66px rgba(0,0,0,.24),0 0 36px rgba(255,247,177,.08),inset 0 1px 0 rgba(255,255,255,.08)}
 .dash-hero-weather{position:absolute;right:-36px;top:-52px;width:250px;height:250px;display:flex;align-items:center;justify-content:center;transform:scale(.55);opacity:.82}
@@ -17,13 +17,13 @@
 .dash-hero-sun{width:120px;height:120px;border-radius:60px;background:linear-gradient(to right,#fcbb04,#fffc00);position:absolute;box-shadow:0 0 42px rgba(252,187,4,.22)}
 .dash-hero-sun.shine{animation:dashSunshine 2s infinite}
 .dash-hero-card.profit .dash-hero-sun{background:linear-gradient(to right,#39d98a,#baff6b)}
-.dash-hero-card.rate .dash-hero-sun{background:linear-gradient(to right,#4f7cff,#57f4ff)}
+.dash-hero-card.tax .dash-hero-sun,.dash-hero-card.rate .dash-hero-sun{background:linear-gradient(to right,#4f7cff,#57f4ff)}
 .dash-hero-head{position:relative;z-index:13;display:flex;flex-direction:column;gap:8px;max-width:72%}
 .dash-hero-head span:first-child{font-weight:800;font-size:12px;line-height:1.35;text-transform:uppercase;letter-spacing:.12em;color:rgba(248,251,255,.66)}
 .dash-hero-head span:last-child{font-weight:700;font-size:11px;line-height:1.35;color:rgba(248,251,255,.38)}
 .dash-hero-value{position:absolute;z-index:13;left:22px;right:100px;bottom:18px;color:#fff;font-weight:800;font-size:clamp(24px,3vw,36px);line-height:1.06;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 0 20px rgba(255,247,177,.08)}
 .dash-hero-scale{position:absolute;z-index:13;right:20px;bottom:22px;min-width:72px;height:34px;padding:0 10px;display:flex;align-items:center;justify-content:center;border-radius:9px;background:rgba(255,255,255,.06);backdrop-filter:blur(8px);color:rgba(248,251,255,.66);font-weight:800;font-size:12px}
-.dash-mini-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.dash-mini-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
 .dash-metric-card,.dash-panel,.dash-ai-panel{position:relative;overflow:hidden;border:1px solid rgba(79,124,255,.22);border-radius:12px;background:linear-gradient(145deg,rgba(28,35,56,.7),rgba(18,15,29,.9));box-shadow:0 14px 30px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.045)}
 .dash-metric-card{min-width:0;min-height:68px;padding:11px 10px 9px;background:radial-gradient(95% 80% at 15% 100%,rgba(57,217,138,.08),transparent 62%),linear-gradient(145deg,rgba(28,35,56,.72),rgba(17,14,25,.95));border-color:rgba(79,124,255,.24);box-shadow:0 10px 22px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.045);transition:transform .32s cubic-bezier(.2,.8,.2,1),border-color .32s ease,box-shadow .32s ease}
 .dash-metric-card:hover{transform:translateY(-1px);border-color:rgba(57,217,138,.3);box-shadow:0 14px 28px rgba(0,0,0,.18),0 0 18px rgba(57,217,138,.06),inset 0 1px 0 rgba(255,255,255,.06)}
@@ -336,7 +336,7 @@
 .dash-hero-head span:last-child{font-size:9px}
 .dash-hero-value{left:14px;right:14px;bottom:14px;font-size:clamp(18px,2.3vw,25px)}
 .dash-hero-scale{right:12px;bottom:12px;min-width:34px;width:34px;height:28px;padding:0;border-radius:10px;font-size:12px}
-.dash-money-visual,.dash-fuel-visual,.dash-chart-visual{position:relative;width:58px;height:58px}
+.dash-money-visual,.dash-fuel-visual,.dash-chart-visual,.dash-tax-visual{position:relative;width:58px;height:58px}
 .dash-money-visual i{position:absolute;width:36px;height:22px;border-radius:6px;background:linear-gradient(135deg,#baff6b,#39d98a);border:1px solid rgba(255,255,255,.35);box-shadow:0 8px 18px rgba(57,217,138,.18);animation:dashBillsRustle 2.6s ease-in-out infinite}
 .dash-money-visual i:before{content:"";position:absolute;inset:6px 12px;border-radius:999px;border:1px solid rgba(8,20,15,.35)}
 .dash-money-visual i:nth-child(1){--r:-12deg;left:5px;top:13px;transform:rotate(var(--r))}
@@ -351,7 +351,13 @@
 .dash-chart-visual i:nth-child(2){height:34px;animation-delay:.15s}
 .dash-chart-visual i:nth-child(3){height:48px;animation-delay:.3s}
 .dash-chart-visual span{position:absolute;inset:6px;border-radius:50%;border:1px solid rgba(87,244,255,.16)}
-.dash-mini-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.dash-tax-visual:before{content:"";position:absolute;left:8px;right:8px;top:13px;height:8px;clip-path:polygon(50% 0,100% 100%,0 100%);background:linear-gradient(180deg,#f8fbff,#8793ad);box-shadow:0 8px 18px rgba(255,255,255,.08)}
+.dash-tax-visual i{position:absolute;top:24px;width:7px;height:25px;border-radius:5px;background:linear-gradient(180deg,#dfe8ff,#4f7cff);box-shadow:0 8px 18px rgba(79,124,255,.18);animation:dashCourtGlow 2.6s ease-in-out infinite}
+.dash-tax-visual i:nth-child(1){left:16px}
+.dash-tax-visual i:nth-child(2){left:26px;animation-delay:.16s}
+.dash-tax-visual i:nth-child(3){left:36px;animation-delay:.32s}
+.dash-tax-visual span{position:absolute;left:11px;right:11px;bottom:5px;height:6px;border-radius:999px;background:linear-gradient(90deg,#4f7cff,#57f4ff);box-shadow:0 0 18px rgba(87,244,255,.2)}
+.dash-mini-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .dash-metric-card{min-height:68px;padding:9px 10px;border-radius:12px}
 .dash-metric-sticker{right:9px;top:8px;transform:none}
 .dash-metric-card b{font-size:15px}
