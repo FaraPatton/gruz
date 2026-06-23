@@ -129,14 +129,13 @@ function dashboardTopList(title, rows, sub, val) {
   '</div>';
 }
 
-function aiAnalyticsPanel(rows, customers, routes, totalNet, avgAmt) {
+function aiAnalyticsPanel(rows, customers, routes, avgAmt) {
   const bestCustomer = customers[0];
   const bestRoute = routes[0];
   const bestMonth = bestMonthByAmount(rows);
   return '<div class="dash-ai-panel">' +
     '<div class="dash-ai-copy">' +
       '<div class="dash-panel-head"><b>AI-аналитика</b><span>обзор</span></div>' +
-      aiInsight('↗', totalNet ? 'Чистая прибыль периода ' + money(totalNet) : 'Чистая прибыль пока не рассчитана', 'после пересчета топлива') +
       aiInsight('🏆', bestRoute ? 'Самый денежный маршрут' : 'Маршруты пока не распознаны', bestRoute ? bestRoute.name + ' · ' + money(bestRoute.amount) : 'появится после обновления реестра') +
       aiInsight('▥', bestCustomer ? 'Ключевой заказчик: ' + bestCustomer.name : 'Заказчики пока не распознаны', bestCustomer ? money(bestCustomer.amount) + ' · ' + bestCustomer.count + ' рейс.' : 'проверь trips.json') +
       aiInsight('◷', bestMonth ? 'Сильный месяц: ' + bestMonth.label : 'Месячная динамика без данных', bestMonth ? money(bestMonth.amount) + ', средний чек ' + money(avgAmt) : 'нужно больше рейсов') +

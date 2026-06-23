@@ -84,6 +84,7 @@ function renderDriveAnalytics(entries, yr, panel) {
   if (!['overview', 'journal'].includes(analyticsView)) analyticsView = 'overview';
 
   const overviewHtml =
+    dashboardMonthlyNetChart(monthlyNet, monthlyNetTax, maxMonthNet, monthNames, selectedYear) +
     '<div class="dash-hero-grid">' +
       dashboardHeroCard('Оборот', money(totalAmt), 'по выбранному периоду', '↗', 'turnover') +
       dashboardHeroCard('Чистая прибыль', money(totalNet), 'после топлива', '↗', 'profit') +
@@ -96,8 +97,7 @@ function renderDriveAnalytics(entries, yr, panel) {
       dashboardMetricCard('tax', money(totalTax), 'налоги', taxHint, '6%') +
     '</div>' +
     distanceWarningPanel(missingDistanceRows) +
-    dashboardMonthlyNetChart(monthlyNet, monthlyNetTax, maxMonthNet, monthNames, selectedYear) +
-    aiAnalyticsPanel(filtered, topByMoney, topRoutesByMoney, totalNet, avgAmt) +
+    aiAnalyticsPanel(filtered, topByMoney, topRoutesByMoney, avgAmt) +
     expenseStructureCard(totalFuel, totalNet);
 
   const yearsHtml =
