@@ -90,13 +90,8 @@ function renderDriveAnalytics(entries, yr, panel) {
       dashboardHeroCard('Налоги', money(totalTax), 'УСН 6%, без наличных', '6%', 'tax') +
       dashboardHeroCard('После налога', money(totalAfterTax), afterTaxHint, '₽', 'rate') +
     '</div>' +
-    '<div class="dash-mini-grid">' +
-      dashboardMetricCard('rides', totalRides, 'рейсов', 'закрыто в периоде', '↗') +
-      dashboardMetricCard('avg', money(avgAmt), 'средний чек', 'оборот / рейсы', '₽') +
-      dashboardMetricCard('fuel', money(totalFuel), 'топливо', '28л/100км, 60 руб/л', 'л') +
-    '</div>' +
     distanceWarningPanel(missingDistanceRows) +
-    aiAnalyticsPanel(filtered, topByMoney, topRoutesByMoney, avgAmt) +
+    aiAnalyticsPanel(filtered, topByMoney, topRoutesByMoney, totalRides, avgAmt, totalFuel) +
     expenseStructureCard(totalFuel, totalNet);
 
   const yearsHtml =

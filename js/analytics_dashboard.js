@@ -130,27 +130,42 @@ function dashboardTopList(title, rows, sub, val) {
   '</div>';
 }
 
-function aiAnalyticsPanel(rows, customers, routes, avgAmt) {
+function aiAnalyticsPanel(rows, customers, routes, totalRides, avgAmt, totalFuel) {
   const bestCustomer = customers[0];
   const bestRoute = routes[0];
   const bestMonth = bestMonthByAmount(rows);
   return '<div class="dash-ai-panel">' +
-    '<div class="dash-ai-copy">' +
-      '<div class="dash-panel-head"><b>AI-аналитика</b><span>обзор</span></div>' +
-      aiInsight('🏆', bestRoute ? 'Самый денежный маршрут' : 'Маршруты пока не распознаны', bestRoute ? bestRoute.name + ' · ' + money(bestRoute.amount) : 'появится после обновления реестра') +
-      aiInsight('▥', bestCustomer ? 'Ключевой заказчик: ' + bestCustomer.name : 'Заказчики пока не распознаны', bestCustomer ? money(bestCustomer.amount) + ' · ' + bestCustomer.count + ' рейс.' : 'проверь trips.json') +
-      aiInsight('◷', bestMonth ? 'Сильный месяц: ' + bestMonth.label : 'Месячная динамика без данных', bestMonth ? money(bestMonth.amount) + ', средний чек ' + money(avgAmt) : 'нужно больше рейсов') +
+    '<div class="dash-ai-road" aria-hidden="true">' +
+      '<span></span><i></i><b></b><em></em>' +
     '</div>' +
-    '<div class="dash-ai-aside">' +
-      '<span><b>' + aEsc(rows.length) + '</b><small>рейсов в выборке</small></span>' +
-      '<span><b>' + aEsc(money(avgAmt)) + '</b><small>средний чек</small></span>' +
-      '<span><b>' + aEsc(bestMonth ? bestMonth.label : '—') + '</b><small>лучший месяц</small></span>' +
+    '<div class="dash-ai-main">' +
+      '<div class="dash-ai-kicker">AI-аналитика</div>' +
+      '<div class="dash-ai-title"><b>Карта рейсов периода</b><span>маршруты, заказчики и расходы</span></div>' +
+      '<div class="dash-ai-stats">' +
+        aiStatCard('рейсов', totalRides, 'закрыто в периоде', 'rides') +
+        aiStatCard('средний чек', money(avgAmt), 'оборот / рейсы', 'avg') +
+        aiStatCard('топливо', money(totalFuel), '28л/100км, 60 руб/л', 'fuel') +
+      '</div>' +
+      '<div class="dash-ai-insights">' +
+        aiInsight('01', bestRoute ? 'Самый денежный маршрут' : 'Маршруты пока не распознаны', bestRoute ? bestRoute.name + ' · ' + money(bestRoute.amount) : 'появится после обновления реестра') +
+        aiInsight('02', bestCustomer ? 'Ключевой заказчик: ' + bestCustomer.name : 'Заказчики пока не распознаны', bestCustomer ? money(bestCustomer.amount) + ' · ' + bestCustomer.count + ' рейс.' : 'проверь trips.json') +
+        aiInsight('03', bestMonth ? 'Сильный месяц: ' + bestMonth.label : 'Месячная динамика без данных', bestMonth ? money(bestMonth.amount) + ', средний чек ' + money(avgAmt) : 'нужно больше рейсов') +
+      '</div>' +
     '</div>' +
   '</div>';
 }
 
 function aiInsight(icon, title, text) {
   return '<div class="dash-ai-row"><i>' + icon + '</i><span><b>' + aEsc(title) + '</b><small>' + aEsc(text) + '</small></span></div>';
+}
+
+function aiStatCard(label, value, hint, tone) {
+  return '<span class="dash-ai-stat ' + aEsc(tone || '') + '">' +
+    '<i></i>' +
+    '<b>' + aEsc(value) + '</b>' +
+    '<em>' + aEsc(label) + '</em>' +
+    '<small>' + aEsc(hint) + '</small>' +
+  '</span>';
 }
 
 function bestMonthByAmount(rows) {
