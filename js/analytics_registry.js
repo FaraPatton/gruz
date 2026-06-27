@@ -39,18 +39,22 @@ async function findTripsRegistryFile() {
 }
 
 async function loadTripsRegistry() {
-  setProgress('ИЩУ trips.json...');
-  const file = await findTripsRegistryFile();
-  analyticsRegistryFileId = file?.id || null;
-  if (!file) {
-    return { version: TRIPS_REGISTRY_VERSION, updatedAt: null, trips: [] };
-  }
-
-  setProgress('ЗАГРУЖАЮ trips.json...');
-  const resp = await fetch('https://www.googleapis.com/drive/v3/files/' + file.id + '?alt=media', {
+  setProgress('ЗАГРУЖАЮ trips.json ЧЕРЕЗ API...');
+  const resp = await fetch(authApiUrl('/api/analytics/trips'), {
     headers: { Authorization: 'Bearer ' + gAccessToken }
   });
-  if (!resp.ok) throw new Error('Не удалось загрузить trips.json: HTTP ' + resp.status);
+  if (!resp.ok) {
+    const data = await resp.json().catch(() => ({}));
+    const messages = {
+      authentication_required: 'требуется авторизация Google',
+      invalid_google_token: 'Google-сессия устарела',
+      access_denied: 'доступ к аналитике закрыт',
+      archive_not_configured: 'архив не настроен на сервере',
+      registry_invalid: 'trips.json поврежден',
+      registry_too_large: 'trips.json превышает допустимый размер'
+    };
+    throw new Error(messages[data.error] || 'Не удалось загрузить trips.json: HTTP ' + resp.status);
+  }
   const registry = await resp.json();
   registry.trips = Array.isArray(registry.trips) ? registry.trips.map(normalizeTrip).filter(Boolean) : [];
   return registry;
