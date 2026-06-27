@@ -29,9 +29,9 @@ jobs:
           GCLIENT_ID: ${{ secrets.GCLIENT_ID }}
           GAPI_KEY: ${{ secrets.GAPI_KEY }}
           YANDEX_MAPS_API_KEY: ${{ secrets.YANDEX_MAPS_API_KEY }}
+          API_BASE_URL: ${{ vars.API_BASE_URL }}
           ARCHIVE_ROOT: ${{ secrets.ARCHIVE_ROOT }}
           ROUTE_BASE_ADDRESS: ${{ secrets.ROUTE_BASE_ADDRESS }}
-          ANALYTICS_ALLOWED_EMAILS: ${{ secrets.ANALYTICS_ALLOWED_EMAILS }}
           EXECUTOR_MARKERS: ${{ secrets.EXECUTOR_MARKERS }}
           EXECUTOR_NAME: ${{ secrets.EXECUTOR_NAME }}
           EXECUTOR_SHORT_NAME: ${{ secrets.EXECUTOR_SHORT_NAME }}

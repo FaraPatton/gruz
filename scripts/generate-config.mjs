@@ -12,6 +12,7 @@ const jsStringArray = (value) => JSON.stringify(
 const jsStringObject = (entries) => JSON.stringify(
   Object.fromEntries(entries.map(([key, name]) => [key, readTrim(name)]))
 );
+const apiBaseUrl = readTrim('API_BASE_URL') || 'https://gruz-kappa.vercel.app';
 
 const config = `// App Config. Generated at deploy time.
 
@@ -19,13 +20,13 @@ const config = `// App Config. Generated at deploy time.
 const GCLIENT_ID = ${jsString(read('GCLIENT_ID'))};
 const GAPI_KEY = ${jsString(read('GAPI_KEY'))};
 const YANDEX_MAPS_API_KEY = ${jsString(read('YANDEX_MAPS_API_KEY'))};
+const API_BASE_URL = ${jsString(apiBaseUrl)};
 
 // Google Drive archive root folder
 const ARCHIVE_ROOT = ${jsString(readTrim('ARCHIVE_ROOT'))};
 
 // Private route analytics base address
 const ROUTE_BASE_ADDRESS = ${jsString(readTrim('ROUTE_BASE_ADDRESS'))};
-const ANALYTICS_ALLOWED_EMAILS = ${jsStringArray(read('ANALYTICS_ALLOWED_EMAILS'))};
 const EXECUTOR_MARKERS = ${jsStringArray(read('EXECUTOR_MARKERS'))};
 
 // Private executor profile for PDF documents

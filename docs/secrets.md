@@ -25,9 +25,10 @@ After changing secrets, re-run the Pages workflow or push a new commit. A browse
 
 ## Analytics Access And Route Defaults
 
+Analytics access is checked by the Vercel backend. Store `ANALYTICS_ALLOWED_EMAILS` in Vercel Environment Variables, not in GitHub Secrets or `js/config.js`.
+
 | Secret | Required | Used for |
 | --- | --- | --- |
-| `ANALYTICS_ALLOWED_EMAILS` | yes for protected analytics | Whitelist for opening `analytics.html`. Accepts comma, semicolon, or newline-separated emails. |
 | `ROUTE_BASE_ADDRESS` | no | Default base address added to route distance calculations. |
 | `EXECUTOR_MARKERS` | recommended | Private markers used to exclude executor details from customer analytics. Accepts comma, semicolon, or newline-separated values. |
 
@@ -93,5 +94,5 @@ The repository only contains `js/config.template.js` with empty placeholders. Fo
 
 1. Add or update repository secrets in GitHub Actions secrets.
 2. Re-run the GitHub Pages workflow or push a new commit.
-3. Open `/js/config.js` on the deployed site and verify field names are present.
+3. Open `/js/config.js` on the deployed site and verify only expected client field names are present.
 4. Hard-refresh the browser or restart the installed PWA if old values are still visible.

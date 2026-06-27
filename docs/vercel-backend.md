@@ -24,3 +24,5 @@ Authorization: Bearer GOOGLE_ACCESS_TOKEN
 ```
 
 Backend запрашивает Google `userinfo`, проверяет подтвержденный email и сравнивает его с приватным whitelist.
+
+Frontend использует стабильный production URL `https://gruz-kappa.vercel.app`. Значение можно переопределить публичной GitHub Actions variable `API_BASE_URL`.

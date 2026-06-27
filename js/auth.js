@@ -39,18 +39,26 @@ async function ensureTokenClient() {
   return getTokenClient();
 }
 
-function authAllowedEmails() {
-  return (typeof ANALYTICS_ALLOWED_EMAILS !== 'undefined' ? ANALYTICS_ALLOWED_EMAILS : [])
-    .map(email => String(email || '').trim().toLowerCase())
-    .filter(Boolean);
+function authApiUrl(path) {
+  const configured = typeof API_BASE_URL !== 'undefined' ? String(API_BASE_URL || '').trim() : '';
+  const base = (configured || 'https://gruz-kappa.vercel.app').replace(/\/$/, '');
+  return base + path;
 }
 
-async function authFetchGoogleProfile() {
-  const resp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-    headers: { Authorization: 'Bearer ' + gAccessToken }
+async function authVerifyAnalyticsAccess(token) {
+  const resp = await fetch(authApiUrl('/api/auth/me'), {
+    headers: { Authorization: 'Bearer ' + (token || gAccessToken || '') }
   });
-  if (!resp.ok) throw new Error('Google userinfo HTTP ' + resp.status);
-  return resp.json();
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) {
+    const messages = {
+      access_denied: 'этот Google-аккаунт не имеет доступа',
+      access_policy_not_configured: 'доступ на сервере не настроен',
+      invalid_google_token: 'Google-сессия устарела'
+    };
+    throw new Error(messages[data.error] || 'сервер не подтвердил доступ');
+  }
+  return data.user;
 }
 
 function setGoogleOverlayState(visible, title, sub) {
@@ -119,17 +127,14 @@ async function checkAnalyticsWhitelistSilent() {
 
   setAnalyticsAccessState('checking');
   try {
-    const allowed = authAllowedEmails();
-    const profile = await authFetchGoogleProfile();
-    const email = String(profile?.email || '').trim().toLowerCase();
-    const ok = !!allowed.length && allowed.includes(email);
-    if (ok) rememberAnalyticsSession(profile);
-    else clearAnalyticsSession();
-    setAnalyticsAccessState(ok ? 'allowed' : 'denied', profile, allowed.length ? '' : 'whitelist не настроен');
-    return ok;
+    const profile = await authVerifyAnalyticsAccess(gAccessToken);
+    rememberAnalyticsSession(profile);
+    setAnalyticsAccessState('allowed', profile);
+    return true;
   } catch (e) {
-    setAnalyticsAccessState('denied', null, 'не удалось проверить email');
-    console.error('Analytics whitelist:', e);
+    clearAnalyticsSession();
+    setAnalyticsAccessState('denied', null, e.message || 'не удалось проверить доступ');
+    console.error('Analytics access:', e);
     return false;
   }
 }

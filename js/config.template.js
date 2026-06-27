@@ -2,13 +2,13 @@
 const GCLIENT_ID = '';
 const GAPI_KEY = '';
 const YANDEX_MAPS_API_KEY = '';
+const API_BASE_URL = 'https://gruz-kappa.vercel.app';
 
 // Google Drive archive root folder
 const ARCHIVE_ROOT = '';
 
 // Private route analytics base address
 const ROUTE_BASE_ADDRESS = '';
-const ANALYTICS_ALLOWED_EMAILS = [];
 const EXECUTOR_MARKERS = [];
 
 // Private executor profile for PDF documents

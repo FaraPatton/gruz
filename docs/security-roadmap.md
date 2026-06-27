@@ -8,14 +8,14 @@
 - `js/config.js` генерируется на деплое из GitHub Actions secrets и не коммитится в репозиторий.
 - Но сгенерированный `js/config.js` публично отдается браузеру, поэтому значения внутри него нельзя считать настоящими backend-секретами.
 - Google OAuth token хранится в runtime-памяти, а для аналитики временно кладется в `sessionStorage`.
-- Whitelist аналитики проверяется на клиенте через `ANALYTICS_ALLOWED_EMAILS`.
+- Whitelist аналитики проверяется Vercel backend через private env `ANALYTICS_ALLOWED_EMAILS`.
 - Drive, Gmail, PDF parsing и `trips.json` сейчас выполняются из браузера через Google APIs.
 
 ## Риск-профиль
 
 ### Высокий приоритет
 
-- `ANALYTICS_ALLOWED_EMAILS`, `ARCHIVE_ROOT`, `EMAIL_DRIVE_FOLDER_ID`, `STAMP_FILE_ID`, реквизиты исполнителя и email templates доступны в клиентском `config.js`.
+- `ARCHIVE_ROOT`, `EMAIL_DRIVE_FOLDER_ID`, `STAMP_FILE_ID`, реквизиты исполнителя и email templates пока доступны в клиентском `config.js`.
 - Клиент сам решает, разрешен ли доступ к аналитике.
 - Любой пользователь с валидным Google token и доступом к фронтовой логике видит структуру Drive/API-вызовов.
 - OAuth scope сейчас широкий: `drive` и `gmail.send`.
@@ -92,6 +92,8 @@ find js scripts -type f \( -name "*.js" -o -name "*.mjs" \) -print
 
 ### Этап 3. Бесплатный backend на Vercel
 
+Статус: базовый backend развернут на `https://gruz-kappa.vercel.app`.
+
 Задача: добавить serverless API, сохранив GitHub Pages или постепенно переехав на Vercel hosting.
 
 Минимальная структура:
@@ -115,6 +117,8 @@ api/
 - `GET /api/analytics/trips` - выдача аналитики только разрешенному пользователю.
 
 ### Этап 4. Backend auth gate для аналитики
+
+Статус: выполнено. Frontend проверяет Google token через `GET /api/auth/me`, whitelist хранится только в Vercel.
 
 Задача: убрать клиентский whitelist как источник истины.
 
@@ -189,4 +193,3 @@ api/
 3. Проверить, что текущий Pages deploy продолжает работать.
 
 После этого переходить к Vercel API.
-
