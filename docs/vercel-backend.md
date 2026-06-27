@@ -6,6 +6,7 @@
 
 - `GET /api/health` - публичная проверка доступности API.
 - `GET /api/auth/me` - серверная проверка Google access token и разрешенного email.
+- `GET /api/analytics/trips` - защищенное чтение `trips.json` из Google Drive.
 
 ## Private environment variables
 
@@ -13,6 +14,7 @@
 
 - `APP_ORIGINS` - разрешенные frontend origins через запятую, например `https://farapatton.github.io`.
 - `ANALYTICS_ALLOWED_EMAILS` - разрешенные Google email через запятую.
+- `ARCHIVE_ROOT` - ID корневой папки архива Google Drive.
 
 Для preview deployment можно добавить его точный origin в `APP_ORIGINS`. Не используйте `*` для защищенных endpoint-ов.
 
