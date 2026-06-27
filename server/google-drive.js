@@ -8,6 +8,25 @@ function driveQueryValue(value) {
   return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
+async function driveApiError(response, fallbackCode) {
+  let reason = '';
+  try {
+    const body = await response.json();
+    reason = String(body?.error?.errors?.[0]?.reason || body?.error?.status || '').slice(0, 80);
+  } catch (error) {}
+
+  console.warn('Google Drive API rejected request:', {
+    status: response.status,
+    reason: reason || 'unknown'
+  });
+
+  if (response.status === 400) return new ApiError(502, 'drive_query_invalid');
+  if (response.status === 401) return new ApiError(401, 'drive_token_invalid');
+  if (response.status === 403) return new ApiError(403, 'drive_access_denied');
+  if (response.status === 404) return new ApiError(404, 'drive_resource_not_found');
+  return new ApiError(502, fallbackCode);
+}
+
 async function driveFetchJson(url, token) {
   let response;
   try {
@@ -16,7 +35,7 @@ async function driveFetchJson(url, token) {
     console.error('Google Drive request failed:', error instanceof Error ? error.message : 'unknown error');
     throw new ApiError(502, 'drive_unavailable');
   }
-  if (!response.ok) throw new ApiError(502, 'drive_request_failed');
+  if (!response.ok) throw await driveApiError(response, 'drive_request_failed');
   return response.json();
 }
 
@@ -43,7 +62,7 @@ async function loadTripsRegistry(token) {
     console.error('Trips registry download failed:', error instanceof Error ? error.message : 'unknown error');
     throw new ApiError(502, 'drive_unavailable');
   }
-  if (!response.ok) throw new ApiError(502, 'registry_download_failed');
+  if (!response.ok) throw await driveApiError(response, 'registry_download_failed');
 
   const contentLength = Number(response.headers.get('content-length') || 0);
   if (contentLength > MAX_REGISTRY_BYTES) throw new ApiError(413, 'registry_too_large');

@@ -50,6 +50,12 @@ async function loadTripsRegistry() {
       invalid_google_token: 'Google-сессия устарела',
       access_denied: 'доступ к аналитике закрыт',
       archive_not_configured: 'архив не настроен на сервере',
+      drive_query_invalid: 'Google Drive отклонил ID архивной папки',
+      drive_token_invalid: 'Google-сессия не дает доступ к Drive',
+      drive_access_denied: 'Google Drive не разрешил доступ к архивной папке',
+      drive_resource_not_found: 'архивная папка или trips.json не найдены',
+      drive_request_failed: 'Google Drive временно не отвечает',
+      registry_download_failed: 'Google Drive не отдал trips.json',
       registry_invalid: 'trips.json поврежден',
       registry_too_large: 'trips.json превышает допустимый размер'
     };
