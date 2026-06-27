@@ -1,2 +1,4 @@
 js/config.js
 img/mark.png
+.vercel/
+.env*.local

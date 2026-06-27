@@ -38,7 +38,7 @@ for (const file of trackedFiles) {
 }
 
 const scriptFiles = trackedFiles.filter(file =>
-  (file.startsWith('js/') || file.startsWith('scripts/')) &&
+  ['api/', 'js/', 'scripts/', 'server/'].some(directory => file.startsWith(directory)) &&
   ['.js', '.mjs'].includes(extname(file))
 );
 
