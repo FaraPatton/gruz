@@ -11,6 +11,8 @@
 - `POST /api/email/documents` - выдача доступа к папке и отправка письма по приватному шаблону.
 - `POST /api/email/signed` - отправка подписанного PDF-вложения.
 - `POST /api/archive/pdf` - создание папки года и защищенная загрузка счета или акта в Drive.
+- `GET /api/archive/files` - список счетов и актов внутри серверного `ARCHIVE_ROOT`.
+- `GET /api/archive/file?id=...` - PDF только после проверки его принадлежности защищенному архиву.
 - `GET /api/config/private` - приватные реквизиты и настройки только после проверки whitelist.
 
 ## Private environment variables

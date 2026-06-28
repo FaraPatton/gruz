@@ -1,29 +1,26 @@
 // Analytics Drive registry: trips.json storage and archive scanning.
 
-async function driveJson(url, options = {}) {
-  const resp = await fetch(url, {
-    ...options,
-    headers: {
-      Authorization: 'Bearer ' + gAccessToken,
-      ...(options.headers || {})
-    }
-  });
-  if (!resp.ok) {
-    const text = await resp.text().catch(() => '');
-    throw new Error('Drive API ' + resp.status + (text ? ': ' + text.slice(0, 120) : ''));
-  }
-  return resp.json();
+async function archiveApiError(resp, fallback) {
+  const data = await resp.json().catch(() => ({}));
+  const messages = {
+    archive_not_configured: 'архив не настроен на сервере',
+    archive_too_many_files: 'в архиве слишком много файлов для одной пересборки',
+    archive_file_not_found: 'PDF не найден внутри защищенного архива',
+    pdf_too_large: 'PDF превышает допустимый размер',
+    pdf_invalid: 'Drive вернул поврежденный PDF',
+    drive_token_invalid: 'Google-сессия не дает доступ к Drive',
+    drive_access_denied: 'Google Drive не разрешил доступ к архиву',
+    drive_unavailable: 'Google Drive временно не отвечает',
+    archive_download_failed: 'Google Drive не отдал архивный PDF'
+  };
+  return new Error(messages[data.error] || fallback + ': HTTP ' + resp.status);
 }
 
-async function driveList(parentId, kind) {
-  const mime = kind === 'folder'
-    ? "mimeType='application/vnd.google-apps.folder'"
-    : "mimeType='application/pdf'";
-  const q = encodeURIComponent("'" + parentId + "' in parents and " + mime + " and trashed=false");
-  const url = 'https://www.googleapis.com/drive/v3/files?q=' + q +
-    '&fields=files(id,name,mimeType,modifiedTime)&pageSize=1000';
-  const data = await driveJson(url);
-  return data.files || [];
+async function listArchivePdfs() {
+  const resp = await authApiFetch('/api/archive/files', {}, true);
+  if (!resp.ok) throw await archiveApiError(resp, 'Не удалось получить список архива');
+  const data = await resp.json();
+  return Array.isArray(data.files) ? data.files : [];
 }
 
 async function loadTripsRegistry() {
@@ -82,20 +79,8 @@ async function saveTripsRegistry(registry) {
 }
 
 async function scanDriveArchiveToTrips() {
-  setProgress('ЧИТАЮ ПАПКИ ПО ГОДАМ...');
-  const yearFolders = await driveList(ARCHIVE_ROOT, 'folder');
-  const allFiles = [];
-
-  for (const folder of yearFolders) {
-    const year = parseInt(folder.name, 10);
-    if (!year || year < 2015) continue;
-
-    setProgress('ГОД ' + year + ': ИЩУ PDF...');
-    const files = await driveList(folder.id, 'pdf');
-    files
-      .filter(isDocumentPdf)
-      .forEach(file => allFiles.push({ ...file, fallbackYear: year }));
-  }
+  setProgress('ПОЛУЧАЮ СПИСОК АРХИВА ЧЕРЕЗ API...');
+  const allFiles = (await listArchivePdfs()).filter(isDocumentPdf);
 
   const orderedFiles = allFiles.sort((a, b) => {
     const ad = docTypeRank(a.name);
@@ -110,6 +95,8 @@ async function scanDriveArchiveToTrips() {
     setProgress(Math.min(i + 8, orderedFiles.length) + '/' + orderedFiles.length + ' ФАЙЛОВ...');
     const chunk = orderedFiles.slice(i, i + 8);
     const results = await Promise.allSettled(chunk.map(readTripFromPdf));
+    const failed = results.find(result => result.status === 'rejected');
+    if (failed) throw failed.reason;
     results.forEach(result => {
       if (result.status === 'fulfilled' && result.value) trips.push(result.value);
     });
@@ -132,13 +119,11 @@ function docTypeRank(name) {
 }
 
 async function readTripFromPdf(file) {
-  try {
-    const resp = await fetch('https://www.googleapis.com/drive/v3/files/' + file.id + '?alt=media', {
-      headers: { Authorization: 'Bearer ' + gAccessToken }
-    });
-    if (!resp.ok) return null;
+  const resp = await authApiFetch('/api/archive/file?id=' + encodeURIComponent(file.id), {}, true);
+  if (!resp.ok) throw await archiveApiError(resp, 'Не удалось загрузить PDF');
+  const buf = await resp.arrayBuffer();
 
-    const buf = await resp.arrayBuffer();
+  try {
     await ensurePdfJsLib();
     const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
     const page = await pdf.getPage(1);

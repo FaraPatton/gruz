@@ -131,4 +131,4 @@ async function saveTripsRegistry(token, registryText) {
   if (!response.ok) throw await driveApiError(response, 'registry_upload_failed');
 }
 
-module.exports = { loadTripsRegistry, saveTripsRegistry };
+module.exports = { driveApiError, driveFetchJson, loadTripsRegistry, saveTripsRegistry };
