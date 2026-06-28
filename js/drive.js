@@ -160,72 +160,29 @@ function driveQueryValue(value) {
   return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
-async function getOrCreateYearFolder(year) {
-  const q = encodeURIComponent(
-    "'" + ARCHIVE_ROOT + "' in parents and mimeType='application/vnd.google-apps.folder' and name='" + driveQueryValue(year) + "' and trashed=false"
-  );
-  const listResp = await fetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id)', {
-    headers: { Authorization: 'Bearer ' + gAccessToken }
-  });
-  if (!listResp.ok) throw new Error('Не удалось найти папку года: HTTP ' + listResp.status);
-
-  const listData = await listResp.json();
-  const folderId = listData.files?.[0]?.id;
-  if (folderId) return folderId;
-
-  const cr = await fetch('https://www.googleapis.com/drive/v3/files', {
+async function uploadPdfToDrive(blob, fileName, year) {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 8192) binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
+  const resp = await authApiFetch('/api/archive/pdf', {
     method: 'POST',
-    headers: { Authorization: 'Bearer ' + gAccessToken, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: year, mimeType: 'application/vnd.google-apps.folder', parents: [ARCHIVE_ROOT] })
-  });
-  if (!cr.ok) throw new Error('Не удалось создать папку года: HTTP ' + cr.status);
-  return (await cr.json()).id;
-}
-
-async function findDriveFileByName(parentId, fileName) {
-  const q = encodeURIComponent(
-    "'" + parentId + "' in parents and name='" + driveQueryValue(fileName) + "' and trashed=false"
-  );
-  const resp = await fetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)&pageSize=1', {
-    headers: { Authorization: 'Bearer ' + gAccessToken }
-  });
-  if (!resp.ok) throw new Error('Не удалось проверить файл в Drive: HTTP ' + resp.status);
-  const data = await resp.json();
-  return data.files?.[0] || null;
-}
-
-async function uploadPdfToDrive(blob, fileName, folderId) {
-  const existing = await findDriveFileByName(folderId, fileName);
-  const metadata = existing
-    ? { name: fileName, mimeType: 'application/pdf' }
-    : { name: fileName, mimeType: 'application/pdf', parents: [folderId] };
-  const boundary = 'gruz_pdf_' + Date.now() + '_' + Math.random().toString(16).slice(2);
-  const body = new Blob([
-    '--' + boundary + '\r\n',
-    'Content-Type: application/json; charset=UTF-8\r\n\r\n',
-    JSON.stringify(metadata) + '\r\n',
-    '--' + boundary + '\r\n',
-    'Content-Type: application/pdf\r\n\r\n',
-    blob,
-    '\r\n--' + boundary + '--'
-  ], { type: 'multipart/related; boundary=' + boundary });
-  const url = existing
-    ? 'https://www.googleapis.com/upload/drive/v3/files/' + existing.id + '?uploadType=multipart'
-    : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-
-  const resp = await fetch(url, {
-    method: existing ? 'PATCH' : 'POST',
-    headers: {
-      Authorization: 'Bearer ' + gAccessToken,
-      'Content-Type': 'multipart/related; boundary=' + boundary
-    },
-    body
-  });
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ year: Number(year), fileName, pdfBase64: btoa(binary) })
+  }, true);
   if (!resp.ok) {
-    const text = await resp.text().catch(() => '');
-    throw new Error('Не удалось загрузить PDF: HTTP ' + resp.status + (text ? ' ' + text.slice(0, 120) : ''));
+    const data = await resp.json().catch(() => ({}));
+    const messages = {
+      archive_year_invalid: 'некорректный год архива',
+      archive_filename_invalid: 'некорректное имя PDF',
+      pdf_invalid: 'сформированный PDF поврежден',
+      pdf_too_large: 'PDF превышает 3 МБ',
+      archive_not_configured: 'архив не настроен на сервере',
+      drive_access_denied: 'Google не разрешил запись в архив',
+      archive_upload_failed: 'Google Drive не сохранил PDF'
+    };
+    throw new Error(messages[data.error] || 'Не удалось загрузить PDF: HTTP ' + resp.status);
   }
-  return resp.json();
+  return (await resp.json()).file;
 }
 
 async function archiveToDrive() {
@@ -239,14 +196,11 @@ async function archiveToDrive() {
     dMsg('Сохраняю рейс в trips.json...', 'info');
     await saveFormTripToRegistry(d);
 
-    dMsg('Готовлю папку ' + year + '...', 'info');
-    const folderId = await getOrCreateYearFolder(year);
-
     dMsg('Загружаю счёт PDF...', 'info');
-    const invoiceFile = await genInvoice({ uploadFolderId: folderId, silent: true });
+    const invoiceFile = await genInvoice({ uploadYear: year, silent: true });
 
     dMsg('Загружаю акт PDF...', 'info');
-    const actFile = await genAct({ uploadFolderId: folderId, silent: true });
+    const actFile = await genAct({ uploadYear: year, silent: true });
 
     dMsg('Обновляю связи в trips.json...', 'info');
     await saveFormTripToRegistry(d, {

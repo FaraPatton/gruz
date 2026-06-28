@@ -10,6 +10,7 @@
 - `PUT /api/analytics/trips` - валидированное сохранение `trips.json` в Google Drive.
 - `POST /api/email/documents` - выдача доступа к папке и отправка письма по приватному шаблону.
 - `POST /api/email/signed` - отправка подписанного PDF-вложения.
+- `POST /api/archive/pdf` - создание папки года и защищенная загрузка счета или акта в Drive.
 
 ## Private environment variables
 

@@ -119,8 +119,7 @@ function formatCustomerDetails(d) {
   ].filter(Boolean).join(', ');
 }
 
-function pdfOptionsFromArgs(options, folderId) {
-  if (options === true) return { uploadFolderId: folderId, silent: true };
+function pdfOptionsFromArgs(options) {
   return options || {};
 }
 
@@ -133,12 +132,12 @@ function setDocButtonBusy(btn, isBusy) {
 }
 
 async function finishPdf(doc, fileName, options, successText) {
-  if (options.uploadFolderId) {
+  if (options.uploadYear) {
     if (typeof uploadPdfToDrive !== 'function') {
       throw new Error('Drive upload helper is not loaded');
     }
     const blob = doc.output('blob');
-    return uploadPdfToDrive(blob, fileName, options.uploadFolderId);
+    return uploadPdfToDrive(blob, fileName, options.uploadYear);
   }
   doc.save(fileName);
   showToast(successText);
@@ -152,8 +151,8 @@ function requireStampIfEnabled() {
   }
 }
 
-async function genInvoice(options, folderId) {
-  const pdfOptions = pdfOptionsFromArgs(options, folderId);
+async function genInvoice(options) {
+  const pdfOptions = pdfOptionsFromArgs(options);
   const btn = document.querySelector('[onclick="genInvoice()"]');
   if (btn && !pdfOptions.silent) setDocButtonBusy(btn, true);
   try {
@@ -216,8 +215,8 @@ async function genInvoice(options, folderId) {
   finally { if(btn && !pdfOptions.silent) setDocButtonBusy(btn, false); }
 }
 
-async function genAct(options, folderId) {
-  const pdfOptions = pdfOptionsFromArgs(options, folderId);
+async function genAct(options) {
+  const pdfOptions = pdfOptionsFromArgs(options);
   const btn = document.querySelector('[onclick="genAct()"]');
   if (btn && !pdfOptions.silent) setDocButtonBusy(btn, true);
   try {
