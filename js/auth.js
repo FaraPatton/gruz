@@ -45,12 +45,44 @@ function authApiUrl(path) {
   return base + path;
 }
 
+async function authApiFetch(path, options = {}, refreshOnUnauthorized = false) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
+  let response;
+  try {
+    response = await fetch(authApiUrl(path), {
+      ...options,
+      cache: 'no-store',
+      signal: controller.signal,
+      headers: {
+        ...(options.headers || {}),
+        Authorization: 'Bearer ' + (gAccessToken || '')
+      }
+    });
+  } catch (error) {
+    if (error?.name === 'AbortError') throw new Error('Сервер не ответил за 20 секунд');
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  if (response.status !== 401 || !refreshOnUnauthorized) return response;
+
+  gAccessToken = null;
+  clearAnalyticsSession();
+  await new Promise((resolve, reject) => requestAuth('consent', resolve, reject));
+  return authApiFetch(path, options, false);
+}
+
 async function authVerifyAnalyticsAccess(token) {
-  const resp = await fetch(authApiUrl('/api/auth/me'), {
-    headers: { Authorization: 'Bearer ' + (token || gAccessToken || '') }
-  });
+  if (token) gAccessToken = token;
+  const resp = await authApiFetch('/api/auth/me');
   const data = await resp.json().catch(() => ({}));
   if (!resp.ok) {
+    if (resp.status === 401) {
+      gAccessToken = null;
+      clearAnalyticsSession();
+    }
     const messages = {
       access_denied: 'этот Google-аккаунт не имеет доступа',
       access_policy_not_configured: 'доступ на сервере не настроен',
@@ -154,15 +186,31 @@ function setAuthLockState(locked) {
 }
 
 function requestAuth(prompt, resolve, reject) {
+  let settled = false;
+  const timeout = setTimeout(() => {
+    if (settled) return;
+    settled = true;
+    gAuthCallback = null;
+    reject(new Error('Google не завершил авторизацию за 60 секунд'));
+  }, 60000);
+
   ensureTokenClient()
     .then(client => {
       gAuthCallback = (token, err) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
         if (err) reject(new Error(err));
         else resolve(token);
       };
       client.requestAccessToken({ prompt: prompt || '' });
     })
-    .catch(reject);
+    .catch(error => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      reject(error);
+    });
 }
 
 async function googleLogin() {
@@ -175,10 +223,12 @@ async function googleLogin() {
     setAuthLockState(true);
     if (typeof syncAuthDependentUi === 'function') syncAuthDependentUi();
     if (typeof loadDriveStamp === 'function') loadDriveStamp();
-    checkAnalyticsWhitelistSilent();
-    status.textContent = 'УЖЕ АВТОРИЗОВАН';
-    status.style.color = 'var(--acc)';
-    return;
+    const accessConfirmed = await checkAnalyticsWhitelistSilent();
+    if (accessConfirmed || gAccessToken) {
+      status.textContent = accessConfirmed ? 'УЖЕ АВТОРИЗОВАН' : 'ДОСТУП НЕ ПОДТВЕРЖДЕН';
+      status.style.color = accessConfirmed ? 'var(--acc)' : 'var(--dan)';
+      return;
+    }
   }
   setGoogleOverlayState(true, 'ПЕРЕХОД В GOOGLE', 'АВТОРИЗАЦИЯ...');
   btn.disabled = true;

@@ -32,16 +32,18 @@ async function sendEmail() {
     if (btnLabel) btnLabel.textContent = 'Отправляю...';
     document.getElementById('emailMsg').textContent = 'Открываю доступ и отправляю письмо через защищенный сервер...';
     document.getElementById('emailMsg').style.color = 'var(--txt2)';
-    const resp = await fetch(authApiUrl('/api/email/documents'), {
+    const resp = await authApiFetch('/api/email/documents', {
       method: 'POST',
-      headers: { Authorization: 'Bearer ' + gAccessToken, 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ to })
-    });
+    }, true);
     if (!resp.ok) {
       const data = await resp.json().catch(() => ({}));
       const messages = {
         recipient_invalid: 'некорректный email получателя',
+        invalid_google_token: 'Google-сессия устарела',
         email_not_configured: 'почтовые шаблоны не настроены на сервере',
+        gmail_token_invalid: 'Google-сессия не дает доступ к Gmail',
         gmail_access_denied: 'Google не разрешил отправку Gmail',
         drive_access_denied: 'Google не разрешил доступ к папке документов',
         drive_permission_failed: 'не удалось открыть доступ к папке документов',

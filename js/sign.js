@@ -169,17 +169,19 @@ async function sendSignedByEmail() {
     let b64 = '';
     for (let i = 0; i < arr.length; i += 8192) b64 += String.fromCharCode(...arr.subarray(i, i + 8192));
     b64 = btoa(b64);
-    const resp = await fetch(authApiUrl('/api/email/signed'), {
+    const resp = await authApiFetch('/api/email/signed', {
       method: 'POST',
-      headers: { Authorization: 'Bearer ' + gAccessToken, 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ to, pdfBase64: b64 })
-    });
+    }, true);
     if (!resp.ok) {
       const data = await resp.json().catch(() => ({}));
       const messages = {
         recipient_invalid: 'некорректный email получателя',
         pdf_invalid: 'не удалось подготовить PDF',
         pdf_too_large: 'PDF превышает 3 МБ',
+        invalid_google_token: 'Google-сессия устарела',
+        gmail_token_invalid: 'Google-сессия не дает доступ к Gmail',
         gmail_access_denied: 'Google не разрешил отправку Gmail',
         gmail_send_failed: 'Gmail не отправил письмо'
       };
