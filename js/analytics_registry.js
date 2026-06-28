@@ -29,6 +29,7 @@ async function driveList(parentId, kind) {
 async function loadTripsRegistry() {
   setProgress('ЗАГРУЖАЮ trips.json ЧЕРЕЗ API...');
   const resp = await fetch(authApiUrl('/api/analytics/trips'), {
+    cache: 'no-store',
     headers: { Authorization: 'Bearer ' + gAccessToken }
   });
   if (!resp.ok) {
@@ -76,11 +77,8 @@ async function saveTripsRegistry(registry) {
     };
     throw new Error(messages[data.error] || 'Не удалось сохранить trips.json: HTTP ' + resp.status);
   }
-  const savedRegistry = await resp.json();
-  savedRegistry.trips = Array.isArray(savedRegistry.trips)
-    ? savedRegistry.trips.map(normalizeTrip).filter(Boolean)
-    : [];
-  return savedRegistry;
+  await resp.json();
+  return loadTripsRegistry();
 }
 
 async function scanDriveArchiveToTrips() {

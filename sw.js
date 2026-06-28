@@ -20,11 +20,20 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const req = e.request;
-  if (req.mode === 'navigate' || req.destination === 'document') {
+  const networkFirst = req.mode === 'navigate' ||
+    req.destination === 'document' ||
+    req.destination === 'script' ||
+    req.destination === 'style';
+  if (networkFirst) {
     e.respondWith(fetch(req).then(resp => {
       if (resp && resp.status === 200) caches.open(CACHE).then(c => c.put(req, resp.clone()));
       return resp;
-    }).catch(() => caches.match(req).then(cached => cached || caches.match('/gruz/index.html'))));
+    }).catch(() => caches.match(req).then(cached => {
+      if (cached) return cached;
+      return req.mode === 'navigate' || req.destination === 'document'
+        ? caches.match('/gruz/index.html')
+        : Response.error();
+    })));
     return;
   }
   e.respondWith(caches.match(e.request).then(cached => cached || fetch(e.request).then(resp => {

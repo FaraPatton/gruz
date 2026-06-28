@@ -163,11 +163,13 @@ function upsertTrip(trips, value) {
 }
 
 function compareTripsByDocNumber(a, b) {
-  const numberOrder = String(b?.docNum || '').localeCompare(
-    String(a?.docNum || ''),
-    'ru',
-    { numeric: true, sensitivity: 'base' }
-  );
+  const aText = String(a?.docNum || '').trim();
+  const bText = String(b?.docNum || '').trim();
+  const aNumber = Number((aText.match(/\d+/) || [])[0]);
+  const bNumber = Number((bText.match(/\d+/) || [])[0]);
+  const numberOrder = Number.isFinite(aNumber) && Number.isFinite(bNumber)
+    ? bNumber - aNumber
+    : bText.localeCompare(aText, 'ru');
   if (numberOrder) return numberOrder;
 
   const dateOrder = String(b?.date || '').localeCompare(String(a?.date || ''));
