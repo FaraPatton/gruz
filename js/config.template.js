@@ -1,11 +1,7 @@
 // Google OAuth
 const GCLIENT_ID = '';
-const GAPI_KEY = '';
 const YANDEX_MAPS_API_KEY = '';
 const API_BASE_URL = 'https://gruz-kappa.vercel.app';
-
-// Google Drive archive root folder
-let ARCHIVE_ROOT = '';
 
 // Private route analytics base address
 let ROUTE_BASE_ADDRESS = '';
@@ -29,7 +25,6 @@ let EXECUTOR_PROFILE = {
 let gTokenClient = null;
 let gAccessToken = null;
 let gAuthCallback = null;
-let gPickerReady = false;
 let gParsed = null;
 let driveCache = null;
 let analyticsYear = 0;

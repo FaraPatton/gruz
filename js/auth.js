@@ -15,7 +15,6 @@ async function loadPrivateRuntimeConfig() {
       };
       throw new Error(messages[data.error] || 'не удалось загрузить приватную конфигурацию');
     }
-    ARCHIVE_ROOT = String(data.config.archiveRoot || '');
     ROUTE_BASE_ADDRESS = String(data.config.routeBaseAddress || '');
     EXECUTOR_MARKERS = Array.isArray(data.config.executorMarkers) ? data.config.executorMarkers : [];
     EXECUTOR_PROFILE = data.config.executorProfile && typeof data.config.executorProfile === 'object'

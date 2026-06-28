@@ -27,7 +27,6 @@ jobs:
       - name: Generate runtime config
         env:
           GCLIENT_ID: ${{ secrets.GCLIENT_ID }}
-          GAPI_KEY: ${{ secrets.GAPI_KEY }}
           YANDEX_MAPS_API_KEY: ${{ secrets.YANDEX_MAPS_API_KEY }}
           API_BASE_URL: ${{ vars.API_BASE_URL }}
         run: |

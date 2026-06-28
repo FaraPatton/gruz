@@ -166,6 +166,18 @@
   </div>
 
   <!-- Parse box -->
+  <div class="archive-browser" id="archiveBrowser">
+    <div class="archive-browser-head">
+      <div>
+        <strong>Архив документов</strong>
+        <small id="archiveBrowserCount">защищённое подключение</small>
+      </div>
+      <button type="button" onclick="closeArchiveBrowser()" aria-label="Закрыть архив">×</button>
+    </div>
+    <input class="fi archive-browser-search" id="archiveBrowserSearch" type="search" placeholder="Номер документа, имя или год" oninput="filterArchiveBrowser()">
+    <div class="archive-browser-list" id="archiveBrowserList"></div>
+  </div>
+
   <div class="parse-box" id="parseBox">
     <h3>📄 Данные из файла</h3>
     <div id="parseRows"></div>
@@ -207,7 +219,7 @@
     </div>
   </div>
 
-  <div class="mb-2"><button class="bh bh-drive" id="driveBtn" onclick="openDrivePicker()">📂 Взять документ из архива</button></div>
+  <div class="mb-2"><button class="bh bh-drive" id="driveBtn" onclick="openArchiveBrowser()">📂 Взять документ из архива</button></div>
   <div class="mb-2"><button class="bh bh-archive" id="archiveBtn" onclick="archiveToDrive()">📤 Загрузить документы в архив</button></div>
   <div class="mb-2"><button class="bh bh-email" id="emailToggleBtn" onclick="toggleEmail()">✉️ Отправить комплект документов</button></div>
   <div class="mb-2"><button class="bh bh-sign" id="signToggleBtn" onclick="toggleSign()">🖊 Подписать договор</button></div>

@@ -7,54 +7,80 @@ function dMsg(text, type) {
   el.className = 'drive-msg' + (type ? ' ' + type : '');
 }
 
-function initPicker() {
-  if (gPickerReady) return Promise.resolve();
-  return ensureGoogleApiLib()
-    .then(() => new Promise(res => { gapi.load('picker', () => { gPickerReady = true; res(); }); }));
-}
+let archiveBrowserFiles = [];
 
-async function openDrivePicker() {
-  await initPicker();
+async function openArchiveBrowser() {
   if (!gAccessToken) {
     dMsg('Авторизация Google...', 'info');
     await new Promise((res, rej) => requestAuth('consent', res, rej));
     dMsg('✓ Авторизован', 'ok');
   }
-  showPicker();
-}
-
-function showPicker() {
-  dMsg('Открываю Drive...', 'info');
-  const view = new google.picker.DocsView()
-    .setMimeTypes('application/pdf')
-    .setMode(google.picker.DocsViewMode.LIST)
-    .setParent(ARCHIVE_ROOT)
-    .setIncludeFolders(true)
-    .setSelectFolderEnabled(false);
-  new google.picker.PickerBuilder()
-    .addView(view)
-    .setOAuthToken(gAccessToken)
-    .setDeveloperKey(GAPI_KEY)
-    .setTitle('Счета и акты — выберите файл')
-    .setCallback(pickerCb)
-    .build()
-    .setVisible(true);
-}
-
-function pickerCb(data) {
-  if (data.action === google.picker.Action.PICKED) {
-    const f = data.docs[0];
-    dMsg('Читаю: ' + f.name + '...', 'info');
-    readAndParse(f.id, f.name);
+  const box = document.getElementById('archiveBrowser');
+  const list = document.getElementById('archiveBrowserList');
+  box.style.display = 'block';
+  list.innerHTML = '<div class="archive-browser-empty">Загружаю список архива...</div>';
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  try {
+    const resp = await authApiFetch('/api/archive/files', {}, true);
+    if (!resp.ok) throw new Error('сервер не отдал список: HTTP ' + resp.status);
+    const data = await resp.json();
+    archiveBrowserFiles = (Array.isArray(data.files) ? data.files : []).sort((a, b) => {
+      const yearOrder = Number(b.fallbackYear || 0) - Number(a.fallbackYear || 0);
+      return yearOrder || String(b.name || '').localeCompare(String(a.name || ''), 'ru', { numeric: true });
+    });
+    document.getElementById('archiveBrowserSearch').value = '';
+    filterArchiveBrowser();
+  } catch (error) {
+    list.innerHTML = '<div class="archive-browser-empty is-error">' + archiveHtml(error.message) + '</div>';
   }
 }
+
+function closeArchiveBrowser() {
+  document.getElementById('archiveBrowser').style.display = 'none';
+}
+
+function archiveHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function filterArchiveBrowser() {
+  const query = String(document.getElementById('archiveBrowserSearch').value || '').trim().toLowerCase();
+  const files = archiveBrowserFiles.filter(file => {
+    const haystack = [file.name, file.fallbackYear].join(' ').toLowerCase();
+    return !query || haystack.includes(query);
+  });
+  const visible = files.slice(0, 250);
+  document.getElementById('archiveBrowserCount').textContent = query
+    ? 'найдено: ' + files.length
+    : 'документов: ' + archiveBrowserFiles.length;
+  document.getElementById('archiveBrowserList').innerHTML = visible.length
+    ? visible.map(file => {
+      const index = archiveBrowserFiles.indexOf(file);
+      const type = String(file.name || '').toLowerCase().startsWith('akt') ? 'Акт' : 'Счёт';
+      return '<button type="button" class="archive-file" data-archive-index="' + index + '">' +
+        '<span class="archive-file-icon">' + (type === 'Акт' ? '✓' : '₽') + '</span>' +
+        '<span><strong>' + archiveHtml(file.name) + '</strong><small>' + type + ' · ' + archiveHtml(file.fallbackYear) + '</small></span>' +
+        '<span class="archive-file-arrow">›</span></button>';
+    }).join('')
+    : '<div class="archive-browser-empty">Документы не найдены</div>';
+}
+
+document.addEventListener('click', event => {
+  const button = event.target.closest('[data-archive-index]');
+  if (!button) return;
+  const file = archiveBrowserFiles[Number(button.dataset.archiveIndex)];
+  if (!file) return;
+  closeArchiveBrowser();
+  dMsg('Читаю: ' + file.name + '...', 'info');
+  readAndParse(file.id, file.name);
+});
 
 async function readAndParse(fileId, fileName) {
   try {
     dMsg('Загружаю файл...', 'info');
-    const resp = await fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media', {
-      headers: { Authorization: 'Bearer ' + gAccessToken }
-    });
+    const resp = await authApiFetch('/api/archive/file?id=' + encodeURIComponent(fileId), {}, true);
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const buf = await resp.arrayBuffer();
     dMsg('Извлекаю текст...', 'info');

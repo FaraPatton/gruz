@@ -3,17 +3,14 @@
 (function ensureRuntimeDefaults() {
   const defaults = {
     GCLIENT_ID: '',
-    GAPI_KEY: '',
     YANDEX_MAPS_API_KEY: '',
     API_BASE_URL: 'https://gruz-kappa.vercel.app',
-    ARCHIVE_ROOT: '',
     ROUTE_BASE_ADDRESS: '',
     EXECUTOR_MARKERS: [],
     EXECUTOR_PROFILE: {},
     gTokenClient: null,
     gAccessToken: null,
     gAuthCallback: null,
-    gPickerReady: false,
     gParsed: null,
     driveCache: null,
     analyticsYear: 0,
@@ -64,13 +61,6 @@ function ensureGoogleIdentityLib() {
   return loadExternalScriptOnce(
     'https://accounts.google.com/gsi/client',
     () => !!window.google?.accounts?.oauth2
-  );
-}
-
-function ensureGoogleApiLib() {
-  return loadExternalScriptOnce(
-    'https://apis.google.com/js/api.js',
-    () => typeof window.gapi !== 'undefined'
   );
 }
 

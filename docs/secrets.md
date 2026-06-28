@@ -14,7 +14,6 @@ After changing secrets, re-run the Pages workflow or push a new commit. A browse
 | Secret | Required | Used for |
 | --- | --- | --- |
 | `GCLIENT_ID` | yes | Google OAuth client ID. |
-| `GAPI_KEY` | yes | Google API key for Drive picker/API helpers. |
 
 ## Optional API Keys
 
@@ -30,7 +29,7 @@ Private runtime settings are stored in Vercel:
 
 | Vercel variable | Required | Used for |
 | --- | --- | --- |
-| `ARCHIVE_ROOT` | yes | Google Drive archive folder ID. |
+| `ARCHIVE_ROOT` | yes | Google Drive archive folder ID used only by Vercel backend. |
 | `PRIVATE_RUNTIME_CONFIG` | yes | JSON with route defaults, executor markers/profile and stamp file ID. |
 
 | Secret | Required | Used for |

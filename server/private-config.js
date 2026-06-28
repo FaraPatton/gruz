@@ -42,11 +42,7 @@ function privateRuntimeConfig() {
     PROFILE_FIELDS.map(field => [field, cleanString(rawProfile[field])])
   );
 
-  const archiveRoot = cleanString(process.env.ARCHIVE_ROOT, 200);
-  if (!archiveRoot) throw new ApiError(503, 'private_config_not_configured');
-
   return {
-    archiveRoot,
     routeBaseAddress: cleanString(source.routeBaseAddress),
     executorMarkers: markers,
     executorProfile

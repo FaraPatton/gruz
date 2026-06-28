@@ -9,12 +9,10 @@ const config = `// App Config. Generated at deploy time.
 
 // Google OAuth
 const GCLIENT_ID = ${jsString(read('GCLIENT_ID'))};
-const GAPI_KEY = ${jsString(read('GAPI_KEY'))};
 const YANDEX_MAPS_API_KEY = ${jsString(read('YANDEX_MAPS_API_KEY'))};
 const API_BASE_URL = ${jsString(apiBaseUrl)};
 
 // Loaded from the protected Vercel API after authorization.
-let ARCHIVE_ROOT = '';
 let ROUTE_BASE_ADDRESS = '';
 let EXECUTOR_MARKERS = [];
 let EXECUTOR_PROFILE = {};
@@ -23,7 +21,6 @@ let EXECUTOR_PROFILE = {};
 let gTokenClient = null;
 let gAccessToken = null;
 let gAuthCallback = null;
-let gPickerReady = false;
 let gParsed = null;
 let driveCache = null;
 let analyticsYear = 0;
