@@ -8,6 +8,7 @@ function dMsg(text, type) {
 }
 
 let archiveBrowserFiles = [];
+let archiveBrowserYear = null;
 
 async function openArchiveBrowser() {
   if (!gAccessToken) {
@@ -24,10 +25,8 @@ async function openArchiveBrowser() {
     const resp = await authApiFetch('/api/archive/files', {}, true);
     if (!resp.ok) throw new Error('сервер не отдал список: HTTP ' + resp.status);
     const data = await resp.json();
-    archiveBrowserFiles = (Array.isArray(data.files) ? data.files : []).sort((a, b) => {
-      const yearOrder = Number(b.fallbackYear || 0) - Number(a.fallbackYear || 0);
-      return yearOrder || String(b.name || '').localeCompare(String(a.name || ''), 'ru', { numeric: true });
-    });
+    archiveBrowserFiles = Array.isArray(data.files) ? data.files : [];
+    archiveBrowserYear = null;
     document.getElementById('archiveBrowserSearch').value = '';
     filterArchiveBrowser();
   } catch (error) {
@@ -47,27 +46,84 @@ function archiveHtml(value) {
 
 function filterArchiveBrowser() {
   const query = String(document.getElementById('archiveBrowserSearch').value || '').trim().toLowerCase();
+  if (!query && archiveBrowserYear === null) {
+    renderArchiveYears();
+    return;
+  }
   const files = archiveBrowserFiles.filter(file => {
     const haystack = [file.name, file.fallbackYear].join(' ').toLowerCase();
-    return !query || haystack.includes(query);
-  });
+    return query ? haystack.includes(query) : Number(file.fallbackYear) === archiveBrowserYear;
+  }).sort((a, b) => archiveModifiedTime(b) - archiveModifiedTime(a) ||
+    String(b.name || '').localeCompare(String(a.name || ''), 'ru', { numeric: true }));
   const visible = files.slice(0, 250);
+  document.getElementById('archiveBrowserBack').style.display = query || archiveBrowserYear === null ? 'none' : 'grid';
+  document.getElementById('archiveBrowserTitle').textContent = query
+    ? 'Поиск по архиву'
+    : 'Документы за ' + archiveBrowserYear;
   document.getElementById('archiveBrowserCount').textContent = query
     ? 'найдено: ' + files.length
-    : 'документов: ' + archiveBrowserFiles.length;
+    : 'документов: ' + files.length;
   document.getElementById('archiveBrowserList').innerHTML = visible.length
     ? visible.map(file => {
       const index = archiveBrowserFiles.indexOf(file);
       const type = String(file.name || '').toLowerCase().startsWith('akt') ? 'Акт' : 'Счёт';
       return '<button type="button" class="archive-file" data-archive-index="' + index + '">' +
         '<span class="archive-file-icon">' + (type === 'Акт' ? '✓' : '₽') + '</span>' +
-        '<span><strong>' + archiveHtml(file.name) + '</strong><small>' + type + ' · ' + archiveHtml(file.fallbackYear) + '</small></span>' +
+        '<span><strong>' + archiveHtml(file.name) + '</strong><small>' + type + ' · ' + archiveHtml(file.fallbackYear) + ' · ' + archiveHtml(archiveDateLabel(file.modifiedTime)) + '</small></span>' +
         '<span class="archive-file-arrow">›</span></button>';
     }).join('')
     : '<div class="archive-browser-empty">Документы не найдены</div>';
 }
 
+function archiveModifiedTime(file) {
+  const value = Date.parse(String(file?.modifiedTime || ''));
+  return Number.isFinite(value) ? value : 0;
+}
+
+function archiveDateLabel(value) {
+  const time = typeof value === 'number' ? value : Date.parse(String(value || ''));
+  if (!Number.isFinite(time)) return 'дата не указана';
+  return new Date(time).toLocaleString('ru-RU', {
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+  });
+}
+
+function renderArchiveYears() {
+  const grouped = new Map();
+  archiveBrowserFiles.forEach(file => {
+    const year = Number(file.fallbackYear);
+    if (!Number.isInteger(year)) return;
+    const group = grouped.get(year) || { year, count: 0, latest: 0 };
+    group.count += 1;
+    group.latest = Math.max(group.latest, archiveModifiedTime(file));
+    grouped.set(year, group);
+  });
+  const years = [...grouped.values()].sort((a, b) => b.year - a.year);
+  document.getElementById('archiveBrowserBack').style.display = 'none';
+  document.getElementById('archiveBrowserTitle').textContent = 'Архив документов';
+  document.getElementById('archiveBrowserCount').textContent = 'папок: ' + years.length;
+  document.getElementById('archiveBrowserList').innerHTML = years.length
+    ? years.map(group => '<button type="button" class="archive-file archive-year" data-archive-year="' + group.year + '">' +
+      '<span class="archive-file-icon">▰</span>' +
+      '<span><strong>' + group.year + '</strong><small>' + group.count + ' документов · обновлено ' + archiveHtml(archiveDateLabel(group.latest)) + '</small></span>' +
+      '<span class="archive-file-arrow">›</span></button>').join('')
+    : '<div class="archive-browser-empty">В архиве пока нет документов</div>';
+}
+
+function showArchiveYears() {
+  archiveBrowserYear = null;
+  document.getElementById('archiveBrowserSearch').value = '';
+  renderArchiveYears();
+}
+
 document.addEventListener('click', event => {
+  const yearButton = event.target.closest('[data-archive-year]');
+  if (yearButton) {
+    archiveBrowserYear = Number(yearButton.dataset.archiveYear);
+    document.getElementById('archiveBrowserSearch').value = '';
+    filterArchiveBrowser();
+    return;
+  }
   const button = event.target.closest('[data-archive-index]');
   if (!button) return;
   const file = archiveBrowserFiles[Number(button.dataset.archiveIndex)];

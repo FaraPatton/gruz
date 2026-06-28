@@ -908,15 +908,18 @@ body[data-theme="light"] input[type="date"].fi::-webkit-calendar-picker-indicato
   background: linear-gradient(145deg, rgba(79,124,255,.1), rgba(22,24,34,.96));
   box-shadow: 0 16px 36px rgba(0,0,0,.2);
 }
-.archive-browser-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.archive-browser-head { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:10px; margin-bottom:12px; }
 .archive-browser-head strong { display:block; color:var(--txt); font-size:14px; }
 .archive-browser-head small { display:block; color:var(--mut); font-size:10px; margin-top:2px; }
-.archive-browser-head button { width:32px; height:32px; border:1px solid var(--brd); border-radius:9px; background:rgba(255,255,255,.04); color:var(--txt2); font-size:22px; cursor:pointer; }
+.archive-browser-head button { width:32px; height:32px; place-items:center; border:1px solid var(--brd); border-radius:9px; background:rgba(255,255,255,.04); color:var(--txt2); font-size:22px; cursor:pointer; }
+.archive-browser-back { display:none; }
+.archive-browser-close { display:grid; }
 .archive-browser-search { margin-bottom:10px; }
 .archive-browser-list { display:grid; gap:6px; max-height:360px; overflow:auto; padding-right:3px; }
 .archive-file { width:100%; display:grid; grid-template-columns:36px 1fr 18px; align-items:center; gap:10px; padding:9px; border:1px solid var(--brd); border-radius:10px; background:rgba(255,255,255,.035); color:var(--txt); text-align:left; cursor:pointer; transition:.16s ease; }
 .archive-file:hover { transform:translateY(-1px); border-color:rgba(79,124,255,.55); background:rgba(79,124,255,.1); }
 .archive-file-icon { display:grid; place-items:center; width:36px; height:36px; border-radius:9px; background:linear-gradient(145deg,rgba(79,124,255,.3),rgba(57,217,138,.16)); color:var(--acc); font-weight:800; }
+.archive-year .archive-file-icon { background:linear-gradient(145deg,rgba(232,200,74,.28),rgba(79,124,255,.14)); color:#f0cf55; }
 .archive-file strong { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; }
 .archive-file small { display:block; color:var(--mut); font-size:9px; margin-top:3px; }
 .archive-file-arrow { color:var(--mut); font-size:22px; }

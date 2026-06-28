@@ -168,11 +168,12 @@
   <!-- Parse box -->
   <div class="archive-browser" id="archiveBrowser">
     <div class="archive-browser-head">
+      <button class="archive-browser-back" id="archiveBrowserBack" type="button" onclick="showArchiveYears()" aria-label="Вернуться к годам">‹</button>
       <div>
-        <strong>Архив документов</strong>
+        <strong id="archiveBrowserTitle">Архив документов</strong>
         <small id="archiveBrowserCount">защищённое подключение</small>
       </div>
-      <button type="button" onclick="closeArchiveBrowser()" aria-label="Закрыть архив">×</button>
+      <button class="archive-browser-close" type="button" onclick="closeArchiveBrowser()" aria-label="Закрыть архив">×</button>
     </div>
     <input class="fi archive-browser-search" id="archiveBrowserSearch" type="search" placeholder="Номер документа, имя или год" oninput="filterArchiveBrowser()">
     <div class="archive-browser-list" id="archiveBrowserList"></div>
