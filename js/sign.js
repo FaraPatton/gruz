@@ -165,23 +165,26 @@ async function sendSignedByEmail() {
     if (!signPdfBytes) throw new Error('Договор не загружен');
     const pdfBytes = await buildSignedPdf();
     btn.textContent = '⏳ Отправляю...';
-    const boundary = 'bnd_' + Date.now();
-    const subjectText = typeof SIGN_EMAIL_SUBJECT !== 'undefined' && SIGN_EMAIL_SUBJECT ? SIGN_EMAIL_SUBJECT : 'Подписанный договор';
-    const bodyText = typeof SIGN_EMAIL_BODY !== 'undefined' && SIGN_EMAIL_BODY ? SIGN_EMAIL_BODY : 'Добрый день!\nВо вложении подписанный договор.';
-    const subj = '=?UTF-8?B?' + btoa(unescape(encodeURIComponent(subjectText))) + '?=';
-    const bodyB64 = btoa(unescape(encodeURIComponent(bodyText)));
     const arr = new Uint8Array(pdfBytes);
     let b64 = '';
     for (let i = 0; i < arr.length; i += 8192) b64 += String.fromCharCode(...arr.subarray(i, i + 8192));
     b64 = btoa(b64);
-    const mime = ['To: '+to,'Subject: '+subj,'MIME-Version: 1.0','Content-Type: multipart/mixed; boundary="'+boundary+'"','','--'+boundary,'Content-Type: text/plain; charset=UTF-8','Content-Transfer-Encoding: base64','',bodyB64,'','--'+boundary,'Content-Type: application/pdf','Content-Transfer-Encoding: base64','Content-Disposition: attachment; filename="dogovor_podpisany.pdf"','',b64,'','--'+boundary+'--'].join('\r\n');
-    const encoded = btoa(unescape(encodeURIComponent(mime))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-    const resp = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+    const resp = await fetch(authApiUrl('/api/email/signed'), {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + gAccessToken, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ raw: encoded })
+      body: JSON.stringify({ to, pdfBase64: b64 })
     });
-    if (!resp.ok) { const e = await resp.json(); throw new Error(e.error?.message || 'Ошибка'); }
+    if (!resp.ok) {
+      const data = await resp.json().catch(() => ({}));
+      const messages = {
+        recipient_invalid: 'некорректный email получателя',
+        pdf_invalid: 'не удалось подготовить PDF',
+        pdf_too_large: 'PDF превышает 3 МБ',
+        gmail_access_denied: 'Google не разрешил отправку Gmail',
+        gmail_send_failed: 'Gmail не отправил письмо'
+      };
+      throw new Error(messages[data.error] || 'сервер не отправил договор: HTTP ' + resp.status);
+    }
     setSignMessage('✅ Договор отправлен на ' + to, 'var(--acc)');
     showToast('✅ Договор отправлен!');
   } catch(e) {

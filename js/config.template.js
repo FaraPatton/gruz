@@ -25,12 +25,6 @@ const EXECUTOR_PROFILE = {
   account: ''
 };
 
-// Email defaults
-const EMAIL_SUBJECT = '';
-const EMAIL_BODY = ``;
-const SIGN_EMAIL_SUBJECT = '';
-const SIGN_EMAIL_BODY = ``;
-const EMAIL_DRIVE_FOLDER_ID = '';
 const STAMP_FILE_ID = '';
 
 // Global auth state

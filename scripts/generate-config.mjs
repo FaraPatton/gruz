@@ -43,12 +43,6 @@ const EXECUTOR_PROFILE = ${jsStringObject([
   ['account', 'EXECUTOR_ACCOUNT']
 ])};
 
-// Email defaults
-const EMAIL_SUBJECT = ${jsString(read('EMAIL_SUBJECT'))};
-const EMAIL_BODY = ${jsString(read('EMAIL_BODY'))};
-const SIGN_EMAIL_SUBJECT = ${jsString(read('SIGN_EMAIL_SUBJECT'))};
-const SIGN_EMAIL_BODY = ${jsString(read('SIGN_EMAIL_BODY'))};
-const EMAIL_DRIVE_FOLDER_ID = ${jsString(readTrim('EMAIL_DRIVE_FOLDER_ID'))};
 const STAMP_FILE_ID = ${jsString(readTrim('STAMP_FILE_ID'))};
 
 // Global auth state

@@ -53,7 +53,9 @@ If any required executor field is missing, PDF generation stops with a visible e
 
 ## Email Defaults
 
-| Secret | Required | Used for |
+Почтовые значения хранятся в Vercel Environment Variables и не включаются в `js/config.js`.
+
+| Vercel variable | Required | Used for |
 | --- | --- | --- |
 | `EMAIL_SUBJECT` | yes for "send document set" | Subject of the customer email. |
 | `EMAIL_BODY` | yes for "send document set" | Body of the customer email. May be multiline. |
@@ -84,7 +86,7 @@ one@example.com
 two@example.com
 ```
 
-Multiline email bodies can be pasted directly into GitHub Secrets. If a multiline value is inconvenient, a single-line body also works.
+Multiline email bodies can be pasted directly into Vercel Environment Variables. If a multiline value is inconvenient, a single-line body also works.
 
 ## Local Development
 

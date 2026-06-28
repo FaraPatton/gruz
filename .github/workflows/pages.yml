@@ -43,11 +43,6 @@ jobs:
           EXECUTOR_BIK: ${{ secrets.EXECUTOR_BIK }}
           EXECUTOR_CORR_ACCOUNT: ${{ secrets.EXECUTOR_CORR_ACCOUNT }}
           EXECUTOR_ACCOUNT: ${{ secrets.EXECUTOR_ACCOUNT }}
-          EMAIL_SUBJECT: ${{ secrets.EMAIL_SUBJECT }}
-          EMAIL_BODY: ${{ secrets.EMAIL_BODY }}
-          SIGN_EMAIL_SUBJECT: ${{ secrets.SIGN_EMAIL_SUBJECT }}
-          SIGN_EMAIL_BODY: ${{ secrets.SIGN_EMAIL_BODY }}
-          EMAIL_DRIVE_FOLDER_ID: ${{ secrets.EMAIL_DRIVE_FOLDER_ID }}
           STAMP_FILE_ID: ${{ secrets.STAMP_FILE_ID }}
         run: |
           node scripts/generate-config.mjs
