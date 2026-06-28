@@ -13,6 +13,7 @@
 - `POST /api/archive/pdf` - создание папки года и защищенная загрузка счета или акта в Drive.
 - `GET /api/archive/files` - список счетов и актов внутри серверного `ARCHIVE_ROOT`.
 - `GET /api/archive/file?id=...` - PDF только после проверки его принадлежности защищенному архиву.
+- `GET /api/archive/stamp` - приватное изображение печати после whitelist и проверки типа файла.
 - `GET /api/config/private` - приватные реквизиты и настройки только после проверки whitelist.
 
 ## Private environment variables

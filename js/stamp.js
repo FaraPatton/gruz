@@ -39,26 +39,8 @@
     });
   }
 
-  function normalizeDriveFileId(value) {
-    const raw = String(value || '').trim();
-    if (!raw) return '';
-
-    const fileMatch = raw.match(/\/file\/d\/([A-Za-z0-9_-]+)/);
-    if (fileMatch) return fileMatch[1];
-
-    const queryMatch = raw.match(/[?&]id=([A-Za-z0-9_-]+)/);
-    if (queryMatch) return queryMatch[1];
-
-    return raw;
-  }
-
   async function loadDriveStamp() {
-    const fileId = normalizeDriveFileId(typeof STAMP_FILE_ID !== 'undefined' ? STAMP_FILE_ID : '');
     const token = typeof gAccessToken !== 'undefined' ? gAccessToken : '';
-    if (!fileId) {
-      setStampStatus('Печать не настроена<br><small>Добавьте STAMP_FILE_ID в Secrets или загрузите файл вручную</small>', true);
-      return null;
-    }
     if (!token) {
       setStampStatus('Войдите в Google<br><small>После входа печать загрузится из Drive</small>', false);
       return null;
@@ -66,12 +48,18 @@
 
     if (!stampLoadPromise) {
       setStampStatus('Загружаю печать из Drive...', false);
-      stampLoadPromise = fetch(
-        'https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(fileId) + '?alt=media',
-        { headers: { Authorization: 'Bearer ' + token } }
-      )
+      stampLoadPromise = authApiFetch('/api/archive/stamp', {}, true)
         .then(resp => {
-          if (!resp.ok) throw new Error('Stamp load failed: ' + resp.status);
+          if (!resp.ok) return resp.json().catch(() => ({})).then(data => {
+            const messages = {
+              stamp_not_configured: 'печать не настроена на сервере',
+              stamp_type_invalid: 'файл печати должен быть PNG или JPEG',
+              stamp_too_large: 'файл печати превышает 2 МБ',
+              stamp_invalid: 'файл печати поврежден',
+              drive_access_denied: 'Google Drive не разрешил доступ к печати'
+            };
+            throw new Error(messages[data.error] || 'сервер не отдал печать: HTTP ' + resp.status);
+          });
           return resp.blob();
         })
         .then(blobToDataUrl)
@@ -82,7 +70,7 @@
         .catch(err => {
           stampLoadPromise = null;
           console.error('Drive stamp:', err);
-          setStampStatus('Не удалось загрузить печать<br><small>Проверьте STAMP_FILE_ID и доступ к файлу в Drive</small>', true);
+          setStampStatus('Не удалось загрузить печать<br><small>' + err.message + '</small>', true);
           return null;
         });
     }

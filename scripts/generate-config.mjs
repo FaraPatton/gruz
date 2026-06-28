@@ -18,7 +18,6 @@ let ARCHIVE_ROOT = '';
 let ROUTE_BASE_ADDRESS = '';
 let EXECUTOR_MARKERS = [];
 let EXECUTOR_PROFILE = {};
-let STAMP_FILE_ID = '';
 
 // Global auth state
 let gTokenClient = null;

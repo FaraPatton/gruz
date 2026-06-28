@@ -13,18 +13,23 @@ function cleanString(value, maxLength = 500) {
   return text;
 }
 
-function privateRuntimeConfig() {
+function privateConfigSource() {
   const rawConfig = String(process.env.PRIVATE_RUNTIME_CONFIG || '').trim();
   if (!rawConfig) throw new ApiError(503, 'private_config_not_configured');
-  let source;
   try {
-    source = JSON.parse(rawConfig);
+    const source = JSON.parse(rawConfig);
+    if (!source || typeof source !== 'object' || Array.isArray(source)) {
+      throw new ApiError(503, 'private_config_not_configured');
+    }
+    return source;
   } catch (error) {
+    if (error instanceof ApiError) throw error;
     throw new ApiError(503, 'private_config_invalid');
   }
-  if (!source || typeof source !== 'object' || Array.isArray(source)) {
-    throw new ApiError(503, 'private_config_not_configured');
-  }
+}
+
+function privateRuntimeConfig() {
+  const source = privateConfigSource();
 
   const markers = Array.isArray(source.executorMarkers)
     ? source.executorMarkers.map(value => cleanString(value, 160)).filter(Boolean).slice(0, 30)
@@ -44,9 +49,14 @@ function privateRuntimeConfig() {
     archiveRoot,
     routeBaseAddress: cleanString(source.routeBaseAddress),
     executorMarkers: markers,
-    executorProfile,
-    stampFileId: cleanString(source.stampFileId, 200)
+    executorProfile
   };
 }
 
-module.exports = { privateRuntimeConfig };
+function privateStampFileId() {
+  const id = cleanString(privateConfigSource().stampFileId, 200);
+  if (!/^[A-Za-z0-9_-]{10,200}$/.test(id)) throw new ApiError(503, 'stamp_not_configured');
+  return id;
+}
+
+module.exports = { privateRuntimeConfig, privateStampFileId };

@@ -10,7 +10,6 @@
     ROUTE_BASE_ADDRESS: '',
     EXECUTOR_MARKERS: [],
     EXECUTOR_PROFILE: {},
-    STAMP_FILE_ID: '',
     gTokenClient: null,
     gAccessToken: null,
     gAuthCallback: null,

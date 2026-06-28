@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!signPdfDoc) return;
       if (!stampUrl) {
         if (typeof loadDriveStamp === 'function') loadDriveStamp();
-        setSignMessage('Печать не загружена. Проверьте STAMP_FILE_ID и доступ к файлу в Drive или загрузите печать вручную.', 'var(--dan)');
+        setSignMessage('Печать не загружена с защищенного сервера. Можно загрузить ее вручную.', 'var(--dan)');
         return;
       }
       const canvas  = document.getElementById('pdfCanvas');

@@ -21,7 +21,6 @@ async function loadPrivateRuntimeConfig() {
     EXECUTOR_PROFILE = data.config.executorProfile && typeof data.config.executorProfile === 'object'
       ? data.config.executorProfile
       : {};
-    STAMP_FILE_ID = String(data.config.stampFileId || '');
     if (typeof loadDriveStamp === 'function') loadDriveStamp();
     return data.config;
   })().catch(error => {

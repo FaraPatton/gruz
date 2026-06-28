@@ -25,8 +25,6 @@ let EXECUTOR_PROFILE = {
   account: ''
 };
 
-let STAMP_FILE_ID = '';
-
 // Global auth state
 let gTokenClient = null;
 let gAccessToken = null;

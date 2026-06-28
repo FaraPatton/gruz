@@ -147,7 +147,7 @@ async function finishPdf(doc, fileName, options, successText) {
 function requireStampIfEnabled() {
   if (typeof isStampEnabled === 'function' && isStampEnabled() && !stampUrl) {
     if (typeof loadDriveStamp === 'function') loadDriveStamp();
-    throw new Error('Печать не загружена. Проверьте STAMP_FILE_ID и доступ к файлу в Drive или загрузите печать вручную.');
+    throw new Error('Печать не загружена с защищенного сервера или загрузите ее вручную.');
   }
 }
 
