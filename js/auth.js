@@ -1,5 +1,7 @@
 // ══ Auth ─ Google OAuth2 ════════════════════════════════════════════
 
+let analyticsWhitelistCheck = null;
+
 function getTokenClient() {
   if (!gTokenClient) {
     gTokenClient = google.accounts.oauth2.initTokenClient({
@@ -156,19 +158,25 @@ function setAnalyticsAccessState(state, profile, error) {
 async function checkAnalyticsWhitelistSilent() {
   const banner = document.getElementById('analyticsAccessBanner');
   if (!banner || !gAccessToken) return false;
+  if (analyticsWhitelistCheck) return analyticsWhitelistCheck;
 
   setAnalyticsAccessState('checking');
-  try {
-    const profile = await authVerifyAnalyticsAccess(gAccessToken);
-    rememberAnalyticsSession(profile);
-    setAnalyticsAccessState('allowed', profile);
-    return true;
-  } catch (e) {
-    clearAnalyticsSession();
-    setAnalyticsAccessState('denied', null, e.message || 'не удалось проверить доступ');
-    console.error('Analytics access:', e);
-    return false;
-  }
+  analyticsWhitelistCheck = (async () => {
+    try {
+      const profile = await authVerifyAnalyticsAccess(gAccessToken);
+      rememberAnalyticsSession(profile);
+      setAnalyticsAccessState('allowed', profile);
+      return true;
+    } catch (e) {
+      clearAnalyticsSession();
+      setAnalyticsAccessState('denied', null, e.message || 'не удалось проверить доступ');
+      console.error('Analytics access:', e);
+      return false;
+    } finally {
+      analyticsWhitelistCheck = null;
+    }
+  })();
+  return analyticsWhitelistCheck;
 }
 
 function openProtectedAnalytics() {

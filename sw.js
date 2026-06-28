@@ -1,9 +1,9 @@
 // Service Worker
-const CACHE = 'gruz-v102';
+const CACHE = 'gruz-v103';
 const ASSETS = [
   '/gruz/', '/gruz/index.html', '/gruz/css/bb8.css?v=1', '/gruz/css/style.css?v=32', '/gruz/css/analytics.css?v=8',
   '/gruz/js/stamp.js?v=4',
-  '/gruz/js/config.js?v=7', '/gruz/js/lazy_libs.js?v=3', '/gruz/js/utils.js?v=11', '/gruz/js/auth.js?v=10',
+  '/gruz/js/config.js?v=7', '/gruz/js/lazy_libs.js?v=3', '/gruz/js/utils.js?v=11', '/gruz/js/auth.js?v=11',
   '/gruz/js/pdf.js?v=8', '/gruz/js/drive.js?v=8', '/gruz/js/email.js?v=13',
   '/gruz/js/sign.js?v=5', '/gruz/js/analytics_calc.js?v=1', '/gruz/js/analytics_trips.js?v=1', '/gruz/js/analytics_registry.js?v=2', '/gruz/js/analytics_routes.js?v=1', '/gruz/js/analytics.js?v=58', '/gruz/js/pwa_update.js?v=3',
   '/gruz/manifest.json', '/gruz/img/truck-neon-hero.jpg?v=1',

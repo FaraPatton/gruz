@@ -18,13 +18,18 @@ async function verifyAnalyticsUser(token) {
   if (!allowedEmails.length) throw new ApiError(503, 'access_policy_not_configured');
 
   let response;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
   try {
     response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal
     });
   } catch (error) {
     console.error('Google userinfo request failed:', error instanceof Error ? error.message : 'unknown error');
     throw new ApiError(502, 'identity_provider_unavailable');
+  } finally {
+    clearTimeout(timeout);
   }
 
   if (!response.ok) throw new ApiError(401, 'invalid_google_token');
