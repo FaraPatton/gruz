@@ -50,6 +50,7 @@ async function openAnalyticsFromRememberedSession() {
   setGoogleOverlayState(true, 'ПРОВЕРЯЕМ ДОСТУП', 'ЗАЩИЩЕННЫЙ API...');
   try {
     analyticsProfile = await authVerifyAnalyticsAccess(remembered.token);
+    await loadPrivateRuntimeConfig();
     setAnalyticsGate('open');
     const panel = document.getElementById('analyticsPanel');
     if (panel) panel.style.display = 'block';
@@ -76,6 +77,7 @@ async function analyticsLogin() {
     if (!gAccessToken) await new Promise((res, rej) => requestAuth('consent', res, rej));
     setGoogleOverlayState(true, 'ПРОВЕРЯЕМ ДОСТУП', 'ЗАЩИЩЕННЫЙ API...');
     analyticsProfile = await authVerifyAnalyticsAccess(gAccessToken);
+    await loadPrivateRuntimeConfig();
     rememberAnalyticsSession(analyticsProfile);
 
     if (status) status.textContent = analyticsProfile.email || 'ДОСТУП РАЗРЕШЕН';

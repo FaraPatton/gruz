@@ -11,12 +11,14 @@
 - `POST /api/email/documents` - выдача доступа к папке и отправка письма по приватному шаблону.
 - `POST /api/email/signed` - отправка подписанного PDF-вложения.
 - `POST /api/archive/pdf` - создание папки года и защищенная загрузка счета или акта в Drive.
+- `GET /api/config/private` - приватные реквизиты и настройки только после проверки whitelist.
 
 ## Private environment variables
 
 Значения задаются только в Vercel и не попадают в frontend bundle:
 
 - `APP_ORIGINS` - разрешенные frontend origins через запятую, например `https://farapatton.github.io`.
+- `PRIVATE_RUNTIME_CONFIG` - JSON с `routeBaseAddress`, `executorMarkers`, `executorProfile` и `stampFileId`.
 - `ANALYTICS_ALLOWED_EMAILS` - разрешенные Google email через запятую.
 - `ARCHIVE_ROOT` - ID корневой папки архива Google Drive.
 - `EMAIL_SUBJECT` - тема письма с комплектом документов.

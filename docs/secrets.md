@@ -1,7 +1,7 @@
 # Runtime Config And GitHub Secrets
 
-`js/config.js` is generated during the GitHub Pages deploy from repository secrets.
-Do not commit real API keys, account details, addresses, phone numbers, Drive IDs, or email bodies into the repository.
+`js/config.js` is generated during the GitHub Pages deploy and contains only public browser settings.
+Do not commit real account details, addresses, phone numbers, Drive IDs, or email bodies into the repository.
 
 Add or edit values in GitHub:
 
@@ -15,7 +15,6 @@ After changing secrets, re-run the Pages workflow or push a new commit. A browse
 | --- | --- | --- |
 | `GCLIENT_ID` | yes | Google OAuth client ID. |
 | `GAPI_KEY` | yes | Google API key for Drive picker/API helpers. |
-| `ARCHIVE_ROOT` | yes | Google Drive archive folder ID for documents and trips registry. |
 
 ## Optional API Keys
 
@@ -27,27 +26,41 @@ After changing secrets, re-run the Pages workflow or push a new commit. A browse
 
 Analytics access is checked by the Vercel backend. Store `ANALYTICS_ALLOWED_EMAILS` in Vercel Environment Variables, not in GitHub Secrets or `js/config.js`.
 
+Private runtime settings are stored in Vercel:
+
+| Vercel variable | Required | Used for |
+| --- | --- | --- |
+| `ARCHIVE_ROOT` | yes | Google Drive archive folder ID. |
+| `PRIVATE_RUNTIME_CONFIG` | yes | JSON with route defaults, executor markers/profile and stamp file ID. |
+
 | Secret | Required | Used for |
 | --- | --- | --- |
 | `ROUTE_BASE_ADDRESS` | no | Default base address added to route distance calculations. |
 | `EXECUTOR_MARKERS` | recommended | Private markers used to exclude executor details from customer analytics. Accepts comma, semicolon, or newline-separated values. |
 
-## Executor Profile For PDF Documents
+## Private Runtime JSON
 
-These fields fill invoice and act executor blocks. Keep them in secrets only.
+`PRIVATE_RUNTIME_CONFIG` has this structure:
 
-| Secret | Required | Used for |
-| --- | --- | --- |
-| `EXECUTOR_NAME` | yes | Full executor name in invoices and acts. |
-| `EXECUTOR_SHORT_NAME` | yes | Short executor name in signatures and service descriptions. |
-| `EXECUTOR_INN` | yes | Executor INN. |
-| `EXECUTOR_OGRN` | yes for acts | Executor OGRN. |
-| `EXECUTOR_ADDRESS` | yes | Executor address. |
-| `EXECUTOR_PHONE` | yes | Executor phone. |
-| `EXECUTOR_BANK` | yes for invoices | Bank name. |
-| `EXECUTOR_BIK` | yes for invoices | Bank BIK. |
-| `EXECUTOR_CORR_ACCOUNT` | yes for invoices | Correspondent account. |
-| `EXECUTOR_ACCOUNT` | yes for invoices | Settlement account. |
+```json
+{
+  "routeBaseAddress": "",
+  "executorMarkers": [],
+  "executorProfile": {
+    "name": "",
+    "shortName": "",
+    "inn": "",
+    "ogrn": "",
+    "address": "",
+    "phone": "",
+    "bank": "",
+    "bik": "",
+    "corrAccount": "",
+    "account": ""
+  },
+  "stampFileId": ""
+}
+```
 
 If any required executor field is missing, PDF generation stops with a visible error instead of creating a blank executor table.
 
@@ -62,12 +75,6 @@ If any required executor field is missing, PDF generation stops with a visible e
 | `EMAIL_DRIVE_FOLDER_ID` | yes for "send document set" | Drive folder that is shared with the customer before sending. |
 | `SIGN_EMAIL_SUBJECT` | no | Subject for sending a signed contract. Falls back to a generic subject if empty. |
 | `SIGN_EMAIL_BODY` | no | Body for sending a signed contract. Falls back to a generic body if empty. |
-
-## Stamp
-
-| Secret | Required | Used for |
-| --- | --- | --- |
-| `STAMP_FILE_ID` | no | Private Google Drive file ID for the default stamp image. |
 
 ## Format Notes
 
@@ -94,7 +101,7 @@ The repository only contains `js/config.template.js` with empty placeholders. Fo
 
 ## Deploy Checklist
 
-1. Add or update repository secrets in GitHub Actions secrets.
+1. Add public keys to GitHub Actions secrets and private settings to Vercel Environment Variables.
 2. Re-run the GitHub Pages workflow or push a new commit.
 3. Open `/js/config.js` on the deployed site and verify only expected client field names are present.
 4. Hard-refresh the browser or restart the installed PWA if old values are still visible.

@@ -1,6 +1,35 @@
 // ══ Auth ─ Google OAuth2 ════════════════════════════════════════════
 
 let analyticsWhitelistCheck = null;
+let privateRuntimeConfigPromise = null;
+
+async function loadPrivateRuntimeConfig() {
+  if (privateRuntimeConfigPromise) return privateRuntimeConfigPromise;
+  privateRuntimeConfigPromise = (async () => {
+    const response = await authApiFetch('/api/config/private', {}, true);
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.config) {
+      const messages = {
+        private_config_not_configured: 'приватная конфигурация не добавлена в Vercel',
+        private_config_invalid: 'приватная конфигурация Vercel заполнена неверно'
+      };
+      throw new Error(messages[data.error] || 'не удалось загрузить приватную конфигурацию');
+    }
+    ARCHIVE_ROOT = String(data.config.archiveRoot || '');
+    ROUTE_BASE_ADDRESS = String(data.config.routeBaseAddress || '');
+    EXECUTOR_MARKERS = Array.isArray(data.config.executorMarkers) ? data.config.executorMarkers : [];
+    EXECUTOR_PROFILE = data.config.executorProfile && typeof data.config.executorProfile === 'object'
+      ? data.config.executorProfile
+      : {};
+    STAMP_FILE_ID = String(data.config.stampFileId || '');
+    if (typeof loadDriveStamp === 'function') loadDriveStamp();
+    return data.config;
+  })().catch(error => {
+    privateRuntimeConfigPromise = null;
+    throw error;
+  });
+  return privateRuntimeConfigPromise;
+}
 
 function getTokenClient() {
   if (!gTokenClient) {
@@ -20,7 +49,6 @@ function getTokenClient() {
         const status  = document.getElementById('loginStatus');
         setAuthLockState(true);
         if (typeof syncAuthDependentUi === 'function') syncAuthDependentUi();
-        if (typeof loadDriveStamp === 'function') loadDriveStamp();
         if (btnTxt)  { btnTxt.textContent = 'Google'; }
         if (btnIcon) { btnIcon.textContent = '✓'; btnIcon.style.color = 'var(--acc)'; btnIcon.style.display = 'inline'; }
         if (btn)     { btn.style.borderColor = 'var(--acc)'; btn.style.color = 'var(--acc)'; btn.style.boxShadow = '0 0 10px rgba(232,200,74,.2)'; btn.disabled = false; }
@@ -173,6 +201,7 @@ async function checkAnalyticsWhitelistSilent() {
   analyticsWhitelistCheck = (async () => {
     try {
       const profile = await authVerifyAnalyticsAccess(gAccessToken);
+      await loadPrivateRuntimeConfig();
       rememberAnalyticsSession(profile);
       setAnalyticsAccessState('allowed', profile);
       return true;
@@ -248,7 +277,6 @@ async function googleLogin() {
   if (gAccessToken) {
     setAuthLockState(true);
     if (typeof syncAuthDependentUi === 'function') syncAuthDependentUi();
-    if (typeof loadDriveStamp === 'function') loadDriveStamp();
     const accessConfirmed = await checkAnalyticsWhitelistSilent();
     if (accessConfirmed || gAccessToken) {
       status.textContent = accessConfirmed ? 'УЖЕ АВТОРИЗОВАН' : 'ДОСТУП НЕ ПОДТВЕРЖДЕН';

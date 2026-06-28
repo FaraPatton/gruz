@@ -3,15 +3,6 @@ import { writeFileSync } from 'node:fs';
 const read = (name) => process.env[name] || '';
 const readTrim = (name) => read(name).trim();
 const jsString = (value) => JSON.stringify(String(value));
-const jsStringArray = (value) => JSON.stringify(
-  String(value || '')
-    .split(/[\n,;]/)
-    .map(item => item.trim())
-    .filter(Boolean)
-);
-const jsStringObject = (entries) => JSON.stringify(
-  Object.fromEntries(entries.map(([key, name]) => [key, readTrim(name)]))
-);
 const apiBaseUrl = readTrim('API_BASE_URL') || 'https://gruz-kappa.vercel.app';
 
 const config = `// App Config. Generated at deploy time.
@@ -22,28 +13,12 @@ const GAPI_KEY = ${jsString(read('GAPI_KEY'))};
 const YANDEX_MAPS_API_KEY = ${jsString(read('YANDEX_MAPS_API_KEY'))};
 const API_BASE_URL = ${jsString(apiBaseUrl)};
 
-// Google Drive archive root folder
-const ARCHIVE_ROOT = ${jsString(readTrim('ARCHIVE_ROOT'))};
-
-// Private route analytics base address
-const ROUTE_BASE_ADDRESS = ${jsString(readTrim('ROUTE_BASE_ADDRESS'))};
-const EXECUTOR_MARKERS = ${jsStringArray(read('EXECUTOR_MARKERS'))};
-
-// Private executor profile for PDF documents
-const EXECUTOR_PROFILE = ${jsStringObject([
-  ['name', 'EXECUTOR_NAME'],
-  ['shortName', 'EXECUTOR_SHORT_NAME'],
-  ['inn', 'EXECUTOR_INN'],
-  ['ogrn', 'EXECUTOR_OGRN'],
-  ['address', 'EXECUTOR_ADDRESS'],
-  ['phone', 'EXECUTOR_PHONE'],
-  ['bank', 'EXECUTOR_BANK'],
-  ['bik', 'EXECUTOR_BIK'],
-  ['corrAccount', 'EXECUTOR_CORR_ACCOUNT'],
-  ['account', 'EXECUTOR_ACCOUNT']
-])};
-
-const STAMP_FILE_ID = ${jsString(readTrim('STAMP_FILE_ID'))};
+// Loaded from the protected Vercel API after authorization.
+let ARCHIVE_ROOT = '';
+let ROUTE_BASE_ADDRESS = '';
+let EXECUTOR_MARKERS = [];
+let EXECUTOR_PROFILE = {};
+let STAMP_FILE_ID = '';
 
 // Global auth state
 let gTokenClient = null;

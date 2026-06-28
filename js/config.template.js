@@ -5,14 +5,14 @@ const YANDEX_MAPS_API_KEY = '';
 const API_BASE_URL = 'https://gruz-kappa.vercel.app';
 
 // Google Drive archive root folder
-const ARCHIVE_ROOT = '';
+let ARCHIVE_ROOT = '';
 
 // Private route analytics base address
-const ROUTE_BASE_ADDRESS = '';
-const EXECUTOR_MARKERS = [];
+let ROUTE_BASE_ADDRESS = '';
+let EXECUTOR_MARKERS = [];
 
 // Private executor profile for PDF documents
-const EXECUTOR_PROFILE = {
+let EXECUTOR_PROFILE = {
   name: '',
   shortName: '',
   inn: '',
@@ -25,7 +25,7 @@ const EXECUTOR_PROFILE = {
   account: ''
 };
 
-const STAMP_FILE_ID = '';
+let STAMP_FILE_ID = '';
 
 // Global auth state
 let gTokenClient = null;
