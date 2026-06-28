@@ -123,7 +123,7 @@ async function saveTripToRegistry(trip) {
   if (!cleanTrip) throw new Error('Не удалось подготовить рейс для trips.json');
 
   const registry = await loadTripsRegistry();
-  const trips = mergeTrips([...(registry.trips || []), cleanTrip]).sort((a, b) => {
+  const trips = upsertTrip(registry.trips || [], cleanTrip).sort((a, b) => {
     const da = a.date || String(a.year || '');
     const db = b.date || String(b.year || '');
     return db.localeCompare(da);
@@ -161,7 +161,7 @@ async function setTripPaymentType(tripId, paymentType) {
 
   try {
     const registry = await loadTripsRegistry();
-    const trips = mergeTrips([...(registry.trips || []), updatedTrip]).sort((a, b) => {
+    const trips = upsertTrip(registry.trips || [], updatedTrip).sort((a, b) => {
       const da = a.date || String(a.year || '');
       const db = b.date || String(b.year || '');
       return db.localeCompare(da);

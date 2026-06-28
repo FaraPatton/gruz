@@ -151,6 +151,17 @@ function mergeTrips(trips) {
   return [...byKey.values()];
 }
 
+function upsertTrip(trips, value) {
+  const next = normalizeTrip(value);
+  if (!next) return mergeTrips(trips || []);
+
+  const remaining = (trips || []).filter(item => {
+    const current = normalizeTrip(item);
+    return current && current.id !== next.id;
+  });
+  return mergeTrips([...remaining, next]);
+}
+
 function tripKey(trip) {
   const customer = trip.customerInn || cleanCustomer(trip.customerName).toLowerCase();
   const num = trip.docNum || matchOne(trip.sourceName || '', /^(?:schet|akt)[_\s-]*(\d+)/i) || '';

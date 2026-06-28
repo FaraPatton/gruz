@@ -257,7 +257,7 @@ async function saveManualRouteKm(tripId) {
 
   try {
     const registry = await loadTripsRegistry();
-    const trips = mergeTrips([...(registry.trips || []), updatedTrip]).sort((a, b) => {
+    const trips = upsertTrip(registry.trips || [], updatedTrip).sort((a, b) => {
       const da = a.date || String(a.year || '');
       const db = b.date || String(b.year || '');
       return db.localeCompare(da);
