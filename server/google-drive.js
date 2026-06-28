@@ -43,10 +43,15 @@ async function findTripsRegistryFile(token, archiveRoot) {
   const params = new URLSearchParams({
     q: query,
     fields: 'files(id,name,modifiedTime)',
-    pageSize: '1'
+    orderBy: 'modifiedTime desc',
+    pageSize: '100'
   });
   const listing = await driveFetchJson(`https://www.googleapis.com/drive/v3/files?${params}`, token);
-  return Array.isArray(listing.files) ? listing.files[0] || null : null;
+  const files = Array.isArray(listing.files) ? listing.files : [];
+  if (files.length > 1) {
+    console.warn('Multiple trips.json files found in archive root:', files.length);
+  }
+  return files[0] || null;
 }
 
 async function loadTripsRegistry(token) {
