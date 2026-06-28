@@ -78,8 +78,8 @@ async function rebuildTripsRegistry() {
       trips
     };
 
-    await saveTripsRegistry(registry);
-    driveCache = trips;
+    const savedRegistry = await saveTripsRegistry(registry);
+    driveCache = savedRegistry.trips;
     analyticsYear = 0;
     renderDriveAnalytics(driveCache, analyticsYear, panel);
     showToast('✓ Реестр аналитики обновлен');
@@ -129,7 +129,7 @@ async function saveTripToRegistry(trip) {
     return db.localeCompare(da);
   });
 
-  await saveTripsRegistry({
+  const savedRegistry = await saveTripsRegistry({
     ...registry,
     version: TRIPS_REGISTRY_VERSION,
     updatedAt: new Date().toISOString(),
@@ -137,7 +137,7 @@ async function saveTripToRegistry(trip) {
     trips
   });
 
-  driveCache = trips;
+  driveCache = savedRegistry.trips;
   return cleanTrip;
 }
 
@@ -167,7 +167,7 @@ async function setTripPaymentType(tripId, paymentType) {
       return db.localeCompare(da);
     });
 
-    await saveTripsRegistry({
+    const savedRegistry = await saveTripsRegistry({
       ...registry,
       version: TRIPS_REGISTRY_VERSION,
       updatedAt: new Date().toISOString(),
@@ -175,7 +175,7 @@ async function setTripPaymentType(tripId, paymentType) {
       trips
     });
 
-    driveCache = trips;
+    driveCache = savedRegistry.trips;
     renderDriveAnalytics(driveCache, analyticsYear, document.getElementById('analyticsPanel'));
     showToast('✓ Оплата: ' + paymentLabel(type));
   } catch (e) {
@@ -211,7 +211,7 @@ async function deleteTripFromRegistry(tripId) {
     return;
   }
 
-  await saveTripsRegistry({
+  const savedRegistry = await saveTripsRegistry({
     ...registry,
     version: TRIPS_REGISTRY_VERSION,
     updatedAt: new Date().toISOString(),
@@ -219,7 +219,7 @@ async function deleteTripFromRegistry(tripId) {
     trips
   });
 
-  driveCache = trips;
+  driveCache = savedRegistry.trips;
   showToast('Рейс удалён из trips.json');
   renderDriveAnalytics(driveCache, analyticsYear, document.getElementById('analyticsPanel'));
 }

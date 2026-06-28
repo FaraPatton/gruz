@@ -76,6 +76,11 @@ async function saveTripsRegistry(registry) {
     };
     throw new Error(messages[data.error] || 'Не удалось сохранить trips.json: HTTP ' + resp.status);
   }
+  const savedRegistry = await resp.json();
+  savedRegistry.trips = Array.isArray(savedRegistry.trips)
+    ? savedRegistry.trips.map(normalizeTrip).filter(Boolean)
+    : [];
+  return savedRegistry;
 }
 
 async function scanDriveArchiveToTrips() {

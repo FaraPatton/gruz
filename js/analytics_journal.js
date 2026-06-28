@@ -1,7 +1,7 @@
 // Analytics journal rendering.
 
 function analyticsJournal(rows) {
-  const sorted = rows.slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const sorted = rows.slice().sort(compareTripsByDocNumber);
   if (!sorted.length) return emptyAnalyticsText('В выбранном периоде нет записей trips.json.');
 
   return sectionTitle('Журнал trips.json') +
@@ -58,4 +58,3 @@ function analyticsJournal(rows) {
       }).join('') +
     '</div>';
 }
-

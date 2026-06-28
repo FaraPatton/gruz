@@ -263,7 +263,7 @@ async function saveManualRouteKm(tripId) {
       return db.localeCompare(da);
     });
 
-    await saveTripsRegistry({
+    const savedRegistry = await saveTripsRegistry({
       ...registry,
       version: TRIPS_REGISTRY_VERSION,
       updatedAt: new Date().toISOString(),
@@ -271,7 +271,7 @@ async function saveManualRouteKm(tripId) {
       trips
     });
 
-    driveCache = trips;
+    driveCache = savedRegistry.trips;
     renderDriveAnalytics(driveCache, analyticsYear, document.getElementById('analyticsPanel'));
     renderRouteMapModal(updatedTrip);
     showToast('✓ Километраж сохранён');

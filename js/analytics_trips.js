@@ -162,6 +162,19 @@ function upsertTrip(trips, value) {
   return mergeTrips([...remaining, next]);
 }
 
+function compareTripsByDocNumber(a, b) {
+  const numberOrder = String(b?.docNum || '').localeCompare(
+    String(a?.docNum || ''),
+    'ru',
+    { numeric: true, sensitivity: 'base' }
+  );
+  if (numberOrder) return numberOrder;
+
+  const dateOrder = String(b?.date || '').localeCompare(String(a?.date || ''));
+  if (dateOrder) return dateOrder;
+  return String(a?.id || '').localeCompare(String(b?.id || ''), 'ru');
+}
+
 function tripKey(trip) {
   const customer = trip.customerInn || cleanCustomer(trip.customerName).toLowerCase();
   const num = trip.docNum || matchOne(trip.sourceName || '', /^(?:schet|akt)[_\s-]*(\d+)/i) || '';
