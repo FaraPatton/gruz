@@ -300,6 +300,21 @@ body[data-theme="light"] .auth-row {
   display: flex;
   animation: fadeInUp .32s ease both;
 }
+
+.analytics-access-banner.is-idle {
+  cursor: pointer;
+  opacity: .88;
+}
+
+.analytics-access-banner.is-idle:hover {
+  opacity: 1;
+  border-color: rgba(80, 231, 255, .45);
+}
+
+.analytics-access-banner.is-idle .analytics-access-loader {
+  opacity: .45;
+  animation-play-state: paused;
+}
 .analytics-access-banner.is-hidden {
   display: none;
 }
@@ -318,7 +333,7 @@ body[data-theme="light"] .auth-row {
   box-shadow: 0 20px 44px rgba(0,0,0,.27), 0 0 30px rgba(57,217,138,.12), inset 0 1px 0 rgba(255,255,255,.09);
 }
 .analytics-access-banner.is-denied {
-  cursor: default;
+  cursor: pointer;
   border-color: rgba(255,95,95,.28);
   background: linear-gradient(135deg, rgba(255,95,95,.1), rgba(79,124,255,.06));
 }

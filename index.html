@@ -70,7 +70,7 @@
       </label>
     </div>
   </div>
-  <button class="analytics-access-banner" id="analyticsAccessBanner" type="button" onclick="openProtectedAnalytics()" aria-live="polite">
+  <button class="analytics-access-banner is-idle" id="analyticsAccessBanner" type="button" onclick="handleAnalyticsAccessClick()" aria-live="polite">
     <span class="analytics-access-loader" aria-hidden="true">
       <span class="google-truck-wrapper">
         <span class="google-truck-body">
@@ -92,8 +92,8 @@
       </span>
     </span>
     <span class="analytics-access-copy">
-      <b id="analyticsAccessTitle">Проверяем ваш email на whitelist</b>
-      <small id="analyticsAccessText">доступ к закрытой аналитике</small>
+      <b id="analyticsAccessTitle">Войдите в Google для аналитики</b>
+      <small id="analyticsAccessText">после входа проверим доступ по whitelist</small>
     </span>
   </button>
   <div id="loginStatus"></div>

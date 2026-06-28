@@ -129,11 +129,19 @@ function setAnalyticsAccessState(state, profile, error) {
   const text = document.getElementById('analyticsAccessText');
   if (!banner) return;
 
-  banner.classList.remove('is-checking', 'is-allowed', 'is-denied', 'is-hidden');
+  banner.classList.remove('is-idle', 'is-checking', 'is-allowed', 'is-denied', 'is-hidden');
   banner.disabled = true;
 
   if (state === 'hidden') {
     banner.classList.add('is-hidden');
+    return;
+  }
+
+  if (state === 'idle') {
+    banner.classList.add('is-idle');
+    banner.disabled = false;
+    if (title) title.textContent = 'Войдите в Google для аналитики';
+    if (text) text.textContent = 'после входа проверим доступ по whitelist';
     return;
   }
 
@@ -151,6 +159,7 @@ function setAnalyticsAccessState(state, profile, error) {
     return;
   }
 
+  banner.disabled = false;
   if (title) title.textContent = 'Аналитика недоступна';
   if (text) text.textContent = error || (profile?.email ? 'email не найден в whitelist: ' + profile.email : 'email не прошел whitelist');
 }
@@ -186,6 +195,15 @@ function openProtectedAnalytics() {
     sessionStorage.setItem('gruzAnalyticsOpenIntent', '1');
   } catch (e) {}
   window.location.href = 'analytics.html';
+}
+
+function handleAnalyticsAccessClick() {
+  const banner = document.getElementById('analyticsAccessBanner');
+  if (banner?.classList.contains('is-allowed')) {
+    openProtectedAnalytics();
+    return;
+  }
+  googleLogin();
 }
 
 function setAuthLockState(locked) {
@@ -243,7 +261,7 @@ async function googleLogin() {
   setAuthLockState(false);
   status.textContent = '';
   try {
-    await new Promise((res, rej) => requestAuth('', res, rej));
+    await new Promise((res, rej) => requestAuth('select_account', res, rej));
   } catch(e) {
     setGoogleOverlayState(false);
     btn.disabled = false;
@@ -251,6 +269,7 @@ async function googleLogin() {
     if (typeof syncAuthDependentUi === 'function') syncAuthDependentUi();
     status.textContent = 'ОШИБКА';
     status.style.color = 'var(--dan)';
+    setAnalyticsAccessState('denied', null, 'Google не завершил вход. Нажмите здесь, чтобы повторить');
     console.error('Login:', e);
   }
 }
