@@ -7,6 +7,7 @@
 - `GET /api/health` - публичная проверка доступности API.
 - `GET /api/auth/me` - серверная проверка Google access token и разрешенного email.
 - `GET /api/analytics/trips` - защищенное чтение `trips.json` из Google Drive.
+- `PUT /api/analytics/trips` - валидированное сохранение `trips.json` в Google Drive.
 
 ## Private environment variables
 

@@ -1,8 +1,7 @@
 'use strict';
 
 const { ApiError } = require('./google-auth');
-
-const MAX_REGISTRY_BYTES = 5 * 1024 * 1024;
+const { MAX_REGISTRY_BYTES } = require('./trips-registry');
 
 function driveQueryValue(value) {
   return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -39,10 +38,7 @@ async function driveFetchJson(url, token) {
   return response.json();
 }
 
-async function loadTripsRegistry(token) {
-  const archiveRoot = String(process.env.ARCHIVE_ROOT || '').trim();
-  if (!archiveRoot) throw new ApiError(503, 'archive_not_configured');
-
+async function findTripsRegistryFile(token, archiveRoot) {
   const query = `'${driveQueryValue(archiveRoot)}' in parents and name='trips.json' and trashed=false`;
   const params = new URLSearchParams({
     q: query,
@@ -50,7 +46,14 @@ async function loadTripsRegistry(token) {
     pageSize: '1'
   });
   const listing = await driveFetchJson(`https://www.googleapis.com/drive/v3/files?${params}`, token);
-  const file = Array.isArray(listing.files) ? listing.files[0] : null;
+  return Array.isArray(listing.files) ? listing.files[0] || null : null;
+}
+
+async function loadTripsRegistry(token) {
+  const archiveRoot = String(process.env.ARCHIVE_ROOT || '').trim();
+  if (!archiveRoot) throw new ApiError(503, 'archive_not_configured');
+
+  const file = await findTripsRegistryFile(token, archiveRoot);
   if (!file?.id) return { version: 6, updatedAt: null, trips: [] };
 
   let response;
@@ -85,4 +88,42 @@ async function loadTripsRegistry(token) {
   return registry;
 }
 
-module.exports = { loadTripsRegistry };
+async function saveTripsRegistry(token, registryText) {
+  const archiveRoot = String(process.env.ARCHIVE_ROOT || '').trim();
+  if (!archiveRoot) throw new ApiError(503, 'archive_not_configured');
+
+  const file = await findTripsRegistryFile(token, archiveRoot);
+  const metadata = file?.id
+    ? { name: 'trips.json', mimeType: 'application/json' }
+    : { name: 'trips.json', mimeType: 'application/json', parents: [archiveRoot] };
+  const boundary = `gruz_registry_${Date.now()}`;
+  const body =
+    `--${boundary}\r\n` +
+    'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+    JSON.stringify(metadata) + '\r\n' +
+    `--${boundary}\r\n` +
+    'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+    registryText + '\r\n' +
+    `--${boundary}--`;
+  const url = file?.id
+    ? `https://www.googleapis.com/upload/drive/v3/files/${encodeURIComponent(file.id)}?uploadType=multipart`
+    : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+
+  let response;
+  try {
+    response = await fetch(url, {
+      method: file?.id ? 'PATCH' : 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': `multipart/related; boundary=${boundary}`
+      },
+      body
+    });
+  } catch (error) {
+    console.error('Trips registry upload failed:', error instanceof Error ? error.message : 'unknown error');
+    throw new ApiError(502, 'drive_unavailable');
+  }
+  if (!response.ok) throw await driveApiError(response, 'registry_upload_failed');
+}
+
+module.exports = { loadTripsRegistry, saveTripsRegistry };

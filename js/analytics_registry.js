@@ -1,7 +1,5 @@
 // Analytics Drive registry: trips.json storage and archive scanning.
 
-let analyticsRegistryFileId = null;
-
 async function driveJson(url, options = {}) {
   const resp = await fetch(url, {
     ...options,
@@ -26,16 +24,6 @@ async function driveList(parentId, kind) {
     '&fields=files(id,name,mimeType,modifiedTime)&pageSize=1000';
   const data = await driveJson(url);
   return data.files || [];
-}
-
-async function findTripsRegistryFile() {
-  const q = encodeURIComponent(
-    "'" + ARCHIVE_ROOT + "' in parents and name='" + TRIPS_REGISTRY_NAME + "' and trashed=false"
-  );
-  const data = await driveJson(
-    'https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name,modifiedTime)&pageSize=1'
-  );
-  return data.files?.[0] || null;
 }
 
 async function loadTripsRegistry() {
@@ -67,35 +55,27 @@ async function loadTripsRegistry() {
 }
 
 async function saveTripsRegistry(registry) {
-  const current = analyticsRegistryFileId ? { id: analyticsRegistryFileId } : await findTripsRegistryFile();
-  analyticsRegistryFileId = current?.id || null;
-
-  const metadata = analyticsRegistryFileId
-    ? { name: TRIPS_REGISTRY_NAME, mimeType: 'application/json' }
-    : { name: TRIPS_REGISTRY_NAME, mimeType: 'application/json', parents: [ARCHIVE_ROOT] };
-
-  const boundary = 'gruz_registry_' + Date.now();
-  const payload = JSON.stringify(registry, null, 2);
-  const body =
-    '--' + boundary + '\r\n' +
-    'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
-    JSON.stringify(metadata) + '\r\n' +
-    '--' + boundary + '\r\n' +
-    'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
-    payload + '\r\n' +
-    '--' + boundary + '--';
-
-  const url = analyticsRegistryFileId
-    ? 'https://www.googleapis.com/upload/drive/v3/files/' + analyticsRegistryFileId + '?uploadType=multipart'
-    : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-
-  setProgress('СОХРАНЯЮ trips.json...');
-  const data = await driveJson(url, {
-    method: analyticsRegistryFileId ? 'PATCH' : 'POST',
-    headers: { 'Content-Type': 'multipart/related; boundary=' + boundary },
-    body
+  setProgress('СОХРАНЯЮ trips.json ЧЕРЕЗ API...');
+  const resp = await fetch(authApiUrl('/api/analytics/trips'), {
+    method: 'PUT',
+    headers: {
+      Authorization: 'Bearer ' + gAccessToken,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(registry)
   });
-  analyticsRegistryFileId = data.id || analyticsRegistryFileId;
+  if (!resp.ok) {
+    const data = await resp.json().catch(() => ({}));
+    const messages = {
+      registry_invalid: 'формат trips.json не прошел проверку',
+      registry_invalid_trip: 'один из рейсов содержит некорректные данные',
+      registry_too_many_trips: 'в trips.json слишком много рейсов',
+      registry_too_large: 'trips.json превышает допустимый размер',
+      registry_upload_failed: 'Google Drive не сохранил trips.json',
+      drive_access_denied: 'Google Drive не разрешил запись trips.json'
+    };
+    throw new Error(messages[data.error] || 'Не удалось сохранить trips.json: HTTP ' + resp.status);
+  }
 }
 
 async function scanDriveArchiveToTrips() {
