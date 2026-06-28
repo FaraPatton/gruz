@@ -20,6 +20,9 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const req = e.request;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;
+
   const networkFirst = req.mode === 'navigate' ||
     req.destination === 'document' ||
     req.destination === 'script' ||
