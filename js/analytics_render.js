@@ -29,15 +29,6 @@ function renderDriveAnalytics(entries, yr, panel) {
   const avgAmt = totalRides ? Math.round(totalAmt / totalRides) : 0;
   const missingDistanceRows = filtered.filter(needsDistance);
   const paymentStats = paymentSummary(periodTrips);
-  const monthlyNet = Array(12).fill(0);
-  const monthlyNetTax = Array(12).fill(0);
-  filtered.forEach(e => {
-    if (e.month >= 1 && e.month <= 12) {
-      monthlyNet[e.month - 1] += netProfit(e);
-      monthlyNetTax[e.month - 1] += usnTax(e);
-    }
-  });
-  const maxMonthNet = Math.max(...monthlyNet.map(value => Math.abs(value)), 1);
   const monthNames = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
   const currentDate = new Date();
   const dashboardYear = selectedYear || currentDate.getFullYear();
@@ -78,14 +69,16 @@ function renderDriveAnalytics(entries, yr, panel) {
   const maxRoutes = Math.max(...routeStats.map(s => s.count), 1);
   if (!['overview', 'journal'].includes(analyticsView)) analyticsView = 'overview';
 
+  const monthMotionClass = analyticsMonthDirection < 0 ? ' is-backward' : ' is-forward';
   const overviewHtml =
-    dashboardMonthlyNetChart(monthlyNet, monthlyNetTax, maxMonthNet, monthNames, selectedYear) +
-    dashboardMonthFilter(selectedMonth, dashboardYear, monthNames) +
-    '<div class="dash-hero-grid">' +
-      dashboardHeroCard('Оборот', money(dashboardAmount), dashboardPeriod, '↗', 'turnover') +
-      dashboardHeroCard('Чистая прибыль', money(dashboardNet), dashboardPeriod + ' · после топлива', '↗', 'profit') +
-      dashboardHeroCard('Налоги', money(dashboardTax), dashboardPeriod + ' · УСН 6%', '6%', 'tax') +
-      dashboardHeroCard('После налога', money(dashboardAfterTax), dashboardPeriod, '₽', 'rate') +
+    '<div class="dash-month-report' + monthMotionClass + '">' +
+      dashboardMonthFilter(selectedMonth, dashboardYear, monthNames) +
+      '<div class="dash-hero-grid">' +
+        dashboardHeroCard('Оборот', money(dashboardAmount), dashboardPeriod, '↗', 'turnover') +
+        dashboardHeroCard('Чистая прибыль', money(dashboardNet), dashboardPeriod + ' · после топлива', '↗', 'profit') +
+        dashboardHeroCard('Налоги', money(dashboardTax), dashboardPeriod + ' · УСН 6%', '6%', 'tax') +
+        dashboardHeroCard('После налога', money(dashboardAfterTax), dashboardPeriod, '₽', 'rate') +
+      '</div>' +
     '</div>' +
     distanceWarningPanel(missingDistanceRows) +
     aiAnalyticsPanel(filtered, topByMoney, topRoutesByMoney, totalRides, avgAmt, totalFuel) +

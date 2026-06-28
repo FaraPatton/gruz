@@ -30,30 +30,6 @@ function dashboardMetricCard(tone, value, label, hint, badge) {
   '</div>';
 }
 
-function dashboardMonthlyNetChart(values, taxValues, max, labels, selectedYear) {
-  const total = values.reduce((sum, value) => sum + (Number(value) || 0), 0);
-  const active = values.filter(value => Number(value) !== 0).length;
-  const period = selectedYear ? String(selectedYear) : 'все годы';
-  return '<div class="dash-panel dash-turnover-panel dash-net-panel">' +
-    '<div class="dash-panel-head"><b>Прибыль с учетом трат на топливо (без налога)</b><span>' + aEsc(period) + '</span></div>' +
-    '<div class="dash-turnover-summary">' +
-      '<b>' + aEsc(money(total)) + '</b>' +
-      '<small>' + aEsc(active ? active + ' мес. с результатом' : 'нет данных') + '</small>' +
-    '</div>' +
-    '<div class="dash-month-grid">' +
-      values.map((value, i) => {
-        const width = value ? Math.max(4, Math.round(Math.abs(value) / (max || 1) * 100)) : 0;
-        const tone = value < 0 ? ' is-negative' : '';
-        return '<div class="dash-month-cell' + tone + '" title="' + aEsc(labels[i] + ': ' + money(value)) + '">' +
-          '<div><span>' + aEsc(labels[i]) + '</span><b>' + (value ? aEsc(shortMoney(value)) : '—') + '</b></div>' +
-          '<small class="dash-month-tax">(налог ~' + aEsc(money(taxValues[i] || 0)) + ')</small>' +
-          '<em><i style="width:' + width + '%"></i></em>' +
-        '</div>';
-      }).join('') +
-    '</div>' +
-  '</div>';
-}
-
 function dashboardTaxChart(taxValues, afterTaxValues, max, labels, selectedYear) {
   const totalTax = taxValues.reduce((sum, value) => sum + (Number(value) || 0), 0);
   const totalAfterTax = afterTaxValues.reduce((sum, value) => sum + (Number(value) || 0), 0);

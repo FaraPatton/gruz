@@ -3,6 +3,7 @@
 let analyticsView = 'overview';
 let analyticsPaymentFilter = 'all';
 let analyticsMonth = new Date().getMonth() + 1;
+let analyticsMonthDirection = 0;
 
 function toggleAnalytics() {
   const panel = document.getElementById('analyticsPanel');

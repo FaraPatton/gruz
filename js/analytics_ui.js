@@ -29,22 +29,23 @@ function setAnalyticsPaymentFilter(type) {
 
 function setAnalyticsMonth(month) {
   const value = Number(month);
-  analyticsMonth = value >= 1 && value <= 12 ? value : new Date().getMonth() + 1;
+  const nextMonth = value >= 1 && value <= 12 ? value : new Date().getMonth() + 1;
+  if (nextMonth === analyticsMonth) return;
+  analyticsMonthDirection = nextMonth > analyticsMonth ? 1 : -1;
+  analyticsMonth = nextMonth;
   renderDriveAnalytics(driveCache || [], analyticsYear, document.getElementById('analyticsPanel'));
 }
 
 function dashboardMonthFilter(selectedMonth, selectedYear, labels) {
-  return '<div style="margin:0 0 12px">' +
-    '<div class="dash-panel-head" style="margin-bottom:7px"><b>Отчетный месяц</b><span>' + aEsc(selectedYear) + '</span></div>' +
-    '<div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px">' +
+  return '<div class="dash-month-switcher">' +
+    '<div class="dash-month-switcher-head"><span>Отчетный месяц</span><b>' + aEsc(selectedYear) + '</b></div>' +
+    '<div class="dash-month-buttons">' +
       labels.map((label, index) => {
         const month = index + 1;
         const active = month === selectedMonth;
-        return '<button onclick="setAnalyticsMonth(' + month + ')" style="min-width:0;border:1px solid ' +
-          (active ? 'rgba(57,217,138,.72)' : 'rgba(137,104,190,.24)') + ';border-radius:8px;background:' +
-          (active ? 'linear-gradient(180deg,rgba(57,217,138,.22),rgba(57,217,138,.1))' : 'rgba(255,255,255,.035)') +
-          ';color:' + (active ? 'var(--ana)' : 'var(--ana-muted)') +
-          ';padding:7px 3px;font-size:10px;font-weight:700;cursor:pointer">' + aEsc(label) + '</button>';
+        return '<button class="dash-month-button' + (active ? ' is-active' : '') + '" onclick="setAnalyticsMonth(' + month + ')" aria-pressed="' + active + '">' +
+          '<span>' + aEsc(label) + '</span><i></i>' +
+        '</button>';
       }).join('') +
     '</div>' +
   '</div>';
