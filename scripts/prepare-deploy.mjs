@@ -10,7 +10,7 @@ const versionedAssets = [
   'css/bb8.css',
   'css/style.css',
   'css/analytics.css',
-  'js/stamp.js',
+  'js/stamp_secure.js',
   'js/config.js',
   'js/lazy_libs.js',
   'js/utils.js',

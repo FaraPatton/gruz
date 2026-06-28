@@ -1,4 +1,4 @@
-// Loads the private stamp image from Google Drive after Google authorization.
+// Loads the private stamp image through the protected backend after authorization.
 
 (function() {
   let stampLoadPromise = null;

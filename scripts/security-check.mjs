@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { extname } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
@@ -11,7 +11,7 @@ const runGit = (...args) => {
   return result.stdout;
 };
 
-const trackedFiles = runGit('ls-files', '-z').split('\0').filter(Boolean);
+const trackedFiles = runGit('ls-files', '-z').split('\0').filter(file => file && existsSync(file));
 const failures = [];
 
 if (trackedFiles.includes('js/config.js')) {
