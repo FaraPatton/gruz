@@ -27,34 +27,30 @@ function renderDriveAnalytics(entries, yr, panel) {
   const totalNet = filtered.reduce((sum, e) => sum + netProfit(e), 0);
   const totalFuel = filtered.reduce((sum, e) => sum + fuelEstimate(e).cost, 0);
   const avgAmt = totalRides ? Math.round(totalAmt / totalRides) : 0;
-  const taxRows = selectedYear ? filtered : currentYearTrips(filtered);
-  const totalTax = sumUsnTax(taxRows);
-  const totalAfterTax = sumNetAfterTax(taxRows);
-  const afterTaxHint = selectedYear ? 'за ' + selectedYear : 'с начала года';
   const missingDistanceRows = filtered.filter(needsDistance);
   const paymentStats = paymentSummary(periodTrips);
-  const monthly = Array(12).fill(0);
   const monthlyNet = Array(12).fill(0);
   const monthlyNetTax = Array(12).fill(0);
-  const monthlyTax = Array(12).fill(0);
-  const monthlyAfterTax = Array(12).fill(0);
   filtered.forEach(e => {
     if (e.month >= 1 && e.month <= 12) {
-      monthly[e.month - 1]++;
       monthlyNet[e.month - 1] += netProfit(e);
       monthlyNetTax[e.month - 1] += usnTax(e);
     }
   });
-  taxRows.forEach(e => {
-    if (e.month >= 1 && e.month <= 12) {
-      monthlyTax[e.month - 1] += usnTax(e);
-      monthlyAfterTax[e.month - 1] += netAfterTax(e);
-    }
-  });
-  const maxM = Math.max(...monthly, 1);
   const maxMonthNet = Math.max(...monthlyNet.map(value => Math.abs(value)), 1);
-  const maxMonthTax = Math.max(...monthlyTax, 1);
   const monthNames = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+  const currentDate = new Date();
+  const dashboardYear = selectedYear || currentDate.getFullYear();
+  const selectedMonth = analyticsMonth >= 1 && analyticsMonth <= 12
+    ? analyticsMonth
+    : currentDate.getMonth() + 1;
+  analyticsMonth = selectedMonth;
+  const dashboardRows = filtered.filter(e => e.year === dashboardYear && e.month === selectedMonth);
+  const dashboardAmount = dashboardRows.reduce((sum, e) => sum + e.amount, 0);
+  const dashboardNet = dashboardRows.reduce((sum, e) => sum + netProfit(e), 0);
+  const dashboardTax = sumUsnTax(dashboardRows);
+  const dashboardAfterTax = sumNetAfterTax(dashboardRows);
+  const dashboardPeriod = monthNames[selectedMonth - 1] + ' ' + dashboardYear;
 
   const customerRows = filtered.filter(e => e.customerName && !isExecutorCustomer(e.customerName, e.customerInn));
   const customerStats = groupStats(customerRows, e => e.customerName);
@@ -84,11 +80,12 @@ function renderDriveAnalytics(entries, yr, panel) {
 
   const overviewHtml =
     dashboardMonthlyNetChart(monthlyNet, monthlyNetTax, maxMonthNet, monthNames, selectedYear) +
+    dashboardMonthFilter(selectedMonth, dashboardYear, monthNames) +
     '<div class="dash-hero-grid">' +
-      dashboardHeroCard('Оборот', money(totalAmt), 'по выбранному периоду', '↗', 'turnover') +
-      dashboardHeroCard('Чистая прибыль', money(totalNet), 'после топлива', '↗', 'profit') +
-      dashboardHeroCard('Налоги', money(totalTax), 'УСН 6%, без наличных', '6%', 'tax') +
-      dashboardHeroCard('После налога', money(totalAfterTax), afterTaxHint, '₽', 'rate') +
+      dashboardHeroCard('Оборот', money(dashboardAmount), dashboardPeriod, '↗', 'turnover') +
+      dashboardHeroCard('Чистая прибыль', money(dashboardNet), dashboardPeriod + ' · после топлива', '↗', 'profit') +
+      dashboardHeroCard('Налоги', money(dashboardTax), dashboardPeriod + ' · УСН 6%', '6%', 'tax') +
+      dashboardHeroCard('После налога', money(dashboardAfterTax), dashboardPeriod, '₽', 'rate') +
     '</div>' +
     distanceWarningPanel(missingDistanceRows) +
     aiAnalyticsPanel(filtered, topByMoney, topRoutesByMoney, totalRides, avgAmt, totalFuel) +
