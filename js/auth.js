@@ -2,6 +2,11 @@
 
 let analyticsWhitelistCheck = null;
 let privateRuntimeConfigPromise = null;
+const SERVER_SESSION_TOKEN = '__gruz_server_session__';
+
+function usesServerAuthSession() {
+  return /\.vercel\.app$/i.test(location.hostname) || location.hostname === 'localhost';
+}
 
 async function loadPrivateRuntimeConfig() {
   if (privateRuntimeConfigPromise) return privateRuntimeConfigPromise;
@@ -68,6 +73,7 @@ async function ensureTokenClient() {
 }
 
 function authApiUrl(path) {
+  if (usesServerAuthSession()) return path;
   const configured = typeof API_BASE_URL !== 'undefined' ? String(API_BASE_URL || '').trim() : '';
   const base = (configured || 'https://gruz-kappa.vercel.app').replace(/\/$/, '');
   return base + path;
@@ -76,16 +82,18 @@ function authApiUrl(path) {
 async function authApiFetch(path, options = {}, refreshOnUnauthorized = false) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 20000);
+  const headers = { ...(options.headers || {}) };
+  if (gAccessToken && gAccessToken !== SERVER_SESSION_TOKEN) {
+    headers.Authorization = 'Bearer ' + gAccessToken;
+  }
   let response;
   try {
     response = await fetch(authApiUrl(path), {
       ...options,
       cache: 'no-store',
+      credentials: 'include',
       signal: controller.signal,
-      headers: {
-        ...(options.headers || {}),
-        Authorization: 'Bearer ' + (gAccessToken || '')
-      }
+      headers
     });
   } catch (error) {
     if (error?.name === 'AbortError') throw new Error('Сервер не ответил за 20 секунд');
@@ -114,10 +122,16 @@ async function authVerifyAnalyticsAccess(token) {
     const messages = {
       access_denied: 'этот Google-аккаунт не имеет доступа',
       access_policy_not_configured: 'доступ на сервере не настроен',
-      invalid_google_token: 'Google-сессия устарела'
+      invalid_google_token: 'Google-сессия устарела',
+      authentication_required: 'требуется вход через Google',
+      session_expired: 'серверная сессия устарела',
+      google_client_id_not_configured: 'Google Client ID не настроен на сервере',
+      google_client_secret_not_configured: 'Google Client Secret не настроен на сервере',
+      session_secret_not_configured: 'SESSION_SECRET не добавлен в Vercel'
     };
     throw new Error(messages[data.error] || 'сервер не подтвердил доступ');
   }
+  if (data.mode === 'session') gAccessToken = SERVER_SESSION_TOKEN;
   return data.user;
 }
 
@@ -131,6 +145,7 @@ function setGoogleOverlayState(visible, title, sub) {
 }
 
 function rememberAnalyticsSession(profile) {
+  if (usesServerAuthSession()) return;
   if (!gAccessToken || !profile?.email) return;
   try {
     sessionStorage.setItem('gruzAnalyticsAccessToken', gAccessToken);
@@ -238,7 +253,44 @@ function setAuthLockState(locked) {
   if (lock) lock.classList.toggle('is-authorized', !!locked);
 }
 
+async function restoreServerAuthSession() {
+  if (!usesServerAuthSession()) return;
+  const params = new URLSearchParams(location.search);
+  const authError = params.get('auth_error');
+  if (authError) {
+    setAnalyticsAccessState('denied', null, 'Google не завершил вход: ' + authError);
+    return;
+  }
+
+  try {
+    const profile = await authVerifyAnalyticsAccess();
+    await loadPrivateRuntimeConfig();
+    setAuthLockState(true);
+    if (typeof syncAuthDependentUi === 'function') syncAuthDependentUi();
+    const btnTxt = document.getElementById('loginBtnText');
+    const btnIcon = document.getElementById('loginBtnIcon');
+    const btn = document.getElementById('loginBtn');
+    const status = document.getElementById('loginStatus');
+    if (btnTxt) btnTxt.textContent = 'Google';
+    if (btnIcon) { btnIcon.textContent = '✓'; btnIcon.style.color = 'var(--acc)'; btnIcon.style.display = 'inline'; }
+    if (btn) { btn.style.borderColor = 'var(--acc)'; btn.style.color = 'var(--acc)'; btn.style.boxShadow = '0 0 10px rgba(232,200,74,.2)'; btn.disabled = false; }
+    if (status) { status.textContent = 'АВТОРИЗОВАН'; status.style.color = 'var(--acc)'; }
+    setAnalyticsAccessState('allowed', profile);
+  } catch (error) {
+    gAccessToken = null;
+    setAuthLockState(false);
+    if (typeof syncAuthDependentUi === 'function') syncAuthDependentUi();
+    setAnalyticsAccessState('idle');
+  }
+}
+
 function requestAuth(prompt, resolve, reject) {
+  if (usesServerAuthSession()) {
+    const returnTo = location.pathname + location.search;
+    location.href = authApiUrl('/api/auth/start?returnTo=' + encodeURIComponent(returnTo || '/'));
+    return;
+  }
+
   let settled = false;
   const timeout = setTimeout(() => {
     if (settled) return;
@@ -299,3 +351,5 @@ async function googleLogin() {
     console.error('Login:', e);
   }
 }
+
+document.addEventListener('DOMContentLoaded', restoreServerAuthSession);

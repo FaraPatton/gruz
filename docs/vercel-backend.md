@@ -5,7 +5,10 @@
 ## Endpoints
 
 - `GET /api/health` - публичная проверка доступности API.
-- `GET /api/auth/me` - серверная проверка Google access token и разрешенного email.
+- `GET /api/auth/start` - начало Google OAuth redirect flow.
+- `GET /api/auth/callback` - обмен Google authorization code на серверную `HttpOnly` session cookie.
+- `GET|POST /api/auth/logout` - удаление серверной session cookie.
+- `GET /api/auth/me` - проверка серверной session cookie или legacy `Bearer` token и разрешенного email.
 - `GET /api/analytics/trips` - защищенное чтение `trips.json` из Google Drive.
 - `PUT /api/analytics/trips` - валидированное сохранение `trips.json` в Google Drive.
 - `POST /api/email/documents` - выдача доступа к папке и отправка письма по приватному шаблону.
@@ -21,6 +24,9 @@
 Значения задаются только в Vercel и не попадают в frontend bundle:
 
 - `APP_ORIGINS` - разрешенные frontend origins через запятую, например `https://farapatton.github.io`.
+- `GOOGLE_CLIENT_ID` - Google OAuth client ID для backend redirect flow.
+- `GOOGLE_CLIENT_SECRET` - Google OAuth client secret для обмена authorization code.
+- `SESSION_SECRET` - длинная случайная строка для шифрования `HttpOnly` session cookie.
 - `PRIVATE_RUNTIME_CONFIG` - JSON с `routeBaseAddress`, `executorMarkers`, `executorProfile` и `stampFileId`.
 - `ANALYTICS_ALLOWED_EMAILS` - разрешенные Google email через запятую.
 - `ARCHIVE_ROOT` - ID корневой папки архива Google Drive.
@@ -30,9 +36,19 @@
 - `SIGN_EMAIL_SUBJECT` - тема письма с подписанным договором (необязательно).
 - `SIGN_EMAIL_BODY` - текст письма с подписанным договором (необязательно).
 
-Для preview deployment можно добавить его точный origin в `APP_ORIGINS`. Не используйте `*` для защищенных endpoint-ов.
+Same-origin Vercel requests проходят без добавления каждого preview-домена в `APP_ORIGINS`. Для GitHub Pages origin все равно должен быть явно указан. Не используйте `*` для защищенных endpoint-ов.
 
-## Authentication request
+## Authentication
+
+Основной Vercel-домен использует серверную сессию:
+
+```http
+GET /api/auth/start?returnTo=/
+```
+
+После Google OAuth backend ставит зашифрованную `HttpOnly; Secure; SameSite=Lax` cookie. Google access token не сохраняется в `sessionStorage` и не доступен JavaScript-коду.
+
+Legacy GitHub Pages flow временно поддерживается через `Bearer`, чтобы старый адрес не упал в день перехода:
 
 ```http
 GET /api/auth/me
@@ -41,4 +57,4 @@ Authorization: Bearer GOOGLE_ACCESS_TOKEN
 
 Backend запрашивает Google `userinfo`, проверяет подтвержденный email и сравнивает его с приватным whitelist.
 
-Frontend использует стабильный production URL `https://gruz-kappa.vercel.app`. Значение можно переопределить публичной GitHub Actions variable `API_BASE_URL`.
+На Vercel frontend вызывает API по same-origin path `/api/...`. GitHub Pages использует стабильный production URL `https://gruz-kappa.vercel.app`; значение можно переопределить публичной GitHub Actions variable `API_BASE_URL`.

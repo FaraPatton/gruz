@@ -15,6 +15,14 @@ After changing secrets, re-run the Pages workflow or push a new commit. A browse
 | --- | --- | --- |
 | `GCLIENT_ID` | yes | Google OAuth client ID. |
 
+For the protected Vercel-hosted app, add these values in Vercel Environment Variables too:
+
+| Vercel variable | Required | Used for |
+| --- | --- | --- |
+| `GOOGLE_CLIENT_ID` | yes | Google OAuth client ID used by the backend redirect flow. Can match `GCLIENT_ID`. |
+| `GOOGLE_CLIENT_SECRET` | yes | Google OAuth client secret. Never put it in GitHub Pages config. |
+| `SESSION_SECRET` | yes | Long random value used to encrypt the `HttpOnly` auth cookie. |
+
 ## Optional API Keys
 
 | Secret | Required | Used for |
@@ -104,3 +112,4 @@ The repository only contains `js/config.template.js` with empty placeholders. Fo
 2. Re-run the GitHub Pages workflow or push a new commit.
 3. Open `/js/config.js` on the deployed site and verify only expected client field names are present.
 4. Hard-refresh the browser or restart the installed PWA if old values are still visible.
+5. Use the Vercel app URL as the primary protected app URL when testing server-side auth sessions.

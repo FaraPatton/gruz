@@ -1,7 +1,8 @@
 'use strict';
 
-const { applyCors, getBearerToken, sendJson } = require('../../server/http');
-const { ApiError, verifyAnalyticsUser } = require('../../server/google-auth');
+const { applyCors, sendJson } = require('../../server/http');
+const { ApiError } = require('../../server/google-auth');
+const { authContext } = require('../../server/session-auth');
 
 module.exports = async function handler(req, res) {
   if (!applyCors(req, res)) return sendJson(res, 403, { error: 'origin_not_allowed' });
@@ -9,9 +10,10 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'GET') return sendJson(res, 405, { error: 'method_not_allowed' });
 
   try {
-    const user = await verifyAnalyticsUser(getBearerToken(req));
+    const { user, mode } = await authContext(req, res);
     return sendJson(res, 200, {
       authenticated: true,
+      mode,
       user
     });
   } catch (error) {

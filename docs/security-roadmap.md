@@ -7,7 +7,8 @@
 - Приложение работает как статический фронт на GitHub Pages.
 - `js/config.js` генерируется на деплое и содержит только публичные browser-настройки.
 - Реквизиты и настройки аналитики выдаются защищенным Vercel endpoint только после whitelist.
-- Google OAuth token хранится в runtime-памяти, а для аналитики временно кладется в `sessionStorage`.
+- На основном Vercel-домене Google OAuth token хранится только в backend-сессии и недоступен JavaScript.
+- Legacy GitHub Pages flow временно может использовать Google token в браузере, пока старый адрес остается резервным.
 - Whitelist аналитики проверяется Vercel backend через private env `ANALYTICS_ALLOWED_EMAILS`.
 - `trips.json`, Gmail, загрузка/чтение архивных PDF и выдача печати перенесены на Vercel backend.
 
@@ -23,7 +24,7 @@
 
 - `trips.json` хранится в Drive, но читается и сохраняется через защищенный backend.
 - Обработка PDF идет в браузере, поэтому данные заказчиков и рейсов проходят через клиентскую среду.
-- Google access token пока остается в браузере и временно хранится в `sessionStorage` для аналитики.
+- Google access token убран из браузерного хранения на основном Vercel-домене.
 
 ### Низкий приоритет
 
@@ -175,6 +176,16 @@ api/
 - `https://www.googleapis.com/auth/gmail.send`
 
 на более узкие scopes или разделить авторизацию по действиям.
+
+### Этап 7.1. Server-side OAuth session
+
+Статус: выполнено для Vercel-домена. Добавлен Google OAuth redirect flow:
+
+- `/api/auth/start`;
+- `/api/auth/callback`;
+- `/api/auth/logout`.
+
+Backend хранит Google access/refresh token в зашифрованной `HttpOnly` cookie. Frontend вызывает API с `credentials: include`, а `sessionStorage` остается только для legacy GitHub Pages flow на переходный период.
 
 ### Этап 8. Данные и аудит
 

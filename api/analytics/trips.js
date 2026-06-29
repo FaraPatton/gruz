@@ -1,9 +1,10 @@
 'use strict';
 
-const { applyCors, getBearerToken, sendJson } = require('../../server/http');
-const { ApiError, verifyAnalyticsUser } = require('../../server/google-auth');
+const { applyCors, sendJson } = require('../../server/http');
+const { ApiError } = require('../../server/google-auth');
 const { loadTripsRegistry, saveTripsRegistry } = require('../../server/google-drive');
 const { sanitizeRegistry } = require('../../server/trips-registry');
+const { authContext } = require('../../server/session-auth');
 
 function requestBody(req) {
   if (typeof req.body === 'string') {
@@ -21,9 +22,8 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (!['GET', 'PUT'].includes(req.method)) return sendJson(res, 405, { error: 'method_not_allowed' });
 
-  const token = getBearerToken(req);
   try {
-    await verifyAnalyticsUser(token);
+    const { token } = await authContext(req, res);
     if (req.method === 'GET') {
       const registry = await loadTripsRegistry(token);
       return sendJson(res, 200, registry);

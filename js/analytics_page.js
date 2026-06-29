@@ -21,6 +21,7 @@ function setGoogleOverlayState(visible, title, sub) {
 }
 
 function getRememberedAnalyticsSession() {
+  if (usesServerAuthSession()) return { token: SERVER_SESSION_TOKEN, email: 'server-session' };
   try {
     const token = sessionStorage.getItem('gruzAnalyticsAccessToken');
     const email = sessionStorage.getItem('gruzAnalyticsEmail');
@@ -49,7 +50,7 @@ async function openAnalyticsFromRememberedSession() {
   gAccessToken = remembered.token;
   setGoogleOverlayState(true, 'ПРОВЕРЯЕМ ДОСТУП', 'ЗАЩИЩЕННЫЙ API...');
   try {
-    analyticsProfile = await authVerifyAnalyticsAccess(remembered.token);
+    analyticsProfile = await authVerifyAnalyticsAccess(remembered.token === SERVER_SESSION_TOKEN ? '' : remembered.token);
     await loadPrivateRuntimeConfig();
     setAnalyticsGate('open');
     const panel = document.getElementById('analyticsPanel');
@@ -74,7 +75,11 @@ async function analyticsLogin() {
   if (status) status.textContent = '';
 
   try {
-    if (!gAccessToken) await new Promise((res, rej) => requestAuth('consent', res, rej));
+    if (!gAccessToken || gAccessToken === SERVER_SESSION_TOKEN) {
+      const existing = await openAnalyticsFromRememberedSession();
+      if (existing) return;
+      await new Promise((res, rej) => requestAuth('consent', res, rej));
+    }
     setGoogleOverlayState(true, 'ПРОВЕРЯЕМ ДОСТУП', 'ЗАЩИЩЕННЫЙ API...');
     analyticsProfile = await authVerifyAnalyticsAccess(gAccessToken);
     await loadPrivateRuntimeConfig();

@@ -18,10 +18,17 @@ function applyCors(req, res) {
   const origin = String(req.headers.origin || '').trim();
   if (!origin) return true;
 
+  try {
+    const originHost = new URL(origin).host;
+    const requestHost = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
+    if (originHost && requestHost && originHost === requestHost) return true;
+  } catch (error) {}
+
   const allowedOrigins = parseList(process.env.APP_ORIGINS);
   if (!allowedOrigins.includes(origin)) return false;
 
   res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
   res.setHeader('Vary', 'Origin');

@@ -1,11 +1,11 @@
 // Service Worker
-const CACHE = 'gruz-v110';
+const CACHE = 'gruz-202606291953';
 const ASSETS = [
-  '/gruz/', '/gruz/index.html', '/gruz/css/bb8.css?v=1', '/gruz/css/style.css?v=32', '/gruz/css/analytics.css?v=8',
-  '/gruz/js/stamp_secure.js?v=1',
-  '/gruz/js/config.js?v=7', '/gruz/js/lazy_libs.js?v=3', '/gruz/js/utils.js?v=11', '/gruz/js/auth.js?v=11',
-  '/gruz/js/pdf.js?v=8', '/gruz/js/drive.js?v=8', '/gruz/js/email.js?v=13',
-  '/gruz/js/sign.js?v=5', '/gruz/js/analytics_calc.js?v=1', '/gruz/js/analytics_trips.js?v=1', '/gruz/js/analytics_registry.js?v=2', '/gruz/js/analytics_routes.js?v=1', '/gruz/js/analytics.js?v=58', '/gruz/js/pwa_update.js?v=3',
+  '/gruz/', '/gruz/index.html', '/gruz/css/bb8.css?v=202606291953', '/gruz/css/style.css?v=202606291953', '/gruz/css/analytics.css?v=202606291953',
+  '/gruz/js/stamp_secure.js?v=202606291953',
+  '/gruz/js/config.js?v=202606291953', '/gruz/js/lazy_libs.js?v=202606291953', '/gruz/js/utils.js?v=202606291953', '/gruz/js/auth.js?v=202606291953',
+  '/gruz/js/pdf.js?v=202606291953', '/gruz/js/drive.js?v=202606291953', '/gruz/js/email.js?v=202606291953',
+  '/gruz/js/sign.js?v=202606291953', '/gruz/js/analytics_calc.js?v=202606291953', '/gruz/js/analytics_trips.js?v=202606291953', '/gruz/js/analytics_registry.js?v=202606291953', '/gruz/js/analytics_routes.js?v=202606291953', '/gruz/js/analytics.js?v=202606291953', '/gruz/js/pwa_update.js?v=202606291953',
   '/gruz/manifest.json', '/gruz/img/truck-neon-hero.jpg?v=1',
   '/gruz/img/icon-192.png'
 ];

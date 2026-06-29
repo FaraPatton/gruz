@@ -25,10 +25,7 @@ async function listArchivePdfs() {
 
 async function loadTripsRegistry() {
   setProgress('ЗАГРУЖАЮ trips.json ЧЕРЕЗ API...');
-  const resp = await fetch(authApiUrl('/api/analytics/trips'), {
-    cache: 'no-store',
-    headers: { Authorization: 'Bearer ' + gAccessToken }
-  });
+  const resp = await authApiFetch('/api/analytics/trips', {}, true);
   if (!resp.ok) {
     const data = await resp.json().catch(() => ({}));
     const messages = {
@@ -54,14 +51,13 @@ async function loadTripsRegistry() {
 
 async function saveTripsRegistry(registry) {
   setProgress('СОХРАНЯЮ trips.json ЧЕРЕЗ API...');
-  const resp = await fetch(authApiUrl('/api/analytics/trips'), {
+  const resp = await authApiFetch('/api/analytics/trips', {
     method: 'PUT',
     headers: {
-      Authorization: 'Bearer ' + gAccessToken,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify(registry)
-  });
+  }, true);
   if (!resp.ok) {
     const data = await resp.json().catch(() => ({}));
     const messages = {

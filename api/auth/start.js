@@ -2,8 +2,7 @@
 
 const { applyCors, sendJson } = require('../../server/http');
 const { ApiError } = require('../../server/google-auth');
-const { privateRuntimeConfig } = require('../../server/private-config');
-const { authContext } = require('../../server/session-auth');
+const { authStartUrl } = require('../../server/session-auth');
 
 module.exports = async function handler(req, res) {
   if (!applyCors(req, res)) return sendJson(res, 403, { error: 'origin_not_allowed' });
@@ -11,11 +10,10 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'GET') return sendJson(res, 405, { error: 'method_not_allowed' });
 
   try {
-    await authContext(req, res);
-    return sendJson(res, 200, { config: privateRuntimeConfig() });
+    return res.redirect(302, authStartUrl(req, req.query?.returnTo));
   } catch (error) {
     if (error instanceof ApiError) return sendJson(res, error.status, { error: error.code });
-    console.error('Private config endpoint failed:', error instanceof Error ? error.message : 'unknown error');
+    console.error('Auth start failed:', error instanceof Error ? error.message : 'unknown error');
     return sendJson(res, 500, { error: 'internal_error' });
   }
 };
