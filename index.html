@@ -8,12 +8,20 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Карпов Docs">
+<script>
+  (function redirectLegacyGitHubPages() {
+    if (location.hostname !== 'farapatton.github.io') return;
+    var path = location.pathname.replace(/^\/gruz\/?/, '/');
+    if (path === '') path = '/';
+    location.replace('https://gruz-kappa.vercel.app' + path + location.search + location.hash);
+  })();
+</script>
 <title>ИП Карпов</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="img/icon-192.png">
-<link rel="stylesheet" href="css/bb8.css?v=202606291953">
-<link rel="stylesheet" href="css/style.css?v=202606291953">
-<link rel="stylesheet" href="css/analytics.css?v=202606291953">
+<link rel="stylesheet" href="css/bb8.css?v=202606292017">
+<link rel="stylesheet" href="css/style.css?v=202606292017">
+<link rel="stylesheet" href="css/analytics.css?v=202606292017">
 </head>
 <body>
 
@@ -315,21 +323,21 @@
 
 <!-- External libraries -->
 <!-- App modules (порядок важен!) -->
-<script defer src="js/stamp_secure.js?v=202606291953"></script>
-<script defer src="js/config.js?v=202606291953"></script>
-<script defer src="js/lazy_libs.js?v=202606291953"></script>
-<script defer src="js/utils.js?v=202606291953"></script>
-<script defer src="js/auth.js?v=202606291953"></script>
-<script defer src="js/pdf.js?v=202606291953"></script>
-<script defer src="js/drive.js?v=202606291953"></script>
-<script defer src="js/email.js?v=202606291953"></script>
-<script defer src="js/sign.js?v=202606291953"></script>
-<script defer src="js/analytics_calc.js?v=202606291953"></script>
-<script defer src="js/analytics_trips.js?v=202606291953"></script>
-<script defer src="js/analytics_registry.js?v=202606291953"></script>
-<script defer src="js/analytics_routes.js?v=202606291953"></script>
-<script defer src="js/analytics.js?v=202606291953"></script>
-<script defer src="js/pwa_update.js?v=202606291953"></script>
+<script defer src="js/stamp_secure.js?v=202606292017"></script>
+<script defer src="js/config.js?v=202606292017"></script>
+<script defer src="js/lazy_libs.js?v=202606292017"></script>
+<script defer src="js/utils.js?v=202606292017"></script>
+<script defer src="js/auth.js?v=202606292017"></script>
+<script defer src="js/pdf.js?v=202606292017"></script>
+<script defer src="js/drive.js?v=202606292017"></script>
+<script defer src="js/email.js?v=202606292017"></script>
+<script defer src="js/sign.js?v=202606292017"></script>
+<script defer src="js/analytics_calc.js?v=202606292017"></script>
+<script defer src="js/analytics_trips.js?v=202606292017"></script>
+<script defer src="js/analytics_registry.js?v=202606292017"></script>
+<script defer src="js/analytics_routes.js?v=202606292017"></script>
+<script defer src="js/analytics.js?v=202606292017"></script>
+<script defer src="js/pwa_update.js?v=202606292017"></script>
 
 </body>
 </html>

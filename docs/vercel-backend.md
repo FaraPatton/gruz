@@ -36,7 +36,7 @@
 - `SIGN_EMAIL_SUBJECT` - тема письма с подписанным договором (необязательно).
 - `SIGN_EMAIL_BODY` - текст письма с подписанным договором (необязательно).
 
-Same-origin Vercel requests проходят без добавления каждого preview-домена в `APP_ORIGINS`. Для GitHub Pages origin все равно должен быть явно указан. Не используйте `*` для защищенных endpoint-ов.
+Same-origin Vercel requests проходят без добавления каждого preview-домена в `APP_ORIGINS`. GitHub Pages больше не используется как полноценный frontend и перенаправляет на Vercel. Не используйте `*` для защищенных endpoint-ов.
 
 ## Authentication
 
