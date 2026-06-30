@@ -1,6 +1,6 @@
 # Vercel Backend
 
-Первый backend-контур проекта работает как Vercel Serverless Functions на бесплатном Hobby-плане.
+Первый backend-контур проекта работает как Vercel Serverless Functions на Hobby-плане.
 
 ## Endpoints
 
