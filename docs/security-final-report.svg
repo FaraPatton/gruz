@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1120" viewBox="0 0 1600 1120" role="img" aria-labelledby="title desc">
+  <title id="title">GRUZ - финальная сводка по безопасности</title>
+  <desc id="desc">Одностраничный отчет об архитектуре защиты данных проекта GRUZ</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#070b14"/>
+      <stop offset="0.55" stop-color="#0b1020"/>
+      <stop offset="1" stop-color="#070a12"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffe7a3"/>
+      <stop offset="0.48" stop-color="#e9bd55"/>
+      <stop offset="1" stop-color="#9b6925"/>
+    </linearGradient>
+    <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#29f0d0"/>
+      <stop offset="1" stop-color="#3385ff"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop offset="0" stop-color="#19d7ff" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#19d7ff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#000" flood-opacity=".38"/>
+    </filter>
+    <filter id="softGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0 L0 0 L0 48" fill="none" stroke="#355070" stroke-opacity=".10"/>
+    </pattern>
+  </defs>
+
+  <rect width="1600" height="1120" fill="url(#bg)"/>
+  <rect width="1600" height="1120" fill="url(#grid)"/>
+  <circle cx="1300" cy="250" r="410" fill="url(#glow)"/>
+  <rect x="34" y="34" width="1532" height="1052" rx="18" fill="none" stroke="#c99b42" stroke-opacity=".55" stroke-width="2"/>
+
+  <!-- Header -->
+  <g font-family="Inter, Arial, sans-serif">
+    <rect x="82" y="78" width="88" height="88" rx="23" fill="#151a25" stroke="#d7a844" stroke-opacity=".75"/>
+    <text x="126" y="137" text-anchor="middle" font-size="42" font-weight="800" fill="#ffe4a0">G</text>
+    <text x="200" y="105" font-size="15" letter-spacing="7" fill="#8996b2">ПРОЕКТ</text>
+    <text x="200" y="145" font-size="24" font-weight="700" letter-spacing="9" fill="#f0c661">ГРУЗ · GRUZ</text>
+    <text x="1450" y="103" text-anchor="end" font-size="14" letter-spacing="4" fill="#64728f">SECURITY REPORT</text>
+    <text x="1450" y="137" text-anchor="end" font-size="17" font-weight="700" fill="#d7e1f5">30.06.2026 · FINAL</text>
+    <line x1="82" y1="196" x2="1518" y2="196" stroke="#d1a347" stroke-opacity=".75"/>
+
+    <text x="82" y="270" font-size="67" font-weight="900" letter-spacing="1" fill="#e9bd55">КОНТУР БЕЗОПАСНОСТИ</text>
+    <text x="82" y="324" font-size="30" font-weight="700" fill="#f2f5ff">Чувствительные данные выведены из браузера</text>
+    <text x="82" y="362" font-size="20" fill="#8895af">Финальная сводка по roadmap: авторизация, секреты, API, архив и CI/CD</text>
+
+    <!-- Hero architecture -->
+    <g filter="url(#shadow)">
+      <rect x="82" y="408" width="1436" height="244" rx="28" fill="#0e1422" stroke="#2c4264" stroke-width="2"/>
+      <path d="M430 530 L590 530 M1010 530 L1170 530" stroke="#2ce5d0" stroke-width="3" stroke-dasharray="9 9" opacity=".9"/>
+      <path d="M570 518 L590 530 L570 542 M1150 518 L1170 530 L1150 542" fill="none" stroke="#2ce5d0" stroke-width="3"/>
+
+      <g transform="translate(122 449)">
+        <rect width="308" height="162" rx="22" fill="#121a2a" stroke="#334666"/>
+        <circle cx="48" cy="48" r="22" fill="#162b3d" stroke="#30e2d0"/>
+        <path d="M38 48 L46 56 L60 38" fill="none" stroke="#35f0cf" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="82" y="44" font-size="14" letter-spacing="3" fill="#6f819e">ТОЧКА ВХОДА</text>
+        <text x="82" y="72" font-size="23" font-weight="800" fill="#f4f7ff">VERCEL FRONTEND</text>
+        <text x="28" y="112" font-size="16" fill="#9eabc1">GitHub Pages → redirect</text>
+        <text x="28" y="139" font-size="16" fill="#9eabc1">Единый production-домен</text>
+      </g>
+
+      <g transform="translate(590 449)">
+        <rect width="420" height="162" rx="22" fill="#101c2a" stroke="#2ac8ba" stroke-opacity=".65"/>
+        <rect x="28" y="26" width="46" height="54" rx="10" fill="none" stroke="#33e5cf" stroke-width="3"/>
+        <path d="M39 26 L39 18 C39 2 63 2 63 18 L63 26" fill="none" stroke="#33e5cf" stroke-width="3"/>
+        <text x="94" y="44" font-size="14" letter-spacing="3" fill="#70a9ad">ЗАЩИЩЕННЫЙ ШЛЮЗ</text>
+        <text x="94" y="72" font-size="23" font-weight="800" fill="#f4f7ff">VERCEL SERVERLESS API</text>
+        <text x="28" y="112" font-size="16" fill="#a5b5c8">Whitelist · CORS · validation</text>
+        <text x="28" y="139" font-size="16" fill="#a5b5c8">HttpOnly encrypted session</text>
+      </g>
+
+      <g transform="translate(1170 449)">
+        <rect width="308" height="162" rx="22" fill="#121a2a" stroke="#334666"/>
+        <path d="M31 34 L73 34 L87 48 L87 82 L31 82 Z" fill="none" stroke="#e7bb59" stroke-width="3"/>
+        <path d="M42 60 L76 60 M42 70 L70 70" stroke="#e7bb59" stroke-width="3"/>
+        <text x="105" y="44" font-size="14" letter-spacing="3" fill="#8e8066">PRIVATE DATA</text>
+        <text x="105" y="72" font-size="23" font-weight="800" fill="#f4f7ff">GOOGLE DRIVE</text>
+        <text x="28" y="112" font-size="16" fill="#9eabc1">Рейсы · PDF · печать</text>
+        <text x="28" y="139" font-size="16" fill="#9eabc1">Доступ только через backend</text>
+      </g>
+    </g>
+
+    <!-- Four status cards -->
+    <g transform="translate(82 690)">
+      <g>
+        <rect width="337" height="136" rx="20" fill="#0d1320" stroke="#705b31"/>
+        <text x="26" y="44" font-size="31" font-weight="900" fill="#ffe5a1">SERVER-SIDE</text>
+        <text x="26" y="77" font-size="15" letter-spacing="3" fill="#8795ae">GOOGLE OAUTH</text>
+        <circle cx="294" cy="42" r="15" fill="#122e2b" stroke="#31e3c8"/>
+        <path d="M286 42 L292 48 L303 35" fill="none" stroke="#31e3c8" stroke-width="3"/>
+        <text x="26" y="110" font-size="14" fill="#74839d">Token недоступен JavaScript</text>
+      </g>
+      <g transform="translate(366)">
+        <rect width="337" height="136" rx="20" fill="#0d1320" stroke="#705b31"/>
+        <text x="26" y="44" font-size="31" font-weight="900" fill="#ffe5a1">HTTPONLY</text>
+        <text x="26" y="77" font-size="15" letter-spacing="3" fill="#8795ae">SECURE SESSION</text>
+        <circle cx="294" cy="42" r="15" fill="#122e2b" stroke="#31e3c8"/>
+        <path d="M286 42 L292 48 L303 35" fill="none" stroke="#31e3c8" stroke-width="3"/>
+        <text x="26" y="110" font-size="14" fill="#74839d">Encrypted · Secure · SameSite</text>
+      </g>
+      <g transform="translate(732)">
+        <rect width="337" height="136" rx="20" fill="#0d1320" stroke="#705b31"/>
+        <text x="26" y="44" font-size="31" font-weight="900" fill="#ffe5a1">PRIVATE ENV</text>
+        <text x="26" y="77" font-size="15" letter-spacing="3" fill="#8795ae">VERCEL SECRETS</text>
+        <circle cx="294" cy="42" r="15" fill="#122e2b" stroke="#31e3c8"/>
+        <path d="M286 42 L292 48 L303 35" fill="none" stroke="#31e3c8" stroke-width="3"/>
+        <text x="26" y="110" font-size="14" fill="#74839d">Реквизиты вне Git и frontend</text>
+      </g>
+      <g transform="translate(1098)">
+        <rect width="338" height="136" rx="20" fill="#0d1320" stroke="#705b31"/>
+        <text x="26" y="44" font-size="31" font-weight="900" fill="#ffe5a1">CI GATE</text>
+        <text x="26" y="77" font-size="15" letter-spacing="3" fill="#8795ae">SECURITY BASELINE</text>
+        <circle cx="295" cy="42" r="15" fill="#122e2b" stroke="#31e3c8"/>
+        <path d="M287 42 L293 48 L304 35" fill="none" stroke="#31e3c8" stroke-width="3"/>
+        <text x="26" y="110" font-size="14" fill="#74839d">Синтаксис · secrets · diff</text>
+      </g>
+    </g>
+
+    <!-- Details -->
+    <g transform="translate(82 858)">
+      <rect width="910" height="158" rx="22" fill="#0c121e" stroke="#263752"/>
+      <text x="28" y="35" font-size="14" letter-spacing="4" fill="#56d9d0">ЗАЩИЩЕННЫЙ ПЕРИМЕТР</text>
+      <g font-size="16" fill="#b6c1d3">
+        <text x="28" y="70"><tspan fill="#39e2cd">◆</tspan><tspan dx="12">Рейсы: чтение и запись через API с проверкой доступа</tspan></text>
+        <text x="28" y="101"><tspan fill="#39e2cd">◆</tspan><tspan dx="12">Архив, PDF и печать: ID и файлы скрыты за backend</tspan></text>
+        <text x="28" y="132"><tspan fill="#39e2cd">◆</tspan><tspan dx="12">Email: шаблоны и отправка вынесены из клиентского кода</tspan></text>
+      </g>
+    </g>
+
+    <g transform="translate(1020 858)">
+      <rect width="498" height="158" rx="22" fill="#15131a" stroke="#7a6031"/>
+      <text x="26" y="35" font-size="14" letter-spacing="4" fill="#e2b954">ОСТАТОЧНЫЙ РИСК</text>
+      <text x="26" y="70" font-size="16" fill="#c5bdad">OAuth scopes пока остаются широкими.</text>
+      <text x="26" y="99" font-size="16" fill="#c5bdad">PDF обрабатываются в доверенном браузере.</text>
+      <text x="26" y="128" font-size="14" fill="#8e8577">Следующий уровень: least privilege + audit log.</text>
+    </g>
+
+    <!-- Footer -->
+    <line x1="82" y1="1048" x2="1518" y2="1048" stroke="#26324a"/>
+    <text x="82" y="1076" font-size="13" letter-spacing="3" fill="#65738d">FARAPATTON / GRUZ · DEFENSE IN DEPTH</text>
+    <text x="1518" y="1076" text-anchor="end" font-size="14" fill="#8996ab">Vercel · GitHub Actions · Google OAuth · Drive API</text>
+  </g>
+</svg>
