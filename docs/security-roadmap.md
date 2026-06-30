@@ -92,7 +92,7 @@ find js scripts -type f \( -name "*.js" -o -name "*.mjs" \) -print
 - `EXECUTOR_PROFILE`
 - `EXECUTOR_MARKERS`
 
-### Этап 3. Бесплатный backend на Vercel
+### Этап 3. backend на Vercel
 
 Статус: базовый backend развернут на `https://gruz-kappa.vercel.app`.
 
@@ -199,11 +199,6 @@ Backend хранит Google access/refresh token в зашифрованной `
 - кто обновил рейс или километраж.
 
 Без хранения лишних персональных данных в логах.
-
-## Ближайший практический шаг
-
-Начать с Этапа 1:
-
 1. Добавить CI workflow `security-baseline.yml`.
 2. Добавить scripts для локальной проверки.
 3. Проверить, что текущий Pages deploy продолжает работать.
