@@ -7,105 +7,105 @@
       <stop offset="52%" stop-color="#0a1729"/>
       <stop offset="100%" stop-color="#082c42"/>
     </linearGradient>
-    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
-      <path d="M48 0 L0 0 L0 48" fill="none" stroke="#355070" stroke-opacity=".10"/>
-    </pattern>
   </defs>
 
-  <rect width="1600" height="1120" fill="url(#bg)"/>
-  <rect width="1600" height="1120" fill="url(#grid)"/>
+  <rect width="1600" height="1120" fill="#0a2238"/>
+  <circle cx="1460" cy="90" r="430" fill="#146184" opacity=".32"/>
+  <circle cx="100" cy="1050" r="360" fill="#1a5278" opacity=".20"/>
   <rect x="48" y="48" width="1504" height="1024" rx="8" fill="none" stroke="#b98a35" stroke-opacity=".72" stroke-width="2"/>
 
   <!-- Header -->
-  <g font-family="-apple-system, BlinkMacSystemFont, SF Pro Display, Helvetica Neue, Arial, sans-serif">
-    <rect x="88" y="80" width="84" height="84" rx="12" fill="#111722" stroke="#d7a844" stroke-opacity=".75"/>
+  <g font-family="Avenir Next, Avenir, Helvetica Neue, Arial, sans-serif">
+    <rect x="88" y="80" width="84" height="84" rx="16" fill="#10283e" stroke="#e0b24f" stroke-opacity=".9"/>
     <text x="130" y="137" text-anchor="middle" font-size="40" font-weight="800" fill="#ffe4a0">G</text>
-    <text x="200" y="105" font-size="15" letter-spacing="3" fill="#8996b2">ПРОЕКТ</text>
-    <text x="200" y="145" font-size="24" font-weight="700" letter-spacing="4" fill="#f0c661">ГРУЗ · GRUZ</text>
+    <text x="200" y="105" font-size="15" letter-spacing="2" fill="#9fb2ca">ПРОЕКТ</text>
+    <text x="200" y="145" font-size="24" font-weight="700" letter-spacing="2" fill="#f0c661">ГРУЗ · GRUZ</text>
     <text x="1450" y="103" text-anchor="end" font-size="14" letter-spacing="2" fill="#64728f">SECURITY REPORT</text>
     <text x="1450" y="137" text-anchor="end" font-size="17" font-weight="700" fill="#d7e1f5">30.06.2026 · FINAL</text>
     <line x1="88" y1="196" x2="1512" y2="196" stroke="#d1a347" stroke-opacity=".75"/>
 
-    <text x="88" y="270" font-size="58" font-weight="800" fill="#e9bd55">КОНТУР БЕЗОПАСНОСТИ</text>
-    <text x="88" y="322" font-size="28" font-weight="700" fill="#f2f5ff">Чувствительные данные выведены из браузера</text>
-    <text x="88" y="360" font-size="19" fill="#8895af">Финальная сводка по roadmap: авторизация, секреты, API, архив и CI/CD</text>
+    <text x="88" y="270" font-size="56" font-weight="700" fill="#f0c45c">КОНТУР БЕЗОПАСНОСТИ</text>
+    <text x="88" y="322" font-size="28" font-weight="600" fill="#f3f7ff">Чувствительные данные выведены из браузера</text>
+    <text x="88" y="360" font-size="19" fill="#a6b8ce">Финальная сводка по roadmap: авторизация, секреты, API, архив и CI/CD</text>
 
     <!-- Hero architecture -->
     <g>
-      <rect x="88" y="408" width="1424" height="244" rx="12" fill="#0d1929" stroke="#315171" stroke-width="2"/>
-      <path d="M434 530 L586 530 M1014 530 L1166 530" stroke="#2ce5d0" stroke-width="3" stroke-dasharray="9 9" opacity=".9"/>
-      <path d="M566 518 L586 530 L566 542 M1146 518 L1166 530 L1146 542" fill="none" stroke="#2ce5d0" stroke-width="3"/>
+      <rect x="88" y="408" width="1424" height="244" rx="18" fill="#0e3452" stroke="#4c7c9e" stroke-width="2"/>
+      <rect x="444" y="527" width="118" height="6" rx="3" fill="#35ead7"/>
+      <polygon points="562,518 584,530 562,542" fill="#35ead7"/>
+      <rect x="1024" y="527" width="118" height="6" rx="3" fill="#35ead7"/>
+      <polygon points="1142,518 1164,530 1142,542" fill="#35ead7"/>
 
       <g transform="translate(120 449)">
-        <rect width="314" height="162" rx="10" fill="#102034" stroke="#365774"/>
-        <circle cx="48" cy="48" r="22" fill="#162b3d" stroke="#30e2d0"/>
-        <path d="M38 48 L46 56 L60 38" fill="none" stroke="#35f0cf" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-        <text x="82" y="44" font-size="14" letter-spacing="1.5" fill="#6f819e">ТОЧКА ВХОДА</text>
-        <text x="82" y="72" font-size="21" font-weight="800" fill="#f4f7ff">VERCEL FRONTEND</text>
-        <text x="28" y="112" font-size="15" fill="#9eabc1">GitHub Pages → redirect</text>
-        <text x="28" y="139" font-size="15" fill="#9eabc1">Единый production-домен</text>
+        <rect width="314" height="162" rx="14" fill="#124362" stroke="#5a89a8"/>
+        <circle cx="48" cy="48" r="23" fill="#29ddce"/>
+        <text x="48" y="54" text-anchor="middle" font-size="15" font-weight="700" fill="#062236">01</text>
+        <text x="82" y="44" font-size="14" letter-spacing="1" fill="#91b9cc">ТОЧКА ВХОДА</text>
+        <text x="82" y="72" font-size="21" font-weight="700" fill="#f4f7ff">VERCEL FRONTEND</text>
+        <text x="28" y="112" font-size="15" fill="#b7c8da">GitHub Pages → redirect</text>
+        <text x="28" y="139" font-size="15" fill="#b7c8da">Единый production-домен</text>
       </g>
 
       <g transform="translate(586 449)">
-        <rect width="428" height="162" rx="10" fill="#102235" stroke="#2ac8ba" stroke-opacity=".75"/>
-        <rect x="28" y="26" width="46" height="54" rx="10" fill="none" stroke="#33e5cf" stroke-width="3"/>
-        <path d="M39 26 L39 18 C39 2 63 2 63 18 L63 26" fill="none" stroke="#33e5cf" stroke-width="3"/>
-        <text x="94" y="44" font-size="14" letter-spacing="1.5" fill="#70a9ad">ЗАЩИЩЕННЫЙ ШЛЮЗ</text>
-        <text x="94" y="72" font-size="21" font-weight="800" fill="#f4f7ff">VERCEL SERVERLESS API</text>
-        <text x="28" y="112" font-size="15" fill="#a5b5c8">Whitelist · CORS · validation</text>
-        <text x="28" y="139" font-size="15" fill="#a5b5c8">HttpOnly encrypted session</text>
+        <rect width="428" height="162" rx="14" fill="#105368" stroke="#35ead7" stroke-width="2"/>
+        <circle cx="51" cy="48" r="23" fill="#29ddce"/>
+        <text x="51" y="54" text-anchor="middle" font-size="15" font-weight="700" fill="#062236">02</text>
+        <text x="94" y="44" font-size="14" letter-spacing="1" fill="#9bd4db">ЗАЩИЩЕННЫЙ ШЛЮЗ</text>
+        <text x="94" y="72" font-size="21" font-weight="700" fill="#f4f7ff">VERCEL SERVERLESS API</text>
+        <text x="28" y="112" font-size="15" fill="#c0d2df">Whitelist · CORS · validation</text>
+        <text x="28" y="139" font-size="15" fill="#c0d2df">HttpOnly encrypted session</text>
       </g>
 
       <g transform="translate(1166 449)">
-        <rect width="314" height="162" rx="10" fill="#102034" stroke="#365774"/>
-        <path d="M31 34 L73 34 L87 48 L87 82 L31 82 Z" fill="none" stroke="#e7bb59" stroke-width="3"/>
-        <path d="M42 60 L76 60 M42 70 L70 70" stroke="#e7bb59" stroke-width="3"/>
-        <text x="105" y="44" font-size="14" letter-spacing="1.5" fill="#8e8066">PRIVATE DATA</text>
-        <text x="105" y="72" font-size="21" font-weight="800" fill="#f4f7ff">GOOGLE DRIVE</text>
-        <text x="28" y="112" font-size="15" fill="#9eabc1">Рейсы · PDF · печать</text>
-        <text x="28" y="139" font-size="15" fill="#9eabc1">Доступ только через backend</text>
+        <rect width="314" height="162" rx="14" fill="#124362" stroke="#5a89a8"/>
+        <circle cx="59" cy="48" r="23" fill="#f0c45c"/>
+        <text x="59" y="54" text-anchor="middle" font-size="15" font-weight="700" fill="#30230a">03</text>
+        <text x="105" y="44" font-size="14" letter-spacing="1" fill="#c4a96e">PRIVATE DATA</text>
+        <text x="105" y="72" font-size="21" font-weight="700" fill="#f4f7ff">GOOGLE DRIVE</text>
+        <text x="28" y="112" font-size="15" fill="#b7c8da">Рейсы · PDF · печать</text>
+        <text x="28" y="139" font-size="15" fill="#b7c8da">Доступ только через backend</text>
       </g>
     </g>
 
     <!-- Four status cards -->
     <g transform="translate(88 690)">
       <g>
-        <rect width="338" height="136" rx="10" fill="#0d1828" stroke="#705b31"/>
+        <rect width="338" height="136" rx="16" fill="#103b5d" stroke="#5783a1"/>
         <text x="24" y="42" font-size="27" font-weight="900" fill="#ffe5a1">SERVER-SIDE</text>
         <text x="24" y="75" font-size="13" letter-spacing="1" fill="#8795ae">GOOGLE OAUTH</text>
-        <circle cx="302" cy="40" r="14" fill="#122e2b" stroke="#31e3c8"/>
-        <path d="M294 40 L300 46 L311 33" fill="none" stroke="#31e3c8" stroke-width="3"/>
-        <text x="24" y="108" font-size="13" fill="#74839d">Token недоступен JavaScript</text>
+        <circle cx="302" cy="40" r="14" fill="#2ce4d2"/>
+        <circle cx="302" cy="40" r="5" fill="#073044"/>
+        <text x="24" y="108" font-size="13" fill="#a9bdd1">Token недоступен JavaScript</text>
       </g>
       <g transform="translate(362)">
-        <rect width="338" height="136" rx="10" fill="#0d1828" stroke="#705b31"/>
+        <rect width="338" height="136" rx="16" fill="#103b5d" stroke="#5783a1"/>
         <text x="24" y="42" font-size="27" font-weight="900" fill="#ffe5a1">HTTPONLY</text>
         <text x="24" y="75" font-size="13" letter-spacing="1" fill="#8795ae">SECURE SESSION</text>
-        <circle cx="302" cy="40" r="14" fill="#122e2b" stroke="#31e3c8"/>
-        <path d="M294 40 L300 46 L311 33" fill="none" stroke="#31e3c8" stroke-width="3"/>
-        <text x="24" y="108" font-size="13" fill="#74839d">Encrypted · Secure · SameSite</text>
+        <circle cx="302" cy="40" r="14" fill="#2ce4d2"/>
+        <circle cx="302" cy="40" r="5" fill="#073044"/>
+        <text x="24" y="108" font-size="13" fill="#a9bdd1">Encrypted · Secure · SameSite</text>
       </g>
       <g transform="translate(724)">
-        <rect width="338" height="136" rx="10" fill="#0d1828" stroke="#705b31"/>
+        <rect width="338" height="136" rx="16" fill="#103b5d" stroke="#5783a1"/>
         <text x="24" y="42" font-size="27" font-weight="900" fill="#ffe5a1">PRIVATE ENV</text>
         <text x="24" y="75" font-size="13" letter-spacing="1" fill="#8795ae">VERCEL SECRETS</text>
-        <circle cx="302" cy="40" r="14" fill="#122e2b" stroke="#31e3c8"/>
-        <path d="M294 40 L300 46 L311 33" fill="none" stroke="#31e3c8" stroke-width="3"/>
-        <text x="24" y="108" font-size="13" fill="#74839d">Реквизиты вне Git и frontend</text>
+        <circle cx="302" cy="40" r="14" fill="#2ce4d2"/>
+        <circle cx="302" cy="40" r="5" fill="#073044"/>
+        <text x="24" y="108" font-size="13" fill="#a9bdd1">Реквизиты вне Git и frontend</text>
       </g>
       <g transform="translate(1086)">
-        <rect width="338" height="136" rx="10" fill="#0d1828" stroke="#705b31"/>
+        <rect width="338" height="136" rx="16" fill="#103b5d" stroke="#5783a1"/>
         <text x="24" y="42" font-size="27" font-weight="900" fill="#ffe5a1">CI GATE</text>
         <text x="24" y="75" font-size="13" letter-spacing="1" fill="#8795ae">SECURITY BASELINE</text>
-        <circle cx="302" cy="40" r="14" fill="#122e2b" stroke="#31e3c8"/>
-        <path d="M294 40 L300 46 L311 33" fill="none" stroke="#31e3c8" stroke-width="3"/>
-        <text x="24" y="108" font-size="13" fill="#74839d">Синтаксис · secrets · diff</text>
+        <circle cx="302" cy="40" r="14" fill="#2ce4d2"/>
+        <circle cx="302" cy="40" r="5" fill="#073044"/>
+        <text x="24" y="108" font-size="13" fill="#a9bdd1">Синтаксис · secrets · diff</text>
       </g>
     </g>
 
     <!-- Details -->
     <g transform="translate(88 858)">
-      <rect width="1424" height="158" rx="10" fill="#0c1a2b" stroke="#315574"/>
+      <rect width="1424" height="158" rx="18" fill="#0e3654" stroke="#4b7898"/>
       <text x="28" y="35" font-size="14" letter-spacing="2" fill="#56d9d0">ЗАЩИЩЕННЫЙ ПЕРИМЕТР</text>
       <line x1="475" y1="58" x2="475" y2="132" stroke="#263b52"/>
       <line x1="949" y1="58" x2="949" y2="132" stroke="#263b52"/>
