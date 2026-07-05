@@ -14,6 +14,4 @@
 
 [![Финальная сводка по безопасности GRUZ](docs/security-final-report.png)](https://raw.githubusercontent.com/FaraPatton/gruz/main/docs/security-final-report.png)
 
-<div align="center"><sub>Нажмите на изображение, чтобы открыть полноразмерную версию 3200 × 2240.</sub></div>
-
 Основной production-контур размещён на Vercel. Google OAuth работает через серверную зашифрованную сессию, чувствительная конфигурация хранится в Vercel Environment Variables, а операции с рейсами, архивом, PDF, печатью и email проходят через защищённые serverless API.
