@@ -1,9 +1,9 @@
 {
   "name": "ИП Карпов С.В. — Документы",
-  "short_name": "Карпов Docs",
+  "short_name": "ИП Карпов С.В.",
   "description": "Генератор счётов и актов. Грузоперевозки.",
-  "start_url": "/gruz/",
-  "scope": "/gruz/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0f0f11",
