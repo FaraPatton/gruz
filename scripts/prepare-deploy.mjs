@@ -7,6 +7,8 @@ const version = (
 ).trim();
 
 const versionedAssets = [
+  'css/intro.css',
+  'js/intro.js',
   'css/bb8.css',
   'css/style.css',
   'css/analytics.css',
