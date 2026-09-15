@@ -287,6 +287,7 @@ async function restoreServerAuthSession() {
 function requestAuth(prompt, resolve, reject) {
   if (usesServerAuthSession()) {
     const returnTo = location.pathname + location.search;
+    try { sessionStorage.setItem('gruz-intro-auth-return', String(Date.now())); } catch (_) {}
     location.href = authApiUrl('/api/auth/start?returnTo=' + encodeURIComponent(returnTo || '/'));
     return;
   }
