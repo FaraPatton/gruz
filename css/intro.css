@@ -7,12 +7,17 @@
 .gruz-intro__scene--end img {object-position:70% center;animation-delay:2.7s}
 .gruz-intro__shade {position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,14,24,.76),transparent 65%),linear-gradient(0deg,rgba(5,14,24,.75),transparent 45%)}
 .gruz-intro__top {position:absolute;top:max(28px,env(safe-area-inset-top));left:5vw;right:5vw;display:flex;justify-content:space-between;align-items:center;gap:20px;font-size:12px;letter-spacing:.16em}
-.gruz-intro__skip {display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#243543e8,#101d2ae8);color:#f6edda;border:1px solid #dbc58b80;border-radius:30px;padding:14px 22px;cursor:pointer;font:500 14px/1.3 'Segoe UI',Arial,sans-serif;letter-spacing:.04em;box-shadow:inset 0 1px 0 #ffffff16,0 8px 24px #00000024;white-space:nowrap;backdrop-filter:blur(12px)}
+.gruz-intro__skip {display:inline-flex;align-items:center;gap:10px;background:none;color:#f6edda;border:0;border-radius:0;padding:14px 0;cursor:default;font:500 14px/1.3 'Segoe UI',Arial,sans-serif;letter-spacing:.04em;box-shadow:none;white-space:nowrap;text-shadow:0 1px 8px #0009}
+.gruz-intro:focus {outline:none}
+.gruz-intro__skip:hover,.gruz-intro__skip:active {background:none;box-shadow:none;transform:none}
 .gruz-intro__loading-dot {width:6px;height:6px;flex-shrink:0;border-radius:50%;background:#e8c84a;box-shadow:0 0 10px #e8c84a80;animation:gruz-loading 1.6s ease-in-out infinite}
 .gruz-intro__footer {position:absolute;bottom:max(22px,env(safe-area-inset-bottom));left:5vw;right:5vw;text-align:center;color:#d3d9df;font:400 11px/1.6 'Segoe UI',Arial,sans-serif;letter-spacing:.04em;text-shadow:0 1px 6px #000}
 @keyframes gruz-loading {50%{opacity:.35}}
+.gruz-intro__details {margin:0;line-height:1.7}
+.gruz-intro__edo {overflow-wrap:anywhere}
+.gruz-intro__copyright {margin-top:8px;color:#b9c2cb}
 .gruz-intro__skip:focus-visible {outline:3px solid #e8c84a;outline-offset:4px}
-.gruz-intro__copy {position:absolute;left:7vw;bottom:15vh;max-width:540px;pointer-events:none}
+.gruz-intro__copy {position:absolute;left:7vw;bottom:max(15vh,140px);max-width:540px;pointer-events:none}
 .gruz-intro__eyebrow {font-size:12px;letter-spacing:.2em;color:#f0d782}
 .gruz-intro h2 {font-size:clamp(40px,6vw,86px);line-height:1.04;margin:20px 0;font-weight:600;letter-spacing:-.04em;color:white}
 .gruz-intro__caption {font-size:16px;line-height:1.6;color:#e1e7eb}
@@ -20,5 +25,5 @@
 @keyframes gruz-camera {from{transform:scale(1.02)}to{transform:scale(1.1)}}
 @keyframes gruz-reveal {to{opacity:1}}
 @keyframes gruz-progress {from{transform:scaleX(0)}to{transform:scaleX(1)}}
-@media(max-width:600px){.gruz-intro__scene{bottom:30%}.gruz-intro__scene img{object-fit:contain;object-position:center}.gruz-intro__shade{background:linear-gradient(0deg,#101a25 23%,transparent 65%)}.gruz-intro__copy{left:7vw;bottom:8vh;right:7vw}.gruz-intro h2{font-size:42px}.gruz-intro__top{font-size:10px}.gruz-intro__skip{padding:12px 15px}}
+@media(max-width:600px){.gruz-intro__scene{bottom:30%}.gruz-intro__scene img{object-fit:contain;object-position:center}.gruz-intro__shade{background:linear-gradient(0deg,#101a25 23%,transparent 65%)}.gruz-intro__copy{left:7vw;bottom:max(18vh,150px);right:7vw}.gruz-intro h2{font-size:42px}.gruz-intro__top{font-size:10px}.gruz-intro__skip{padding:12px 0}}
 @media(prefers-reduced-motion:reduce){.gruz-intro,.gruz-intro *{animation:none!important;transition:none!important}}
