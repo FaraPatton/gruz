@@ -67,7 +67,12 @@ body.has-workspace-scene #loginBtn.workspace-scene-enter:disabled{opacity:1;curs
 .scene-entry-edo span:last-child{overflow-wrap:anywhere;font-size:12px;font-variant-numeric:tabular-nums}
 @media(max-width:575px){.scene-entry-details{padding:16px 20px;top:18px}.scene-entry-label{font-size:23px;margin-bottom:10px}.scene-entry-edo span:last-child{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.scene-entry-details{transition:none;transform:translate(-50%,0)}}
-body.has-workspace-scene #loginBtn.workspace-scene-enter{display:grid;gap:5px;min-width:238px;padding:15px 32px 17px;border-radius:12px!important;background:linear-gradient(125deg,#761d29,#b53741 60%,#8c202e)!important;border:1px solid #d26870!important;color:#fff8f2!important;box-shadow:inset 0 1px 0 #ffffff30,0 9px 30px #701d3038;font-weight:600;transition:transform .35s,box-shadow .35s,filter .35s}
+body.has-workspace-scene #loginBtn.workspace-scene-enter{display:inline-grid;grid-template-columns:auto 24px;column-gap:16px;row-gap:3px;min-width:0;width:fit-content;min-height:58px;padding:11px 19px 13px;border-radius:14px!important;background:linear-gradient(125deg,#761d29,#b53741 60%,#8c202e)!important;border:1px solid #d26870!important;color:#fff8f2!important;box-shadow:inset 0 1px 0 #ffffff30,0 9px 30px #701d3038;font-weight:600;text-align:left;transition:transform .25s,box-shadow .25s,filter .25s}
+.workspace-scene-enter .legend-tag{grid-column:1;grid-row:1;font-size:8px}
+.workspace-scene-enter #loginBtnText{grid-column:1;grid-row:2;white-space:nowrap}
+.workspace-scene-enter #loginBtnIcon{display:none!important}
+.scene-enter-arrow{grid-column:2;grid-row:1 / span 2;font:22px/1 'Segoe UI',sans-serif;transition:transform .25s;opacity:.9}
+.workspace-scene-enter:hover .scene-enter-arrow,.workspace-scene-enter:focus-visible .scene-enter-arrow{transform:translate(3px,-3px)}
 body.has-workspace-scene #loginBtn.workspace-scene-enter:hover{filter:brightness(1.12);transform:translateY(-2px);box-shadow:inset 0 1px 0 #ffffff45,0 12px 36px #701d3055}
 body.has-workspace-scene #loginBtn.workspace-scene-enter:active{transform:translateY(0)}
 .legend-tag{font:600 9px/1.4 'Segoe UI',sans-serif;letter-spacing:.2em;color:#f3c2bc}
@@ -96,9 +101,11 @@ body.has-workspace-scene #loginBtn.workspace-scene-enter{margin-top:42px;max-wid
 @media(max-width:767px){
  .workspace-scene-copy{width:calc(100% - 32px)}
  .workspace-scene-copy h1{font-size:clamp(40px,12.5vw,52px);line-height:1.2}
- body.has-workspace-scene #loginBtn.workspace-scene-enter{margin-top:38px;min-width:0;width:min(250px,100%);min-height:68px}
+ body.has-workspace-scene #loginBtn.workspace-scene-enter{margin-top:38px;min-width:0;width:fit-content;min-height:58px}
  .scene-entry-details{max-height:calc(100svh - 36px);overflow-y:auto}
  .scene-details-close,.scene-details-copy,.scene-details-reopen{min-height:44px}
  .workspace-scene-controls .interface-preferences summary{min-height:44px;box-sizing:border-box;display:flex;align-items:center}
  .workspace-scene-controls .bb8-toggle{min-height:44px;padding:0 4px}
 }
+.interface-footer .scene-details-reopen{margin:0 8px 8px}
+@media(prefers-reduced-motion:reduce){body.has-workspace-scene #loginBtn.workspace-scene-enter,.scene-enter-arrow{transition:none!important;transform:none!important}}

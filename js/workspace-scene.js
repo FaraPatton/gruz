@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
   login.dataset.sceneEnter = 'true';
   document.getElementById('loginBtnText').textContent = 'Оформить бумаги';
   const legend = document.createElement('span'); legend.className = 'legend-tag'; legend.textContent = 'MAN · LEGEND'; legend.setAttribute('aria-hidden','true'); login.prepend(legend);
+  const arrow = document.createElement('span'); arrow.className = 'scene-enter-arrow'; arrow.textContent = '↗'; arrow.setAttribute('aria-hidden','true'); login.append(arrow);
   login.classList.add('workspace-scene-enter');
   scene.querySelector('.workspace-scene-copy').append(login);
   const controls = document.createElement('div');
@@ -113,9 +114,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const hideBanner = (force = false) => {
     clearTimeout(bannerTimer);
     if(!force && !banner.dataset.dismissed && (copyBusy || banner.matches(':hover') || banner.contains(document.activeElement))){bannerTimer=setTimeout(()=>hideBanner(),1200);return;}
-    banner.classList.remove('is-visible');bannerTimer=setTimeout(()=>{if(banner.contains(document.activeElement))nav.focus({preventScroll:true});banner.hidden=true;},180);
+    banner.classList.remove('is-visible');bannerTimer=setTimeout(()=>{if(banner.contains(document.activeElement))reopen.focus({preventScroll:true});banner.hidden=true;},180);
   };
-  banner.querySelector('.scene-details-close').addEventListener('click',()=>{banner.dataset.dismissed='true';hideBanner(true);nav.focus({preventScroll:true});});
+  banner.querySelector('.scene-details-close').addEventListener('click',()=>{banner.dataset.dismissed='true';hideBanner(true);reopen.focus({preventScroll:true});});
   const detailsText = 'ИП Карпов С.В.\nКод ATI: 2936939\nКонтур ЭДО: 2BM-771313296859-2026090605550033630920000000021:03';
   banner.querySelector('.scene-details-copy').addEventListener('click',async()=>{
     copyBusy=true;clearTimeout(bannerTimer);
@@ -129,7 +130,8 @@ document.addEventListener('DOMContentLoaded', () => {
     finally {copyBusy=false;}
   });
   const reopen=document.createElement('button');reopen.type='button';reopen.className='scene-details-reopen';reopen.textContent='Реквизиты';
-  controls.append(reopen);reopen.addEventListener('click',()=>{showBanner();banner.querySelector('.scene-details-copy').focus({preventScroll:true});});
+  document.querySelector('.interface-footer').prepend(reopen);reopen.addEventListener('click',()=>{showBanner();banner.querySelector('.scene-details-copy').focus({preventScroll:true});});
+  banner.addEventListener('keydown',event=>{if(event.key==='Escape'){hideBanner(true);reopen.focus({preventScroll:true});}});
   const finishEntry = async () => {
     const completed = await enter();
     hideBanner();entering=false;login.disabled=false;update();
@@ -137,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   login.addEventListener('click',async()=>{
     if(entering)return;
-    entering=true;login.disabled=true;showBanner();
+    entering=true;login.disabled=true;hideBanner(true);
     const local=typeof isLocalDesignPreview==='function' && isLocalDesignPreview();
     const legacy=!local && !usesServerAuthSession();
     const legacyLogin = legacy ? googleLogin({quiet:true}) : null;
@@ -161,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const stamp=Number(sessionStorage.getItem('gruz-scene-auth-return'));
     sessionStorage.removeItem('gruz-scene-auth-return');
     if(stamp && Date.now()-stamp<600000){
-      entering=true;showBanner();
+      entering=true;
       requestAnimationFrame(async()=>{
         scrollTo({top:scene.offsetTop+scene.offsetHeight-innerHeight,behavior:'instant'});
         await Promise.resolve(window.gruzAuthRestore);
