@@ -168,3 +168,19 @@ body.workbench[data-theme="light"] .workspace-tools .bh-email {--tool-border:#c7
 body.workbench[data-theme="light"] .workspace-tools .bh-sign {--tool-border:#9943ad;--tool-text:#7e3290}
 body.workbench[data-theme="light"] .workspace-tools .bh {border-color:var(--tool-border)!important;color:var(--tool-text)!important;background:color-mix(in srgb,var(--tool-border) 7%,var(--surf))!important}
 body.workbench[data-theme="light"] .workspace-tools .bh:hover,body.workbench[data-theme="light"] .workspace-tools .bh:focus-visible {background:color-mix(in srgb,var(--tool-border) 14%,var(--surf))!important}
+/* Keep the three secondary controls directly beneath the document tools. */
+.workbench .workspace-editor .cl {line-height:1.5;align-items:flex-start}
+.workbench .workspace-editor .cl::before {flex:0 0 8px;margin-top:7px}
+body.workbench .main {padding-bottom:32px}
+body.workbench .workspace-secondary-actions {display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 0;padding:0;text-align:center}
+body.has-workspace-scene .workspace-secondary-actions .workspace-mobile-action {visibility:visible}
+.workspace-secondary-actions .workspace-mobile-action {--secondary-border:#48b6cb;--secondary-text:#9eddeb}
+.workspace-secondary-actions .scene-details-reopen {--secondary-border:#55bd8f;--secondary-text:#a2e4c6}
+.workspace-secondary-actions #switchInterfaceFooter {--secondary-border:#9790df;--secondary-text:#cbc4ff;grid-column:1 / -1}
+body.workbench .workspace-secondary-actions > :is(a,button) {position:static;display:flex;visibility:visible;align-items:center;justify-content:center;gap:8px;width:100%;min-width:0;min-height:46px;margin:0;padding:12px 14px;box-sizing:border-box;border:1px solid var(--secondary-border);border-radius:10px;background:color-mix(in srgb,var(--secondary-border) 8%,var(--bg));color:var(--secondary-text);font:500 12px/1.5 'Segoe UI',sans-serif;text-decoration:none;white-space:normal;cursor:pointer;box-shadow:none;transition:background .2s,box-shadow .2s}
+body.workbench .workspace-secondary-actions > :is(a,button):hover {background:color-mix(in srgb,var(--secondary-border) 17%,var(--bg));box-shadow:0 3px 14px color-mix(in srgb,var(--secondary-border) 14%,transparent)}
+body.workbench .workspace-secondary-actions > :is(a,button):focus-visible {outline:2px solid var(--secondary-text);outline-offset:3px}
+body.workbench .workspace-secondary-actions p {grid-column:1 / -1;margin:0;font-size:12px}
+body.workbench[data-theme="light"] .workspace-secondary-actions .workspace-mobile-action {--secondary-border:#32879a;--secondary-text:#1d6575}
+body.workbench[data-theme="light"] .workspace-secondary-actions .scene-details-reopen {--secondary-border:#45956d;--secondary-text:#276345}
+body.workbench[data-theme="light"] .workspace-secondary-actions #switchInterfaceFooter {--secondary-border:#8b77bd;--secondary-text:#5e438c}
