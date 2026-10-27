@@ -130,7 +130,9 @@ document.addEventListener('DOMContentLoaded', () => {
     finally {copyBusy=false;}
   });
   const reopen=document.createElement('button');reopen.type='button';reopen.className='scene-details-reopen';reopen.textContent='Реквизиты';
-  document.querySelector('.interface-footer').prepend(reopen);reopen.addEventListener('click',()=>{showBanner();banner.querySelector('.scene-details-copy').focus({preventScroll:true});});
+  const footer = document.querySelector('.interface-footer');
+  footer.insertBefore(reopen,footer.querySelector('#switchInterfaceFooter'));
+  reopen.addEventListener('click',()=>{showBanner();banner.querySelector('.scene-details-copy').focus({preventScroll:true});});
   banner.addEventListener('keydown',event=>{if(event.key==='Escape'){hideBanner(true);reopen.focus({preventScroll:true});}});
   const finishEntry = async () => {
     const completed = await enter();
