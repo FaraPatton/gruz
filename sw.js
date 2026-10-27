@@ -1,11 +1,11 @@
 // Service Worker
-const CACHE = 'gruz-202606292017';
+const CACHE = 'gruz-20261027-workspace';
 const ASSETS = [
-  '/gruz/', '/gruz/index.html', '/gruz/css/bb8.css?v=202606292017', '/gruz/css/style.css?v=202606292017', '/gruz/css/analytics.css?v=202606292017',
-  '/gruz/js/stamp_secure.js?v=202606292017',
-  '/gruz/js/config.js?v=202606292017', '/gruz/js/lazy_libs.js?v=202606292017', '/gruz/js/utils.js?v=202606292017', '/gruz/js/auth.js?v=202606292017',
-  '/gruz/js/pdf.js?v=202606292017', '/gruz/js/drive.js?v=202606292017', '/gruz/js/email.js?v=202606292017',
-  '/gruz/js/sign.js?v=202606292017', '/gruz/js/analytics_calc.js?v=202606292017', '/gruz/js/analytics_trips.js?v=202606292017', '/gruz/js/analytics_registry.js?v=202606292017', '/gruz/js/analytics_routes.js?v=202606292017', '/gruz/js/analytics.js?v=202606292017', '/gruz/js/pwa_update.js?v=202606292017',
+  '/gruz/', '/gruz/index.html', '/gruz/css/bb8.css?v=20261027-workspace', '/gruz/css/style.css?v=20261027-workspace', '/gruz/css/analytics.css?v=20261027-workspace',
+  '/gruz/js/stamp_secure.js?v=20261027-workspace',
+  '/gruz/js/config.js?v=20261027-workspace', '/gruz/js/lazy_libs.js?v=20261027-workspace', '/gruz/js/utils.js?v=20261027-workspace', '/gruz/js/auth.js?v=20261027-workspace',
+  '/gruz/js/pdf.js?v=20261027-workspace', '/gruz/js/drive.js?v=20261027-workspace', '/gruz/js/email.js?v=20261027-workspace',
+  '/gruz/js/sign.js?v=20261027-workspace', '/gruz/js/analytics_calc.js?v=20261027-workspace', '/gruz/js/analytics_trips.js?v=20261027-workspace', '/gruz/js/analytics_registry.js?v=20261027-workspace', '/gruz/js/analytics_routes.js?v=20261027-workspace', '/gruz/js/analytics.js?v=20261027-workspace', '/gruz/js/pwa_update.js?v=20261027-workspace',
   '/gruz/manifest.json', '/gruz/img/truck-neon-hero.jpg?v=1',
   '/gruz/img/icon-192.png'
 ];
