@@ -152,3 +152,19 @@ body.workbench[data-theme="light"] .workspace-editor .fi {background:var(--surf2
  .workspace-scene-controls{gap:8px}
  .workspace-review-head{gap:8px}
 }
+/* Classic action colors, with the modern button geometry. */
+.workbench .workspace-tools .bh-drive {--tool-border:#4285f4;--tool-text:#8db8ff}
+.workbench .workspace-tools .bh-archive {--tool-border:#e8c84a;--tool-text:#e8c84a}
+.workbench .workspace-tools .bh-email {--tool-border:#ea4335;--tool-text:#ff958c}
+.workbench .workspace-tools .bh-sign {--tool-border:#b44bc9;--tool-text:#dda0ec}
+body.workbench .workspace-tools .bh {border-color:var(--tool-border)!important;color:var(--tool-text)!important;background:color-mix(in srgb,var(--tool-border) 9%,var(--bg))!important;font-weight:500;transition:background .2s,border-color .2s,box-shadow .2s,transform .2s}
+body.workbench .workspace-tools .bh:hover,body.workbench .workspace-tools .bh:focus-visible {background:color-mix(in srgb,var(--tool-border) 18%,var(--bg))!important;box-shadow:0 4px 18px color-mix(in srgb,var(--tool-border) 18%,transparent);transform:translateY(-1px)}
+body.workbench .workspace-tools .bh:focus-visible {outline:2px solid var(--tool-text);outline-offset:3px}
+body.workbench .workspace-tools .bh:active {transform:translateY(0)}
+body.workbench .workspace-tools .bh:disabled {transform:none;opacity:.5;cursor:not-allowed;box-shadow:none}
+body.workbench[data-theme="light"] .workspace-tools .bh-drive {--tool-border:#3268c7;--tool-text:#2457af}
+body.workbench[data-theme="light"] .workspace-tools .bh-archive {--tool-border:#a48217;--tool-text:#765900}
+body.workbench[data-theme="light"] .workspace-tools .bh-email {--tool-border:#c74135;--tool-text:#a52d24}
+body.workbench[data-theme="light"] .workspace-tools .bh-sign {--tool-border:#9943ad;--tool-text:#7e3290}
+body.workbench[data-theme="light"] .workspace-tools .bh {border-color:var(--tool-border)!important;color:var(--tool-text)!important;background:color-mix(in srgb,var(--tool-border) 7%,var(--surf))!important}
+body.workbench[data-theme="light"] .workspace-tools .bh:hover,body.workbench[data-theme="light"] .workspace-tools .bh:focus-visible {background:color-mix(in srgb,var(--tool-border) 14%,var(--surf))!important}
