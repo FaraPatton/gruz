@@ -29,3 +29,4 @@
 @keyframes gruz-progress {from{transform:scaleX(0)}to{transform:scaleX(1)}}
 @media(max-width:600px){.gruz-intro__scene{bottom:30%}.gruz-intro__scene img{object-fit:contain;object-position:center}.gruz-intro__shade{background:linear-gradient(0deg,#101a25 23%,transparent 65%)}.gruz-intro__copy{left:7vw;bottom:max(18vh,180px);right:7vw}.gruz-intro h2{font-size:42px}.gruz-intro__top{font-size:10px}.gruz-intro__skip{padding:12px 0}}
 @media(prefers-reduced-motion:reduce){.gruz-intro,.gruz-intro *{animation:none!important;transition:none!important}}
+.gruz-intro__top{justify-content:flex-end}
