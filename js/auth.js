@@ -4,8 +4,25 @@ let analyticsWhitelistCheck = null;
 let privateRuntimeConfigPromise = null;
 const SERVER_SESSION_TOKEN = '__gruz_server_session__';
 
+function isLocalDesignPreview() {
+  return ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname) && location.port === '8012';
+}
+
+function explainLocalDesignPreview() {
+  const notice = document.getElementById('localPreviewNotice');
+  if (notice) {
+    notice.hidden = false;
+    notice.scrollIntoView({ block: 'center' });
+    notice.focus({ preventScroll: true });
+  } else {
+    const status = document.getElementById('loginStatus');
+    if (status) status.textContent = 'Локальное превью. Для документов откройте gruz-kappa.vercel.app.';
+  }
+  return new Error('Это локальное превью дизайна. Вход и работа с документами доступны на gruz-kappa.vercel.app.');
+}
+
 function usesServerAuthSession() {
-  return /\.vercel\.app$/i.test(location.hostname) || location.hostname === 'localhost';
+  return /\.vercel\.app$/i.test(location.hostname) || ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
 }
 
 async function loadPrivateRuntimeConfig() {
@@ -52,7 +69,7 @@ function getTokenClient() {
         const status  = document.getElementById('loginStatus');
         setAuthLockState(true);
         if (typeof syncAuthDependentUi === 'function') syncAuthDependentUi();
-        if (btnTxt)  { btnTxt.textContent = 'Google'; }
+        if (btnTxt)  { btnTxt.textContent = btn?.dataset.sceneEnter === 'true' ? 'Оформить бумаги' : 'Google'; }
         if (btnIcon) { btnIcon.textContent = '✓'; btnIcon.style.color = 'var(--acc)'; btnIcon.style.display = 'inline'; }
         if (btn)     { btn.style.borderColor = 'var(--acc)'; btn.style.color = 'var(--acc)'; btn.style.boxShadow = '0 0 10px rgba(232,200,74,.2)'; btn.disabled = false; }
         if (status)  { status.textContent = 'АВТОРИЗОВАН'; status.style.color = 'var(--acc)'; }
@@ -254,6 +271,7 @@ function setAuthLockState(locked) {
 }
 
 async function restoreServerAuthSession() {
+  if (isLocalDesignPreview()) return;
   if (!usesServerAuthSession()) return;
   const params = new URLSearchParams(location.search);
   const authError = params.get('auth_error');
@@ -271,7 +289,7 @@ async function restoreServerAuthSession() {
     const btnIcon = document.getElementById('loginBtnIcon');
     const btn = document.getElementById('loginBtn');
     const status = document.getElementById('loginStatus');
-    if (btnTxt) btnTxt.textContent = 'Google';
+    if (btnTxt) btnTxt.textContent = btn?.dataset.sceneEnter === 'true' ? 'Оформить бумаги' : 'Google';
     if (btnIcon) { btnIcon.textContent = '✓'; btnIcon.style.color = 'var(--acc)'; btnIcon.style.display = 'inline'; }
     if (btn) { btn.style.borderColor = 'var(--acc)'; btn.style.color = 'var(--acc)'; btn.style.boxShadow = '0 0 10px rgba(232,200,74,.2)'; btn.disabled = false; }
     if (status) { status.textContent = 'АВТОРИЗОВАН'; status.style.color = 'var(--acc)'; }
@@ -285,6 +303,10 @@ async function restoreServerAuthSession() {
 }
 
 function requestAuth(prompt, resolve, reject) {
+  if (isLocalDesignPreview()) {
+    reject(explainLocalDesignPreview());
+    return;
+  }
   if (usesServerAuthSession()) {
     const returnTo = location.pathname + location.search;
     try { sessionStorage.setItem('gruz-intro-auth-return', String(Date.now())); } catch (_) {}
@@ -319,7 +341,11 @@ function requestAuth(prompt, resolve, reject) {
     });
 }
 
-async function googleLogin() {
+async function googleLogin(options = {}) {
+  if (isLocalDesignPreview()) {
+    explainLocalDesignPreview();
+    return;
+  }
   const btn     = document.getElementById('loginBtn');
   const btnTxt  = document.getElementById('loginBtnText');
   const status  = document.getElementById('loginStatus');
@@ -335,7 +361,7 @@ async function googleLogin() {
       return;
     }
   }
-  setGoogleOverlayState(true, 'ПЕРЕХОД В GOOGLE', 'АВТОРИЗАЦИЯ...');
+  if (!options.quiet && !document.body.classList.contains('has-workspace-scene')) setGoogleOverlayState(true, 'ПЕРЕХОД В GOOGLE', 'АВТОРИЗАЦИЯ...');
   btn.disabled = true;
   setAuthLockState(false);
   status.textContent = '';
@@ -353,4 +379,4 @@ async function googleLogin() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', restoreServerAuthSession);
+document.addEventListener('DOMContentLoaded', () => { window.gruzAuthRestore = restoreServerAuthSession(); });

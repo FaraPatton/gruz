@@ -234,8 +234,9 @@ function applyParsed() {
   set('unload_date',   toInput(d.unloadDate));
   set('amount',        d.amount);
   document.getElementById('amount_words').value = amountToWords(d.amount || 0);
-  closeParsed();
-  showToast('✅ Данные из Drive заполнены!');
+    closeParsed();
+    showToast('✅ Данные из Drive заполнены!');
+    document.dispatchEvent(new Event('gruz:data-updated'));
 }
 
 function driveQueryValue(value) {
