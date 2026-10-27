@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const editor = element('section', 'workspace-editor');
   editor.id = 'document-editor';
   editor.setAttribute('aria-label', 'Данные для счёта и акта');
-  const titles = ['01 / Документ', '02 / Заказчик', '03 / Перевозка и стоимость', '04 / Печать и подпись'];
+  const titles = ['Шаг 1 — Укажите номер и даты счёта и акта', 'Шаг 2 — Заполните данные заказчика', 'Шаг 3 — Укажите маршрут и стоимость перевозки', 'Шаг 4 — Добавьте печать и подпись'];
   cards.slice(0, 4).forEach((card, i) => {
     card.querySelector('.cl').textContent = titles[i];
     card.classList.add('is-visible');
@@ -85,10 +85,15 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }, true);
   }
-  const mobileAction = element('a', 'workspace-mobile-action', 'Счёт и акт <span aria-hidden="true">↓</span>');
-  mobileAction.href = '#document-actions';
-  mobileAction.setAttribute('aria-label', 'Перейти к созданию счёта и акта');
-  main.append(mobileAction);
+  const mobileAction = element('a', 'workspace-mobile-action', 'Счёт и акт <span aria-hidden="true">↑</span>');
+  mobileAction.href = '#document-editor';
+  mobileAction.setAttribute('aria-label', 'Вернуться к заполнению счёта и акта');
+  const footer = document.querySelector('.interface-footer');
+  if (footer) {
+    footer.classList.add('workspace-secondary-actions');
+    footer.prepend(mobileAction);
+    aside.append(footer);
+  }
 
   const theme = document.querySelector('.bb8-toggle');
   if (theme) {
