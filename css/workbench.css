@@ -113,7 +113,7 @@ body.workbench[data-theme="light"] .workspace-tools .bh {background:transparent!
 @media(max-width:991px){.workspace-grid{grid-template-columns:minmax(0,1fr)}.workspace-aside{position:static;max-width:none}.workspace-paper{padding:28px}.workspace-nav-note{display:none}.workspace-mobile-action{position:fixed;bottom:max(14px,env(safe-area-inset-bottom));right:20px;z-index:90;display:flex;gap:22px;align-items:center;padding:13px 20px;border:1px solid var(--brd);border-radius:10px;background:var(--surf);box-shadow:0 4px 20px #0003;color:var(--txt);text-decoration:none;font-size:13px}.workbench .main{padding-bottom:110px}}
 @media(max-width:575px){.workbench .app-hdr{padding:18px 20px}.workbench .hdr-in{gap:16px}.workbench .brand-copy h1{font-size:17px}.workbench .auth-row{gap:12px}.workbench .google-auth-btn{font-size:12px;padding:10px 12px}.workspace-theme-caption{display:none}.workspace-nav{padding:12px 16px;gap:4px}.workspace-monogram{display:none}.workspace-nav a,.workspace-nav button{padding:10px 14px;font-size:13px}.workbench .main{padding:26px 16px 110px}.workspace-heading{margin-bottom:22px}.workspace-heading h2{font-size:30px}.workspace-heading p{font-size:13px;max-width:250px}.workspace-date{display:none}.workbench .dc{padding:20px 16px}.workbench .fi{font-size:16px;min-width:0}.workspace-editor>.dc:first-child .col-4:first-child{width:100%}.workspace-editor>.dc:first-child .col-4{width:50%}.workspace-editor .col-6:has(#amount_words){width:100%}.workspace-editor .col-6:has(#amount){width:100%}.workspace-paper{padding:22px 18px;margin:0 14px}.workspace-review-head{padding:16px 14px}.workspace-review-note{padding:0 14px}.workspace-grid{gap:8px}.workspace-mobile-action{right:16px}}
 /* Soft surfaces and distinct, quiet accents for each stage of the form. */
-body.workbench {--bg:#102034;--surf:#1c354f;--surf2:#10253a;--brd:#b09a68;--txt:#f5f8fc;--txt2:#d0deed;--mut:#b2c5da;--acc:#e4c582;--acc2:#d5b36a}
+body.workbench {--bg:#12131b;--surf:#252434;--surf2:#191b29;--brd:#b09a68;--txt:#fbf9ff;--txt2:#e0ddec;--mut:#bdbacf;--acc:#e4c582;--acc2:#d5b36a}
 .workbench .app-hdr,body.workbench[data-theme="light"] .app-hdr {background:linear-gradient(110deg,color-mix(in srgb,var(--acc) 10%,var(--surf)),var(--surf) 65%);border-bottom-color:color-mix(in srgb,var(--acc) 28%,var(--brd))}
 .workbench .brand-copy {border-left:2px solid var(--acc);padding-left:16px;min-width:0}
 .workbench .brand-copy h1 {font-size:23px;font-weight:650;letter-spacing:-.6px}
@@ -126,15 +126,19 @@ body.workbench {--bg:#102034;--surf:#1c354f;--surf2:#10253a;--brd:#b09a68;--txt:
 .workspace-nav [aria-current] {border-color:color-mix(in srgb,var(--acc) 45%,var(--brd));color:var(--acc);background:color-mix(in srgb,var(--acc) 7%,var(--surf))}
 .workspace-nav a:hover,.workspace-nav button:hover,.workspace-nav a:focus-visible,.workspace-nav button:focus-visible {background:color-mix(in srgb,var(--acc) 16%,var(--surf));border-color:var(--acc);color:var(--acc);box-shadow:0 3px 16px #d9b76c12}
 .workspace-clock {display:block;font-size:13px;line-height:1.8;color:var(--txt2);font-variant-numeric:tabular-nums;margin-top:12px}
-.workbench .workspace-editor>.dc {--card-accent:#e4c582;position:relative;border:1px solid var(--brd);border-radius:16px;background:var(--surf);box-shadow:0 10px 28px #020b1638,inset 0 1px 0 #ffffff0a;transition:border-color .25s,box-shadow .25s}
-.workbench .workspace-editor>.dc[data-section="customer"] {--card-accent:#99baa9}
-.workbench .workspace-editor>.dc[data-section="route"] {--card-accent:#9fb5cd}
-.workbench .workspace-editor>.dc[data-section="signature"] {--card-accent:#b8a6cc}
+.workbench .workspace-editor>.dc {--card-accent:#c4bdff;--panel-start:#403a78;--panel-end:#2c2b50;position:relative;border:1px solid var(--brd);border-radius:16px;background:linear-gradient(130deg,var(--panel-start),var(--panel-end));box-shadow:0 12px 30px #05060e50,inset 0 1px 0 #ffffff17;transition:border-color .25s,box-shadow .25s}
+.workbench .workspace-editor>.dc[data-section="customer"] {--card-accent:#a1edcb;--panel-start:#24604e;--panel-end:#1a4038}
+.workbench .workspace-editor>.dc[data-section="route"] {--card-accent:#ffbdc3;--panel-start:#71384d;--panel-end:#4a2a3c}
+.workbench .workspace-editor>.dc[data-section="signature"] {--card-accent:#e5b7ff;--panel-start:#613d7d;--panel-end:#3d2b52}
+body.workbench[data-theme="light"] .workspace-editor>.dc {--panel-start:#eeebff;--panel-end:#f8f7ff;background:linear-gradient(130deg,var(--panel-start),var(--panel-end));box-shadow:0 8px 24px #35304c0d}
+body.workbench[data-theme="light"] .workspace-editor>.dc[data-section="customer"] {--panel-start:#ddf4e9;--panel-end:#f3fcf7;--card-accent:#287a5c}
+body.workbench[data-theme="light"] .workspace-editor>.dc[data-section="route"] {--panel-start:#f8e2e8;--panel-end:#fff6f8;--card-accent:#a44360}
+body.workbench[data-theme="light"] .workspace-editor>.dc[data-section="signature"] {--panel-start:#f0e3fa;--panel-end:#fcf7ff;--card-accent:#8250a4}
 .workbench .workspace-editor>.dc:hover {border-color:color-mix(in srgb,var(--acc) 65%,var(--brd))}
 .workbench .workspace-editor>.dc:focus-within {border-color:var(--acc);box-shadow:0 0 0 2px color-mix(in srgb,var(--acc) 14%,transparent),0 12px 30px #020b1640}
 .workbench .workspace-editor .cl {display:flex;align-items:center;gap:12px;font-weight:500;color:var(--txt)}
 .workbench .workspace-editor .cl::before {content:'';width:8px;height:8px;border-radius:50%;background:var(--card-accent);box-shadow:0 0 12px color-mix(in srgb,var(--card-accent) 25%,transparent)}
-.workbench .workspace-editor .fi {background:#0b1c2d;transition:border-color .2s,box-shadow .2s;border-color:#71869c;box-shadow:inset 0 2px 5px #020b1630;color:var(--txt)}
+.workbench .workspace-editor .fi {background:#141622;transition:border-color .2s,box-shadow .2s;border-color:#8d8aa3;box-shadow:inset 0 2px 5px #02030b45;color:var(--txt)}
 .workbench .workspace-editor .fi:hover {border-color:var(--acc)}
 body.workbench[data-theme="light"] .workspace-editor .fi {background:#fff;border-color:#8498ae;box-shadow:inset 0 1px 3px #2039510a}
 .workbench .workspace-editor .fi:focus {border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 16%,transparent)}
