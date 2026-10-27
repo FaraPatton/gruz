@@ -37,9 +37,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const editor = element('section', 'workspace-editor');
   editor.id = 'document-editor';
   editor.setAttribute('aria-label', 'Данные для счёта и акта');
-  const titles = ['Шаг 1 — Укажите номер и даты счёта и акта', 'Шаг 2 — Заполните данные заказчика', 'Шаг 3 — Укажите маршрут и стоимость перевозки', 'Шаг 4 — Добавьте печать и подпись'];
+  const titles = ['Укажите номер и даты счёта и акта', 'Заполните данные заказчика', 'Укажите маршрут и стоимость перевозки', 'Добавьте печать и подпись'];
   cards.slice(0, 4).forEach((card, i) => {
-    card.querySelector('.cl').textContent = titles[i];
+    const title = card.querySelector('.cl');
+    title.replaceChildren(element('span', 'workspace-step-index', `Шаг ${i + 1}`), element('span', 'workspace-step-title', titles[i]));
     card.classList.add('is-visible');
     card.dataset.section = ['document', 'customer', 'route', 'signature'][i];
     card.classList.remove('reveal-on-scroll');
