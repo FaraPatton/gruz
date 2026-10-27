@@ -7,6 +7,7 @@ const version = (
 ).trim();
 
 const versionedAssets = [
+  'css/workspace-cards.css',
   'css/workspace-scene.css',
   'js/workspace-scene.js',
   'js/interface-preferences.js',
