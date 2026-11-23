@@ -1363,3 +1363,26 @@ body[data-theme="light"] .app-slogan span {
   .bd { font-size: 15px; padding: 14px; }
   .doc-flight-btn { font-size: 16px; min-height: 58px; padding: .7em .8em .7em .75em; }
 }
+
+.address-suggestions {
+  margin-top: 6px;
+  border: 1px solid var(--brd);
+  border-radius: 8px;
+  background: var(--surf);
+}
+.address-suggestions ul { margin: 0; padding: 0; list-style: none; }
+.address-suggestions button,
+.address-suggestions a {
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--txt);
+  font: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.address-suggestions button { cursor: pointer; }
+.address-suggestions a:not([hidden]) { display: block; }
+.address-suggestions button:hover,
+.address-suggestions a:hover { background: var(--surf2); }
