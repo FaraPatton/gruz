@@ -1371,8 +1371,7 @@ body[data-theme="light"] .app-slogan span {
   background: var(--surf);
 }
 .address-suggestions ul { margin: 0; padding: 0; list-style: none; }
-.address-suggestions button,
-.address-suggestions a {
+.address-suggestions button {
   width: 100%;
   padding: 10px 12px;
   border: 0;
@@ -1383,6 +1382,4 @@ body[data-theme="light"] .app-slogan span {
   overflow-wrap: anywhere;
 }
 .address-suggestions button { cursor: pointer; }
-.address-suggestions a:not([hidden]) { display: block; }
-.address-suggestions button:hover,
-.address-suggestions a:hover { background: var(--surf2); }
+.address-suggestions button:hover { background: var(--surf2); }
