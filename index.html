@@ -20,7 +20,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="img/icon-192.png">
 <link rel="stylesheet" href="css/bb8.css?v=20261123-classic">
-<link rel="stylesheet" href="css/style.css?v=20261123-classic">
+<link rel="stylesheet" href="css/style.css?v=20261123-inline-addresses">
 <link rel="stylesheet" href="css/analytics.css?v=20261123-classic">
 <link rel="stylesheet" href="css/workspace-scene.css?v=20261123-classic">
 </head>
@@ -136,11 +136,11 @@
   <div class="dc">
     <div class="cl">Маршрут и услуга</div>
     <div class="row g-3 mb-3">
-      <div class="col-12"><label class="fl">Откуда (пункт А)</label><input type="text" id="from_a" class="fi" value="Москва, Сигнальный проезд д. 16"></div>
+      <div class="col-12"><label class="fl" for="from_a">Откуда (пункт А)</label><input type="text" id="from_a" class="fi" value="Москва, Сигнальный проезд д. 16" autocomplete="off" aria-controls="from_a-suggestions" aria-expanded="false"><div class="address-suggestions" id="from_a-suggestions" hidden><ul aria-label="Подсказки адресов"></ul></div></div>
       <input type="hidden" id="from_b" value="">
     </div>
     <div class="row g-3 mb-3">
-      <div class="col-12"><label class="fl">Куда (пункт Б)</label><input type="text" id="to_a" class="fi" value="Тверская область, Овцы, ул. Речная д. 1"></div>
+      <div class="col-12"><label class="fl" for="to_a">Куда (пункт Б)</label><input type="text" id="to_a" class="fi" value="Тверская область, Овцы, ул. Речная д. 1" autocomplete="off" aria-controls="to_a-suggestions" aria-expanded="false"><div class="address-suggestions" id="to_a-suggestions" hidden><ul aria-label="Подсказки адресов"></ul></div></div>
       <input type="hidden" id="to_b" value="">
     </div>
     <div class="row g-3 mb-3">
@@ -338,6 +338,7 @@
 <script defer src="js/analytics_registry.js?v=20261123-classic"></script>
 <script defer src="js/analytics_routes.js?v=20261123-classic"></script>
 <script defer src="js/analytics.js?v=20261123-classic"></script>
+<script defer src="js/address-suggestions.js?v=20261123-inline-addresses"></script>
 <script defer src="js/pwa_update.js?v=20261123-classic"></script>
 <script defer src="js/workspace-scene.js?v=20261123-classic"></script>
 
